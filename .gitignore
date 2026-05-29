@@ -1,0 +1,38 @@
+# ── Dependencias ─────────────────────────────────────────────────────────────
+node_modules/
+vendor/
+
+# ── Build artifacts ───────────────────────────────────────────────────────────
+dist/
+build/
+out/
+*.exe
+*.out
+*.test
+*.so
+
+# ── Go ────────────────────────────────────────────────────────────────────────
+backend/bin/
+backend/tmp/
+
+# ── Variables de entorno ──────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Editor / OS ───────────────────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── TypeScript / Vite cache ───────────────────────────────────────────────────
+.tsbuildinfo
+frontend/.tsbuildinfo
+frontend/tsconfig.tsbuildinfo

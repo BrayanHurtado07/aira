@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@radix-ui/react-select": "^2.2.6",
+    "date-fns": "^4.3.0",
+    "react-day-picker": "^10.0.1"
+  }
+}
