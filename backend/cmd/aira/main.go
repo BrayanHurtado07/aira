@@ -21,6 +21,7 @@ import (
 	casoOrg "aira/capacidades/organizacion/casos_uso"
 	contratosReservas "aira/capacidades/reservas/contratos"
 	casoReservas "aira/capacidades/reservas/casos_uso"
+	casoTablero "aira/capacidades/tablero/casos_uso"
 	"aira/compartido/eventos"
 	"aira/persistencia/cockroach"
 	"aira/plataforma/gobierno/auditoria"
@@ -191,6 +192,10 @@ func main() {
 	// Identidad — refresh
 	cuRefrescarSesion := casoIdentidad.NuevoCasoUsoRefrescarSesion(repoSesion, publicador, aud)
 
+	// Tablero
+	repoTablero := cockroach.NuevoRepositorioTablero(pool)
+	cuObtenerMetricasTablero := casoTablero.NuevoCasoUsoObtenerMetricasTablero(repoTablero)
+
 	// ── Servidor HTTP ─────────────────────────────────────────────────────────
 	srv := entradaHTTP.NuevoServidor(pool, aud)
 	if err := srv.Iniciar(
@@ -262,6 +267,8 @@ func main() {
 		cuCrearTarifaEspecial,
 		// Identidad — refresh
 		cuRefrescarSesion,
+		// Tablero
+		cuObtenerMetricasTablero,
 		// Infraestructura
 		repoSesion,
 	); err != nil {

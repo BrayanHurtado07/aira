@@ -107,7 +107,7 @@ function FormularioNuevoBarbero({ onGuardar }: { onGuardar: () => void }) {
       className="barbero-panel-contenido"
     >
       <div className="barbero-panel-seccion-header">
-        <div className="barbero-panel-icono" style={{ backgroundColor: 'rgba(52,82,204,0.08)', color: 'var(--color-primario)' }}>
+        <div className="barbero-panel-icono" style={{ backgroundColor: 'var(--color-acento-suave)', color: 'var(--color-primario)' }}>
           <UserPlus size={16} />
         </div>
         <div>

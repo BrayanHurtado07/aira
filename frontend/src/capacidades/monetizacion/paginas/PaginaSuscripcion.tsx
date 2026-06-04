@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
 import {
   CreditCard, CheckCircle2, PauseCircle, XCircle,
@@ -341,10 +341,7 @@ export function PaginaSuscripcion() {
   const activas = suscripciones.filter((s) => s.estado === 'ACTIVA').length;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="pagina-monetizacion"
     >
       <EncabezadoPagina
@@ -373,6 +370,6 @@ export function PaginaSuscripcion() {
         {pestanaActiva === 'suscripciones' && <PestanaSuscripciones />}
         {pestanaActiva === 'activar'        && <PestanaActivar />}
       </div>
-    </motion.div>
+    </div>
   );
 }

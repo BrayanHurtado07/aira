@@ -18,6 +18,7 @@ import (
 	"aira/capacidades/organizacion/periodos"
 	"aira/capacidades/organizacion/sedes"
 	casoReservas "aira/capacidades/reservas/casos_uso"
+	casoTablero "aira/capacidades/tablero/casos_uso"
 	repoCockroach "aira/persistencia/cockroach"
 	"aira/plataforma/identidad"
 
@@ -103,6 +104,9 @@ type Rutas struct {
 	// Agenda — tarifas
 	crearTarifaEspecial *casoAgenda.CasoUsoCrearTarifaEspecial
 
+	// Tablero
+	obtenerMetricasTablero *casoTablero.CasoUsoObtenerMetricasTablero
+
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
 
@@ -164,6 +168,13 @@ func (rt *Rutas) Montar(r chi.Router) {
 	r.Post("/api/auth/verificar-correo", rt.manejarVerificarCorreo)
 	r.Post("/api/auth/restablecer-password/solicitar", rt.manejarSolicitarRestablecimientoPassword)
 	r.Post("/api/auth/restablecer-password", rt.manejarRestablecerPassword)
+
+	// Booking público (sin autenticación — clientes externos)
+	r.Get("/api/publico/empresas/{empresaID}/servicios", rt.manejarServiciosPublico)
+	r.Get("/api/publico/empresas/{empresaID}/barberos", rt.manejarBarberosPublico)
+	r.Get("/api/publico/empresas/{empresaID}/sucursales", rt.manejarSucursalesPublico)
+	r.Get("/api/publico/agenda/slots", rt.manejarSlotsPublico)
+	r.Post("/api/publico/reservas", rt.manejarCrearReservaPublica)
 
 	// Autenticadas
 	r.Group(func(r chi.Router) {
@@ -276,6 +287,9 @@ func (rt *Rutas) Montar(r chi.Router) {
 		// Monetización — listados
 		r.Get("/api/suscripciones", rt.manejarListarSuscripciones)
 		r.Get("/api/planes", rt.manejarListarPlanes)
+
+		// Tablero
+		r.Get("/api/tablero/metricas", rt.manejarObtenerMetricasTablero)
 	})
 }
 
@@ -1883,5 +1897,135 @@ func (rt *Rutas) manejarRefrescarSesion(w http.ResponseWriter, r *http.Request) 
 		ResponderErrorDominio(w, err)
 		return
 	}
+	ResponderOK(w, resp)
+}
+
+// ── Handlers públicos (sin autenticación) ─────────────────────────────────────
+
+func (rt *Rutas) manejarServiciosPublico(w http.ResponseWriter, r *http.Request) {
+	empresaID := chi.URLParam(r, "empresaID")
+	if empresaID == "" {
+		ResponderError(w, http.StatusBadRequest, "empresa_requerida")
+		return
+	}
+	lista, err := rt.repoServicios.ListarTodos(r.Context(), empresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
+}
+
+func (rt *Rutas) manejarBarberosPublico(w http.ResponseWriter, r *http.Request) {
+	empresaID := chi.URLParam(r, "empresaID")
+	if empresaID == "" {
+		ResponderError(w, http.StatusBadRequest, "empresa_requerida")
+		return
+	}
+	lista, err := rt.repoBarberos.ListarActivos(r.Context(), empresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
+}
+
+func (rt *Rutas) manejarSucursalesPublico(w http.ResponseWriter, r *http.Request) {
+	empresaID := chi.URLParam(r, "empresaID")
+	if empresaID == "" {
+		ResponderError(w, http.StatusBadRequest, "empresa_requerida")
+		return
+	}
+	lista, err := rt.repoSucursales.ListarActivas(r.Context(), empresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	if lista == nil {
+		lista = []sedes.Sucursal{}
+	}
+	ResponderOK(w, lista)
+}
+
+// manejarSlotsPublico reutiliza la misma lógica que manejarConsultarSlots.
+// No requiere autenticación: barberoID, servicioID y fecha vienen en query params.
+func (rt *Rutas) manejarSlotsPublico(w http.ResponseWriter, r *http.Request) {
+	rt.manejarConsultarSlots(w, r)
+}
+
+func (rt *Rutas) manejarCrearReservaPublica(w http.ResponseWriter, r *http.Request) {
+	var solicitud struct {
+		EmpresaID       string `json:"empresa_id"`
+		SucursalID      string `json:"sucursal_id"`
+		BarberoID       string `json:"barbero_id"`
+		ServicioID      string `json:"servicio_id"`
+		FechaHoraInicio string `json:"fecha_hora_inicio"`
+		ClienteNombre   string `json:"cliente_nombre"`
+		ClienteTelefono string `json:"cliente_telefono"`
+		ClienteCorreo   string `json:"cliente_correo"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&solicitud); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	if solicitud.EmpresaID == "" || solicitud.BarberoID == "" || solicitud.ServicioID == "" ||
+		solicitud.FechaHoraInicio == "" || solicitud.ClienteNombre == "" || solicitud.ClienteTelefono == "" {
+		ResponderError(w, http.StatusBadRequest, "campos_requeridos")
+		return
+	}
+
+	// 1. Registrar o encontrar el cliente por teléfono
+	respCliente, err := rt.registrarCliente.Ejecutar(r.Context(), casoReservas.SolicitudRegistrarCliente{
+		EmpresaID:         solicitud.EmpresaID,
+		Nombre:            solicitud.ClienteNombre,
+		Telefono:          solicitud.ClienteTelefono,
+		CorreoElectronico: solicitud.ClienteCorreo,
+		CreadoPor:         "web_publica",
+	})
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+
+	// 2. Crear la reserva con origen web_publica
+	resp, err := rt.registrarReserva.Ejecutar(r.Context(), casoReservas.SolicitudRegistrarReserva{
+		EmpresaID:       solicitud.EmpresaID,
+		SucursalID:      solicitud.SucursalID,
+		ClienteID:       respCliente.ClienteID,
+		BarberoID:       solicitud.BarberoID,
+		ServicioID:      solicitud.ServicioID,
+		FechaHoraInicio: solicitud.FechaHoraInicio,
+		Origen:          "web_publica",
+		CreadoPor:       "web_publica",
+	})
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+
+	ResponderCreado(w, resp)
+}
+
+// ── Tablero ──────────────────────────────────────────────────────────────────
+
+func (rt *Rutas) manejarObtenerMetricasTablero(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_requerida")
+		return
+	}
+
+	q := r.URL.Query()
+	resp, err := rt.obtenerMetricasTablero.Ejecutar(r.Context(), casoTablero.SolicitudObtenerMetricas{
+		EmpresaID:   sesion.EmpresaID,
+		FechaInicio: q.Get("inicio"),
+		FechaFin:    q.Get("fin"),
+		SucursalID:  q.Get("sucursal_id"),
+	})
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+
 	ResponderOK(w, resp)
 }

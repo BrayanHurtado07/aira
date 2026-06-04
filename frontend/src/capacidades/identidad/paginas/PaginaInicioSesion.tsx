@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Scissors, Check } from 'lucide-react';
 import { Campo } from '@/compartido/interfaz/primitivas/Campo';
 import { usarIniciarSesion } from '../ganchos/usarIniciarSesion';
 
@@ -27,15 +28,15 @@ export function PaginaInicioSesion() {
       style={{
         minHeight: '100vh',
         display: 'flex',
-        backgroundColor: '#0F0F0F',
+        backgroundColor: '#0A0A0A',
       }}
     >
-      {/* Panel izquierdo — marca */}
+      {/* ── Panel izquierdo — marca ── */}
       <div
         style={{
           flex: '0 0 44%',
-          backgroundColor: '#111111',
-          borderRight: '1px solid #1E1E1E',
+          backgroundColor: '#0D0D0D',
+          borderRight: '1px solid rgba(248,245,240,0.05)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -44,40 +45,59 @@ export function PaginaInicioSesion() {
           overflow: 'hidden',
         }}
       >
-        {/* Glow ambient */}
+        {/* Glow rojo ambient */}
         <div
           style={{
             position: 'absolute',
             top: '-10%',
             left: '-10%',
-            width: '60%',
-            height: '60%',
+            width: '65%',
+            height: '65%',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(204,28,46,0.09) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Glow azul inferior */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-5%',
+            right: '-5%',
+            width: '45%',
+            height: '45%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(27,58,140,0.07) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
 
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.75rem' }}>
           <div
             style={{
               width: '2.5rem',
               height: '2.5rem',
               borderRadius: '0.625rem',
-              background: 'linear-gradient(135deg, #C9A84C 0%, #8B6A1F 100%)',
+              background: '#CC1C2E',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1rem',
-              fontWeight: 800,
-              color: '#111',
+              color: '#fff',
             }}
           >
-            S
+            <Scissors size={16} />
           </div>
-          <span style={{ fontSize: '1.375rem', fontWeight: 700, color: '#C9A84C', letterSpacing: '-0.02em' }}>
-            Serbio
+          <span
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 900,
+              color: '#F8F5F0',
+              letterSpacing: '-0.03em',
+              fontFamily: "'Playfair Display', Georgia, serif",
+            }}
+          >
+            AI<span style={{ color: '#CC1C2E' }}>RA</span>
           </span>
         </div>
 
@@ -85,32 +105,30 @@ export function PaginaInicioSesion() {
         <h1
           style={{
             fontSize: '2.25rem',
-            fontWeight: 800,
-            color: '#EFEFEF',
-            lineHeight: 1.15,
+            fontWeight: 900,
+            color: '#F8F5F0',
+            lineHeight: 1.1,
             letterSpacing: '-0.03em',
             marginBottom: '1rem',
+            fontFamily: "'Playfair Display', Georgia, serif",
           }}
         >
           Tu barbería,<br />
-          <span style={{ color: '#C9A84C' }}>automatizada.</span>
+          <span style={{ color: '#CC1C2E' }}>automatizada.</span>
         </h1>
 
-        <div
-          style={{
-            width: '3rem',
-            height: '3px',
-            backgroundColor: '#C9A84C',
-            borderRadius: '2px',
-            marginBottom: '1.25rem',
-          }}
-        />
+        {/* Franja tricolor */}
+        <div style={{ display: 'flex', height: '3px', width: '3.5rem', borderRadius: '2px', marginBottom: '1.25rem', overflow: 'hidden' }}>
+          <span style={{ flex: 1, background: '#CC1C2E' }} />
+          <span style={{ flex: 1, background: '#1B3A8C' }} />
+          <span style={{ flex: 1, background: '#F8F5F0' }} />
+        </div>
 
         <p
           style={{
             fontSize: '0.9375rem',
-            color: '#7A7A7A',
-            lineHeight: 1.6,
+            color: 'rgba(248,245,240,0.45)',
+            lineHeight: 1.65,
             marginBottom: '2rem',
           }}
         >
@@ -118,7 +136,7 @@ export function PaginaInicioSesion() {
           desde un solo lugar. 24/7.
         </p>
 
-        {/* Features */}
+        {/* Ventajas */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {VENTAJAS.map((v) => (
             <div key={v} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -127,30 +145,27 @@ export function PaginaInicioSesion() {
                   width: '1.25rem',
                   height: '1.25rem',
                   borderRadius: '0.375rem',
-                  backgroundColor: 'rgba(201,168,76,0.12)',
+                  backgroundColor: 'rgba(204,28,46,0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  fontSize: '0.6875rem',
-                  color: '#C9A84C',
-                  fontWeight: 700,
+                  color: '#CC1C2E',
                 }}
               >
-                ✓
+                <Check size={10} strokeWidth={3} />
               </div>
-              <span style={{ fontSize: '0.875rem', color: '#EFEFEF' }}>{v}</span>
+              <span style={{ fontSize: '0.875rem', color: 'rgba(248,245,240,0.7)' }}>{v}</span>
             </div>
           ))}
         </div>
 
-        {/* Footer marca */}
-        <p style={{ marginTop: 'auto', paddingTop: '3rem', fontSize: '0.6875rem', color: '#3D3D3D' }}>
+        <p style={{ marginTop: 'auto', paddingTop: '3rem', fontSize: '0.6875rem', color: 'rgba(248,245,240,0.18)', fontFamily: "'Oswald', Impact, sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Codeplex · SaaS Composable
         </p>
       </div>
 
-      {/* Panel derecho — formulario */}
+      {/* ── Panel derecho — formulario ── */}
       <div
         style={{
           flex: 1,
@@ -158,20 +173,18 @@ export function PaginaInicioSesion() {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '2rem',
+          position: 'relative',
         }}
       >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '420px',
-          }}
-        >
+        <div style={{ width: '100%', maxWidth: '420px' }}>
           <h2
             style={{
-              fontSize: '1.25rem',
+              fontSize: '1.375rem',
               fontWeight: 700,
-              color: '#EFEFEF',
+              color: '#F8F5F0',
               marginBottom: '0.375rem',
+              fontFamily: "'Playfair Display', Georgia, serif",
+              letterSpacing: '-0.02em',
             }}
           >
             Bienvenido de vuelta
@@ -179,7 +192,7 @@ export function PaginaInicioSesion() {
           <p
             style={{
               fontSize: '0.875rem',
-              color: '#7A7A7A',
+              color: 'rgba(248,245,240,0.42)',
               marginBottom: '2rem',
             }}
           >
@@ -188,136 +201,115 @@ export function PaginaInicioSesion() {
 
           <div
             style={{
-              backgroundColor: '#1A1A1A',
+              backgroundColor: '#111111',
               borderRadius: '1rem',
-              border: '1px solid #2A2A2A',
-              padding: '2rem',
-              boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+              border: '1px solid rgba(248,245,240,0.08)',
+              overflow: 'hidden',
+              boxShadow: '0 24px 56px rgba(0,0,0,0.6)',
             }}
           >
-            {/* Barra gold superior */}
-            <div
-              style={{
-                height: '3px',
-                background: 'linear-gradient(90deg, #C9A84C 0%, #8B6A1F 100%)',
-                borderRadius: '2px',
-                marginBottom: '1.75rem',
-                marginLeft: '-2rem',
-                marginRight: '-2rem',
-                marginTop: '-2rem',
-                borderTopLeftRadius: '1rem',
-                borderTopRightRadius: '1rem',
-              }}
-            />
+            {/* Franja tricolor superior */}
+            <div style={{ display: 'flex', height: '3px' }}>
+              <span style={{ flex: 1, background: '#CC1C2E' }} />
+              <span style={{ flex: 1, background: '#1B3A8C' }} />
+              <span style={{ flex: 1, background: '#F8F5F0' }} />
+            </div>
 
-            <form onSubmit={enviarFormulario} noValidate>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
-                <Campo etiqueta="Correo electrónico">
-                  <input
-                    type="email"
-                    value={correo}
-                    onChange={(e) => setCorreo(e.target.value)}
-                    placeholder="correo@barberia.com"
-                    required
-                    className="campo-input"
+            <div style={{ padding: '2rem' }}>
+              <form onSubmit={enviarFormulario} noValidate>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
+                  <Campo etiqueta="Correo electrónico">
+                    <input
+                      type="email"
+                      value={correo}
+                      onChange={(e) => setCorreo(e.target.value)}
+                      placeholder="correo@barberia.com"
+                      required
+                      className="campo-input"
+                    />
+                  </Campo>
+
+                  <Campo etiqueta="Contraseña">
+                    <input
+                      type="password"
+                      value={contrasena}
+                      onChange={(e) => setContrasena(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="campo-input"
+                    />
+                  </Campo>
+
+                  {error && (
+                    <p
+                      style={{
+                        fontSize: '0.875rem',
+                        color: '#EF4444',
+                        backgroundColor: 'rgba(239,68,68,0.1)',
+                        padding: '0.625rem 0.875rem',
+                        borderRadius: '0.5rem',
+                        margin: 0,
+                        border: '1px solid rgba(239,68,68,0.2)',
+                      }}
+                    >
+                      {error}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={enviando}
+                    className="btn-aira"
                     style={{
                       width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '1px solid #2A2A2A',
+                      padding: '0.875rem',
+                      backgroundColor: '#CC1C2E',
+                      color: '#fff',
+                      border: 'none',
                       borderRadius: '0.625rem',
                       fontSize: '0.9375rem',
-                      color: '#EFEFEF',
-                      backgroundColor: '#222222',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </Campo>
-
-                <Campo etiqueta="Contraseña">
-                  <input
-                    type="password"
-                    value={contrasena}
-                    onChange={(e) => setContrasena(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="campo-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '1px solid #2A2A2A',
-                      borderRadius: '0.625rem',
-                      fontSize: '0.9375rem',
-                      color: '#EFEFEF',
-                      backgroundColor: '#222222',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </Campo>
-
-                {error && (
-                  <p
-                    style={{
-                      fontSize: '0.875rem',
-                      color: '#EF4444',
-                      backgroundColor: 'rgba(239,68,68,0.1)',
-                      padding: '0.625rem 0.875rem',
-                      borderRadius: '0.5rem',
-                      margin: 0,
-                      border: '1px solid rgba(239,68,68,0.2)',
+                      fontWeight: 700,
+                      cursor: enviando ? 'not-allowed' : 'pointer',
+                      opacity: enviando ? 0.7 : 1,
+                      letterSpacing: '-0.01em',
+                      fontFamily: "'Oswald', Impact, sans-serif",
                     }}
                   >
-                    {error}
-                  </p>
-                )}
+                    {enviando ? 'Ingresando...' : 'Ingresar a AIRA →'}
+                  </button>
 
-                <button
-                  type="submit"
-                  disabled={enviando}
-                  className="btn-aira"
-                  style={{
-                    width: '100%',
-                    padding: '0.875rem',
-                    backgroundColor: '#C9A84C',
-                    color: '#111111',
-                    border: 'none',
-                    borderRadius: '0.625rem',
-                    fontSize: '0.9375rem',
-                    fontWeight: 700,
-                    cursor: enviando ? 'not-allowed' : 'pointer',
-                    opacity: enviando ? 0.7 : 1,
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  {enviando ? 'Ingresando...' : 'Ingresar a Serbio →'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => navegar('/solicitar-reset')}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#7A7A7A',
-                    fontSize: '0.8125rem',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    paddingTop: '0.25rem',
-                  }}
-                >
-                  ¿Olvidaste tu contraseña?
-                </button>
-              </div>
-            </form>
+                  <button
+                    type="button"
+                    onClick={() => navegar('/solicitar-reset')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'rgba(248,245,240,0.35)',
+                      fontSize: '0.8125rem',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      paddingTop: '0.25rem',
+                      transition: 'color 150ms ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(248,245,240,0.7)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(248,245,240,0.35)')}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
 
           <p
             style={{
               marginTop: '1.25rem',
-              fontSize: '0.75rem',
-              color: '#3D3D3D',
+              fontSize: '0.6875rem',
+              color: 'rgba(248,245,240,0.18)',
               textAlign: 'center',
+              fontFamily: "'Oswald', Impact, sans-serif",
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
             }}
           >
             Serbio Admin v0.1.0 · Codeplex

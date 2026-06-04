@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
 import { Star, XCircle, Gift, Award, Phone, Clock, CheckCircle2, AlertCircle, Plus } from 'lucide-react';
 import { GuardiaCapacidad } from '@/plataforma/activacion/GuardiaCapacidad';
@@ -690,10 +690,7 @@ function ContenidoLealtad() {
   const [pestanaActiva, setPestanaActiva] = useState('resumen');
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="pagina-lealtad"
     >
       <EncabezadoPagina
@@ -715,7 +712,7 @@ function ContenidoLealtad() {
         {pestanaActiva === 'acumular'     && <PestanaAcumularSello />}
         {pestanaActiva === 'operaciones'  && <PestanaOperaciones />}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

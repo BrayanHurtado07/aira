@@ -35,7 +35,7 @@ export function SeccionTarjeta({
   titulo,
   descripcion,
   icono,
-  colorIcono = 'rgba(52,82,204,0.08)',
+  colorIcono = 'var(--color-acento-suave, rgba(204,28,46,0.08))',
   acciones,
   children,
   maxAncho,

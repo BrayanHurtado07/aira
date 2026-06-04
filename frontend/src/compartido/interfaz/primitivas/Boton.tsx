@@ -1,5 +1,7 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { Loader2 } from 'lucide-react';
+import { springTactil } from '@/plataforma/diseno/motion';
 
 type VarianteBoton = 'primario' | 'secundario' | 'peligro' | 'fantasma';
 type TamanoBoton = 'sm' | 'md' | 'lg';
@@ -23,38 +25,21 @@ const estilosBase: React.CSSProperties = {
   whiteSpace: 'nowrap',
   letterSpacing: '-0.01em',
   lineHeight: 1,
+  fontFamily: 'inherit',
+  userSelect: 'none',
 };
 
 const estilosPorVariante: Record<VarianteBoton, React.CSSProperties> = {
-  primario: {
-    backgroundColor: 'var(--color-primario)',
-    color: '#fff',
-    borderColor: 'var(--color-primario)',
-    boxShadow: 'var(--sombra-xs)',
-  },
-  secundario: {
-    backgroundColor: 'var(--color-superficie)',
-    color: 'var(--color-texto)',
-    borderColor: 'var(--color-borde)',
-    boxShadow: 'var(--sombra-xs)',
-  },
-  peligro: {
-    backgroundColor: 'var(--color-error)',
-    color: '#fff',
-    borderColor: 'var(--color-error)',
-    boxShadow: 'var(--sombra-xs)',
-  },
-  fantasma: {
-    backgroundColor: 'transparent',
-    color: 'var(--color-texto-suave)',
-    borderColor: 'transparent',
-  },
+  primario:   { backgroundColor: 'var(--color-primario)', color: '#fff', borderColor: 'var(--color-primario)' },
+  secundario: { backgroundColor: 'var(--color-superficie)', color: 'var(--color-texto)', borderColor: 'var(--color-borde)' },
+  peligro:    { backgroundColor: 'var(--color-error)', color: '#fff', borderColor: 'var(--color-error)' },
+  fantasma:   { backgroundColor: 'transparent', color: 'var(--color-texto-suave)', borderColor: 'transparent' },
 };
 
 const estilosPorTamano: Record<TamanoBoton, React.CSSProperties> = {
-  sm: { padding: '0.375rem 0.75rem', fontSize: 'var(--tamano-sm)', gap: '0.25rem' },
-  md: { padding: '0.5rem 1rem',      fontSize: 'var(--tamano-sm)' },
-  lg: { padding: '0.625rem 1.25rem', fontSize: 'var(--tamano-base)' },
+  sm: { padding: '0.375rem 0.75rem', fontSize: 'var(--tamano-sm)',  gap: '0.25rem'  },
+  md: { padding: '0.5rem 1rem',      fontSize: 'var(--tamano-sm)'                   },
+  lg: { padding: '0.625rem 1.25rem', fontSize: 'var(--tamano-base)'                 },
 };
 
 export function Boton({
@@ -66,14 +51,16 @@ export function Boton({
   icono,
   style,
   className,
+  onClick,
   ...props
 }: PropiedadesBoton) {
   const estaDeshabilitado = disabled || cargando;
 
   return (
-    <button
-      {...props}
+    <motion.button
+      {...(props as React.ComponentProps<typeof motion.button>)}
       disabled={estaDeshabilitado}
+      onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
       className={`btn-aira${className ? ` ${className}` : ''}`}
       style={{
         ...estilosBase,
@@ -83,6 +70,9 @@ export function Boton({
         cursor: estaDeshabilitado ? 'not-allowed' : 'pointer',
         ...style,
       }}
+      whileTap={estaDeshabilitado ? undefined : { scale: 0.97 }}
+      whileHover={estaDeshabilitado ? undefined : { filter: 'brightness(0.92)' }}
+      transition={springTactil}
     >
       {cargando ? (
         <Loader2
@@ -93,6 +83,6 @@ export function Boton({
         <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icono}</span>
       ) : null}
       {children}
-    </button>
+    </motion.button>
   );
 }

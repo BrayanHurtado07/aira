@@ -374,10 +374,10 @@ export function PaginaGestionClientes() {
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+      style={{ display: 'flex', flexDirection: 'column' }}
     >
       {/* Encabezado */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--espacio-lg)', borderBottom: '1px solid var(--color-borde)', backgroundColor: 'var(--color-superficie)', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--espacio-lg)', borderBottom: '1px solid var(--color-borde)', backgroundColor: 'var(--color-superficie)' }}>
         <div>
           <h1 style={{ fontSize: 'var(--tamano-xl)', fontWeight: 700, color: 'var(--color-texto)', margin: 0, letterSpacing: '-0.02em' }}>
             Clientes
@@ -394,7 +394,7 @@ export function PaginaGestionClientes() {
         )}
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-xl)' }}>
+      <div style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-xl)' }}>
 
         {/* Formulario de registro */}
         <div style={{ border: '1px solid var(--color-borde)', borderRadius: 'var(--radio-xl)', padding: 'var(--espacio-lg)', backgroundColor: 'var(--color-superficie)', maxWidth: '480px' }}>

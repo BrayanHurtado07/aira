@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
 import { Building2, MapPin, Power, PowerOff } from 'lucide-react';
 import { Campo } from '@/compartido/interfaz/primitivas/Campo';
@@ -115,10 +115,7 @@ export function PaginaGestionSedes() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="pagina-contenido"
     >
       <EncabezadoPagina
@@ -186,6 +183,6 @@ export function PaginaGestionSedes() {
           alCancelar={() => setSedeAccion(null)}
         />
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+
 import { toast } from 'sonner'
 import { Package, Plus, X, BarChart3, ArrowDownUp } from 'lucide-react'
 import { mensajeDeError } from '@/plataforma/gobierno/errores/errores-dominio'
@@ -411,10 +411,7 @@ export function PaginaInventario() {
   const [tabActiva, setTabActiva] = useState<Tab>('productos')
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)' }}
     >
       <EncabezadoPagina
@@ -451,6 +448,6 @@ export function PaginaInventario() {
       {tabActiva === 'productos' && <PanelProductos />}
       {tabActiva === 'stock' && <PanelStock />}
       {tabActiva === 'movimiento' && <PanelMovimiento />}
-    </motion.div>
+    </div>
   )
 }

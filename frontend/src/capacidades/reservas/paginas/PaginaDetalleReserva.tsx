@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+
 import { ArrowLeft, User, Scissors, MessageCircle, Clock, Package, Plus } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -208,10 +208,7 @@ export function PaginaDetalleReserva() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       style={estiloContenedor}
     >
       <Link
@@ -303,6 +300,6 @@ export function PaginaDetalleReserva() {
 
       {/* Complementos */}
       <PanelComplementos reservaId={reserva.id} />
-    </motion.div>
+    </div>
   );
 }

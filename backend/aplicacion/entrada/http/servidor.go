@@ -22,6 +22,7 @@ import (
 	casoNotificaciones "aira/capacidades/notificaciones/casos_uso"
 	casoOrg "aira/capacidades/organizacion/casos_uso"
 	casoReservas "aira/capacidades/reservas/casos_uso"
+	casoTablero "aira/capacidades/tablero/casos_uso"
 	"aira/plataforma/gobierno/auditoria"
 	repoCockroach "aira/persistencia/cockroach"
 
@@ -108,6 +109,8 @@ func (s *Servidor) Iniciar(
 	crearTarifaEspecial *casoAgenda.CasoUsoCrearTarifaEspecial,
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion,
+	// Tablero
+	obtenerMetricasTablero *casoTablero.CasoUsoObtenerMetricasTablero,
 	// Infraestructura
 	repoSesiones sesiones.RepositorioSesion,
 ) error {
@@ -190,6 +193,8 @@ func (s *Servidor) Iniciar(
 		crearTarifaEspecial: crearTarifaEspecial,
 		// Identidad — refresh
 		refrescarSesion: refrescarSesion,
+		// Tablero
+		obtenerMetricasTablero: obtenerMetricasTablero,
 		// Repositorios de listado
 		repoEmpresa:        repoCockroach.NuevoRepositorioEmpresa(s.pool),
 		repoBarberos:       repoCockroach.NuevoRepositorioBarbero(s.pool),

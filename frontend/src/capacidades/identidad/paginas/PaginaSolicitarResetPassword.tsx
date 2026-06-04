@@ -1,135 +1,114 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { solicitarResetPassword } from '../servicios/servicio-identidad'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { solicitarResetPassword } from '../servicios/servicio-identidad';
 
 export function PaginaSolicitarResetPassword() {
-  const navegar   = useNavigate()
-  const [correo, setCorreo]       = useState('')
-  const [enviando, setEnviando]   = useState(false)
-  const [enviado, setEnviado]     = useState(false)
+  const navegar = useNavigate();
+  const [correo, setCorreo]     = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [enviado, setEnviado]   = useState(false);
 
-  const enviar = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!correo.trim()) return
-    setEnviando(true)
+  const enviar = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!correo.trim()) return;
+    setEnviando(true);
     try {
-      await solicitarResetPassword({ correo_electronico: correo.trim() })
+      await solicitarResetPassword({ correo_electronico: correo.trim() });
     } finally {
-      // Siempre mostrar éxito para no revelar si el correo existe
-      setEnviado(true)
-      setEnviando(false)
+      setEnviado(true);
+      setEnviando(false);
     }
-  }
+  };
 
   return (
-    <div style={estilos.fondo}>
-      <div style={estilos.tarjeta}>
-        <div style={estilos.barraGold} />
+    <div style={e.fondo}>
+      <div style={e.tarjeta}>
+        {/* Franja tricolor superior */}
+        <div style={{ display: 'flex', height: '3px', marginLeft: '-2rem', marginRight: '-2rem', marginTop: '-2.5rem', marginBottom: '1.75rem' }}>
+          <span style={{ flex: 1, background: '#CC1C2E' }} />
+          <span style={{ flex: 1, background: '#1B3A8C' }} />
+          <span style={{ flex: 1, background: '#F8F5F0' }} />
+        </div>
 
         {enviado ? (
           <>
-            <p style={{ ...estilos.titulo, color: '#4ADE80' }}>Revisa tu correo</p>
-            <p style={estilos.subtitulo}>
+            <p style={{ ...e.titulo, color: '#22C55E' }}>Revisa tu correo</p>
+            <p style={e.subtitulo}>
               Si existe una cuenta con ese correo, recibirás un enlace para restablecer
               tu contraseña en los próximos minutos.
             </p>
-            <button style={estilos.boton} onClick={() => navegar('/iniciar-sesion')}>
+            <button style={e.boton} onClick={() => navegar('/iniciar-sesion')}>
               Volver al inicio de sesión
             </button>
           </>
         ) : (
           <>
-            <h2 style={estilos.titulo}>Restablecer contraseña</h2>
-            <p style={estilos.subtitulo}>
+            <h2 style={e.titulo}>Restablecer contraseña</h2>
+            <p style={e.subtitulo}>
               Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.
             </p>
             <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <input
                 type="email"
                 value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
+                onChange={(el) => setCorreo(el.target.value)}
                 placeholder="correo@barberia.com"
                 required
                 className="campo-input"
-                style={estilos.input}
               />
-              <button type="submit" disabled={enviando} style={{ ...estilos.boton, width: '100%' }}>
+              <button type="submit" disabled={enviando} style={{ ...e.boton, width: '100%' }}>
                 {enviando ? 'Enviando…' : 'Enviar enlace →'}
               </button>
             </form>
-            <button
-              style={{ ...estilos.enlace, marginTop: '1.25rem' }}
-              onClick={() => navegar('/iniciar-sesion')}
-            >
+            <button style={e.enlace} onClick={() => navegar('/iniciar-sesion')}>
               ← Volver al inicio de sesión
             </button>
           </>
         )}
       </div>
     </div>
-  )
+  );
 }
 
-const estilos = {
+const e = {
   fondo: {
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F0F0F',
+    backgroundColor: '#0A0A0A',
     padding: '2rem',
   } as React.CSSProperties,
   tarjeta: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#111111',
     borderRadius: '1rem',
-    border: '1px solid #2A2A2A',
+    border: '1px solid rgba(248,245,240,0.08)',
     padding: '2.5rem 2rem',
     maxWidth: '420px',
     width: '100%',
     textAlign: 'center' as const,
     position: 'relative' as const,
     overflow: 'hidden' as const,
-    boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-  } as React.CSSProperties,
-  barraGold: {
-    height: '3px',
-    background: 'linear-gradient(90deg, #C9A84C 0%, #8B6A1F 100%)',
-    borderRadius: '2px',
-    marginLeft: '-2rem',
-    marginRight: '-2rem',
-    marginTop: '-2.5rem',
-    marginBottom: '1.75rem',
-    borderTopLeftRadius: '1rem',
-    borderTopRightRadius: '1rem',
+    boxShadow: '0 24px 56px rgba(0,0,0,0.6)',
   } as React.CSSProperties,
   titulo: {
-    fontSize: '1.125rem',
+    fontSize: '1.25rem',
     fontWeight: 700,
-    color: '#EFEFEF',
+    color: '#F8F5F0',
     marginBottom: '0.5rem',
+    fontFamily: "'Playfair Display', Georgia, serif",
+    letterSpacing: '-0.02em',
   } as React.CSSProperties,
   subtitulo: {
     fontSize: '0.875rem',
-    color: '#7A7A7A',
+    color: 'rgba(248,245,240,0.42)',
     lineHeight: 1.6,
     marginBottom: '1.5rem',
     textAlign: 'left' as const,
   } as React.CSSProperties,
-  input: {
-    width: '100%',
-    padding: '0.75rem 1rem',
-    border: '1px solid #2A2A2A',
-    borderRadius: '0.625rem',
-    fontSize: '0.9375rem',
-    color: '#EFEFEF',
-    backgroundColor: '#222222',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
-    textAlign: 'left' as const,
-  } as React.CSSProperties,
   boton: {
-    backgroundColor: '#C9A84C',
-    color: '#111111',
+    backgroundColor: '#CC1C2E',
+    color: '#fff',
     border: 'none',
     borderRadius: '0.625rem',
     padding: '0.875rem 1.5rem',
@@ -137,13 +116,15 @@ const estilos = {
     fontWeight: 700,
     cursor: 'pointer',
     letterSpacing: '-0.01em',
+    fontFamily: "'Oswald', Impact, sans-serif",
   } as React.CSSProperties,
   enlace: {
     background: 'none',
     border: 'none',
-    color: '#7A7A7A',
+    color: 'rgba(248,245,240,0.35)',
     fontSize: '0.8125rem',
     cursor: 'pointer',
     display: 'block',
+    marginTop: '1.25rem',
   } as React.CSSProperties,
-}
+};

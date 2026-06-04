@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
 import { CalendarDays, Lock, CheckCircle2 } from 'lucide-react';
 import { Campo } from '@/compartido/interfaz/primitivas/Campo';
@@ -140,10 +140,7 @@ export function PaginaPeriodos() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="pagina-contenido"
     >
       <EncabezadoPagina
@@ -227,6 +224,6 @@ export function PaginaPeriodos() {
           alCancelar={() => setPeriodoCerrar(null)}
         />
       )}
-    </motion.div>
+    </div>
   );
 }

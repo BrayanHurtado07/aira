@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -309,10 +309,7 @@ export function PaginaGestionServicios() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="pagina-contenido"
     >
       {/* Encabezado */}
@@ -461,6 +458,6 @@ export function PaginaGestionServicios() {
         alConfirmar={ejecutarToggle}
         alCancelar={() => setServicioToggle(null)}
       />
-    </motion.div>
+    </div>
   )
 }

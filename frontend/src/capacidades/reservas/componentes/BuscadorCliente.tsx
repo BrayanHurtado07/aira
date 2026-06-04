@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Search, UserPlus, X, Check, Phone } from 'lucide-react';
 import { usarClientes } from '@/capacidades/reservas/ganchos/usarClientes';
@@ -199,15 +198,11 @@ export function BuscadorCliente({ valor, alCambiar, error }: PropiedadesBuscador
   // ── Dropdown en portal ──────────────────────────────────────────────────────
 
   const dropdownNode = (
-    <AnimatePresence>
+    <>
       {abierto && (
-        <motion.div
+        <div
           ref={dropdownRef}
-          initial={{ opacity: 0, y: -6, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -6, scale: 0.98 }}
-          transition={{ duration: 0.12, ease: 'easeOut' }}
-          className="buscador-dropdown"
+          className="buscador-dropdown animar-aparecer"
           style={{
             position: 'fixed',
             top: pos.top,
@@ -263,9 +258,9 @@ export function BuscadorCliente({ valor, alCambiar, error }: PropiedadesBuscador
                 : 'Nuevo cliente'}
             </button>
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 
   // ── Render ──────────────────────────────────────────────────────────────────

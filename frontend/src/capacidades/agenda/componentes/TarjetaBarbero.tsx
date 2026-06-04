@@ -36,7 +36,7 @@ export function TarjetaBarbero({ barbero }: PropsTarjetaBarbero) {
             width: '2.5rem',
             height: '2.5rem',
             borderRadius: '50%',
-            backgroundColor: 'rgba(52,82,204,0.1)',
+            backgroundColor: 'var(--color-acento-suave, rgba(204,28,46,0.08))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

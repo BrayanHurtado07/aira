@@ -1,10 +1,10 @@
 /* ===== TOKENS SERBIO BARBERÍA ===== */
 :root {
-  /* Marca */
-  --color-primario:       #3452CC;
-  --color-primario-hover: #25337C;
-  --color-acento:         #BF1E2E;
-  --color-acento-hover:   #A01828;
+  /* Marca — barbería rojo */
+  --color-primario:       #CC1C2E;
+  --color-primario-hover: #A81525;
+  --color-acento:         #1B3A8C;
+  --color-acento-hover:   #162E72;
 
   /* Superficie */
   --color-fondo:          #F8F9FB;
@@ -13,10 +13,10 @@
   --color-borde:          #E2E8F0;
   --color-borde-suave:    #F1F5F9;
 
-  /* Texto */
+  /* Texto — contraste WCAG AA */
   --color-texto:          #1A202C;
-  --color-texto-suave:    #718096;
-  --color-texto-muted:    #A0AEC0;
+  --color-texto-suave:    #4A5568;  /* 5.3:1 sobre blanco */
+  --color-texto-muted:    #718096;  /* 3.6:1 — solo decorativo */
 
   /* Semánticos */
   --color-exito:          #059669;
@@ -25,15 +25,20 @@
   --color-info:           #2563EB;
 
   /* Semánticos — fondos suaves (badges) */
-  --color-exito-suave:      #ECFDF5;
-  --color-advertencia-suave:#FFFBEB;
-  --color-error-suave:      #FEF2F2;
-  --color-info-suave:       #EFF6FF;
-  --color-neutral-suave:    #F7FAFC;
+  --color-exito-suave:       #ECFDF5;
+  --color-advertencia-suave: #FFFBEB;
+  --color-error-suave:       #FEF2F2;
+  --color-info-suave:        #EFF6FF;
+  --color-neutral-suave:     #F7FAFC;
+
+  /* Barbería interior */
+  --color-acento-suave:   rgba(204, 28, 46, 0.08);
+  --color-acento-borde:   rgba(204, 28, 46, 0.22);
+  --color-primario-suave: rgba(204, 28, 46, 0.08);
 
   /* Input */
   --color-fondo-input:    #FFFFFF;
-  --color-focus-ring:     rgba(52, 82, 204, 0.25);
+  --color-focus-ring:     rgba(204, 28, 46, 0.22);
 
   /* Espaciado */
   --espacio-xs:  0.25rem;
@@ -43,17 +48,22 @@
   --espacio-xl:  2rem;
   --espacio-2xl: 3rem;
 
-  /* Tipografía */
-  --fuente-base: 'Inter', system-ui, -apple-system, sans-serif;
-  --tamano-xs:   0.6875rem;
-  --tamano-sm:   0.875rem;
-  --tamano-base: 1rem;
-  --tamano-lg:   1.125rem;
-  --tamano-xl:   1.25rem;
-  --tamano-2xl:  1.5rem;
-  --tamano-3xl:  1.875rem;
+  /* ── Escala tipográfica — razón ≥1.25 entre pasos ── */
+  --fuente-base:       'Roboto Slab', serif;
+  --fuente-display:    'Rye', serif;
+  --fuente-display-sc: 'Rye', serif;
+  --fuente-acento:     'Roboto Slab', serif;
 
-  /* Alias compatibilidad */
+  --tamano-xs:   0.6875rem;  /* 11px */
+  --tamano-sm:   0.875rem;   /* 14px */
+  --tamano-base: 1rem;       /* 16px */
+  --tamano-lg:   1.25rem;    /* 20px — ×1.25 */
+  --tamano-xl:   1.5rem;     /* 24px — ×1.2  */
+  --tamano-2xl:  1.875rem;   /* 30px — ×1.25 */
+  --tamano-3xl:  2.25rem;    /* 36px — ×1.2  */
+  --tamano-4xl:  3rem;       /* 48px — display */
+
+  /* Alias de compatibilidad (no añadir más) */
   --fuente-xs: 0.6875rem;
   --fuente-sm: 0.875rem;
   --fuente-md: 1rem;
@@ -69,62 +79,91 @@
   --radio-sm:  0.25rem;
   --radio-md:  0.5rem;
   --radio-lg:  0.75rem;
-  --radio-xl:  1rem;
-  --radio-2xl: 1.25rem;
+  --radio-xl:  1rem;       /* 16px — techo para cards */
+  --radio-2xl: 1.25rem;    /* 20px — solo pill/modal */
 
-  /* Sombras */
+  /* Sombras — un solo decorador por elemento, nunca los dos */
   --sombra-xs: 0 1px 2px rgba(0,0,0,0.06);
-  --sombra-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-  --sombra-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
-  --sombra-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
-  --sombra-xl: 0 20px 25px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.04);
-  --sombra-modal: 0 25px 50px rgba(0,0,0,0.18);
+  --sombra-sm: 0 2px 4px rgba(0,0,0,0.08);
+  --sombra-md: 0 4px 8px rgba(0,0,0,0.10);   /* blur ≤8px */
+  --sombra-lg: 0 8px 16px rgba(0,0,0,0.12);
+  --sombra-xl: 0 16px 32px rgba(0,0,0,0.14);
+  --sombra-modal: 0 24px 48px rgba(0,0,0,0.18);
 
-  /* Transiciones */
+  /* ── Transiciones y motion ── */
   --transicion:        150ms ease;
   --transicion-media:  250ms ease;
   --transicion-lenta:  400ms ease;
 
+  /* Spring tokens (para Motion/React y CSS) */
+  --ease-suave:       cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-salida:      cubic-bezier(0.16, 1, 0.3, 1);   /* expo-out — Emil Kowalski */
+  --ease-entrada:     cubic-bezier(0.4, 0, 1, 1);
+  --duracion-micro:   120ms;
+  --duracion-suave:   220ms;
+  --duracion-lenta:   380ms;
+
   /* Layout shell */
-  --sidebar-ancho:   15rem;
-  --cabecera-alto:   3.5rem;
+  --sidebar-ancho: 15rem;
+  --cabecera-alto: 3.5rem;
+
+  /* ── LANDING BARBERÍA ── */
+  --landing-negro:        #0A0A0A;
+  --landing-negro-2:      #111111;
+  --landing-rojo:         #CC1C2E;
+  --landing-rojo-hover:   #A81525;
+  --landing-azul:         #1B3A8C;
+  --landing-azul-claro:   #2B4EAE;
+  --landing-blanco:       #F8F5F0;
+  --landing-crema:        #EDE8DE;
+  --landing-gris:         #6B6B6B;
+  --landing-borde-oscuro: rgba(248, 245, 240, 0.10);
+  --landing-max-ancho:    1200px;
+  --landing-seccion:      8rem;
 }
 
-/* ===== MODO OSCURO — Serbio Dark Gold ===== */
+/* ===== MODO OSCURO — Serbio Barbería Dark ===== */
 [data-tema="oscuro"] {
-  --color-primario:       #C9A84C;
-  --color-primario-hover: #B8963E;
-  --color-acento:         #EF4444;
-  --color-acento-hover:   #DC2626;
+  --color-primario:       #CC1C2E;
+  --color-primario-hover: #A81525;
+  --color-acento:         #1B3A8C;
+  --color-acento-hover:   #162E72;
 
-  --color-fondo:          #0F0F0F;
-  --color-superficie:     #1A1A1A;
-  --color-superficie-2:   #222222;
-  --color-borde:          #2A2A2A;
+  --color-fondo:          #0A0A0A;
+  --color-superficie:     #111111;
+  --color-superficie-2:   #1A1A1A;
+  --color-borde:          #252525;  /* ligeramente más visible */
   --color-borde-suave:    #1E1E1E;
 
-  --color-texto:          #EFEFEF;
-  --color-texto-suave:    #7A7A7A;
-  --color-texto-muted:    #3D3D3D;
+  /* Texto — contraste WCAG AA corregido */
+  --color-texto:          #F8F5F0;
+  --color-texto-suave:    rgba(248, 245, 240, 0.70);  /* 4.9:1 sobre #111 ✓ */
+  --color-texto-muted:    rgba(248, 245, 240, 0.38);  /* decorativo */
+  --color-texto-placeholder: rgba(248, 245, 240, 0.30);
 
   --color-exito:          #22C55E;
   --color-advertencia:    #F59E0B;
   --color-error:          #EF4444;
   --color-info:           #60A5FA;
 
-  --color-exito-suave:      rgba(34, 197, 94, 0.12);
-  --color-advertencia-suave:rgba(245, 158, 11, 0.12);
-  --color-error-suave:      rgba(239, 68, 68, 0.12);
-  --color-info-suave:       rgba(96, 165, 250, 0.12);
-  --color-neutral-suave:    rgba(255,255,255,0.04);
+  --color-exito-suave:       rgba(34,  197, 94,  0.12);
+  --color-advertencia-suave: rgba(245, 158, 11,  0.12);
+  --color-error-suave:       rgba(239, 68,  68,  0.12);
+  --color-info-suave:        rgba(96,  165, 250, 0.12);
+  --color-neutral-suave:     rgba(255, 255, 255, 0.04);
 
-  --color-fondo-input:    #1E1E1E;
-  --color-focus-ring:     rgba(201, 168, 76, 0.28);
+  --color-acento-suave:   rgba(204, 28, 46, 0.10);
+  --color-acento-borde:   rgba(204, 28, 46, 0.28);
+  --color-primario-suave: rgba(204, 28, 46, 0.10);
 
-  --sombra-xs: 0 1px 2px rgba(0,0,0,0.3);
-  --sombra-sm: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
-  --sombra-md: 0 4px 12px rgba(0,0,0,0.4);
-  --sombra-lg: 0 10px 24px rgba(0,0,0,0.5);
-  --sombra-xl: 0 20px 40px rgba(0,0,0,0.5);
-  --sombra-modal: 0 32px 64px rgba(0,0,0,0.7);
+  --color-fondo-input:    #1A1A1A;
+  --color-focus-ring:     rgba(204, 28, 46, 0.28);
+
+  /* Sombras — profundidad en dark */
+  --sombra-xs: 0 1px 3px rgba(0,0,0,0.35);
+  --sombra-sm: 0 2px 6px rgba(0,0,0,0.45);
+  --sombra-md: 0 4px 12px rgba(0,0,0,0.55);
+  --sombra-lg: 0 8px 24px rgba(0,0,0,0.65);
+  --sombra-xl: 0 16px 40px rgba(0,0,0,0.70);
+  --sombra-modal: 0 32px 64px rgba(0,0,0,0.80);
 }

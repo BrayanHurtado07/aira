@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { Navigate } from 'react-router-dom';
 import { GuardiaAutenticacion } from '@/plataforma/identidad/guardia-autenticacion';
 import { DisposicionCaparazon } from '@/plataforma/caparazon/disposicion/DisposicionCaparazon';
 import { PaginaInicioTablero } from '@/plataforma/caparazon/tablero/PaginaInicioTablero';
@@ -30,7 +29,6 @@ export const rutasPrivadas: RouteObject[] = [
     ),
     children: [
       { path: '/tablero', element: <PaginaInicioTablero /> },
-      { path: '/', element: <Navigate to="/tablero" replace /> },
       ...rutasAutenticadas,
       ...rutasOrganizacion,
       ...rutasGobiernoAcceso,

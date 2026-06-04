@@ -5,9 +5,10 @@ import { cerrarSesionGlobal } from '@/plataforma/identidad/cliente-autenticacion
 import { usarAlmacenTema } from '@/plataforma/tema/almacen-tema';
 import { useNavigate } from 'react-router-dom';
 import { Boton } from '@/compartido/interfaz/primitivas/Boton';
+import { MigasDePan } from './MigasDePan';
+import { BuscadorGlobal } from './BuscadorGlobal';
 
 interface Props {
-  /** Abre la barra lateral en móvil */
   alAbrirBarra: () => void;
 }
 
@@ -25,46 +26,46 @@ export function CabeceraCaparazon({ alAbrirBarra }: Props) {
 
   return (
     <header className="cabecera-caparazon">
-      {/* Botón hamburguesa — solo visible en móvil via CSS */}
-      <button
-        className="btn-hamburguesa"
-        onClick={alAbrirBarra}
-        aria-label="Abrir menú lateral"
-        type="button"
-      >
-        <Menu size={18} />
-      </button>
+      {/* ── Sección izquierda: hamburguesa + migas de pan ── */}
+      <div className="cabecera-izquierda">
+        <button
+          className="btn-hamburguesa"
+          onClick={alAbrirBarra}
+          aria-label="Abrir menú lateral"
+          type="button"
+        >
+          <Menu size={18} />
+        </button>
+        <MigasDePan />
+      </div>
 
-      <SelectorContexto />
+      {/* ── Sección derecha: buscador + contexto + usuario + acciones ── */}
+      <div className="cabecera-derecha">
+        <BuscadorGlobal />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--espacio-sm)', marginLeft: 'auto' }}>
-        <span style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>
-          {sesion?.nombre}
-        </span>
+        <span className="cabecera-divisor" aria-hidden="true" />
 
-        {/* Toggle de tema */}
+        <div className="cabecera-contexto">
+          <SelectorContexto />
+        </div>
+
+        <span className="cabecera-nombre-usuario">{sesion?.nombre}</span>
+
         <button
           onClick={alternarTema}
-          className="btn-aira"
+          className="btn-aira cabecera-btn-tema"
           title={tema === 'claro' ? 'Activar modo oscuro' : 'Activar modo claro'}
           aria-label={tema === 'claro' ? 'Activar modo oscuro' : 'Activar modo claro'}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '2rem',
-            height: '2rem',
-            borderRadius: 'var(--radio-md)',
-            border: '1px solid var(--color-borde)',
-            backgroundColor: 'var(--color-superficie)',
-            color: 'var(--color-texto-suave)',
-            cursor: 'pointer',
-          }}
         >
           {tema === 'claro' ? <Moon size={14} /> : <Sun size={14} />}
         </button>
 
-        <Boton variante="fantasma" tamano="sm" onClick={manejarCerrarSesion}>
+        <Boton
+          variante="fantasma"
+          tamano="sm"
+          onClick={manejarCerrarSesion}
+          className="cabecera-btn-sesion"
+        >
           Cerrar sesión
         </Boton>
       </div>

@@ -37,7 +37,7 @@ interface PropsDialogoConfirmacion {
 const CONF: Record<VarianteDialogo, { icono: React.ReactNode; fondoIcono: string; colorIcono: string }> = {
   peligro:     { icono: <Trash2 size={22} />,       fondoIcono: 'rgba(239,68,68,0.08)',    colorIcono: 'var(--color-error)' },
   advertencia: { icono: <AlertTriangle size={22} />, fondoIcono: 'rgba(245,158,11,0.08)',   colorIcono: 'var(--color-advertencia, #f59e0b)' },
-  normal:      { icono: <HelpCircle size={22} />,    fondoIcono: 'rgba(52,82,204,0.08)',    colorIcono: 'var(--color-primario)' },
+  normal:      { icono: <HelpCircle size={22} />,    fondoIcono: 'var(--color-acento-suave, rgba(204,28,46,0.08))',    colorIcono: 'var(--color-primario)' },
 }
 
 export function DialogoConfirmacion({

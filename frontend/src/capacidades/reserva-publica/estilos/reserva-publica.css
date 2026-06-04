@@ -1,0 +1,568 @@
+/* =========================================================
+   RESERVA PÚBLICA — Página de booking para clientes
+   Usa los tokens --landing-* del sistema de diseño
+   ========================================================= */
+
+.reserva-publica {
+  min-height: 100svh;
+  background: var(--landing-blanco);
+  font-family: var(--fuente-base);
+  color: var(--landing-negro);
+}
+
+/* ── CABECERA ──────────────────────────────────────────────── */
+.reserva-publica__cabecera {
+  background: var(--landing-negro);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 3px solid var(--landing-rojo);
+}
+
+.reserva-publica__cabecera-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reserva-publica__logo {
+  font-family: var(--fuente-display);
+  font-size: 1.375rem;
+  font-weight: 900;
+  color: var(--landing-blanco);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.reserva-publica__logo em {
+  color: var(--landing-rojo);
+  font-style: normal;
+}
+
+.reserva-publica__subtitulo-cab {
+  font-size: 0.8125rem;
+  color: rgba(248, 245, 240, 0.5);
+  font-weight: 500;
+}
+
+/* ── CONTENEDOR CENTRAL ────────────────────────────────────── */
+.reserva-publica__contenido {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* ── INDICADOR DE PASOS ────────────────────────────────────── */
+.indicador-pasos {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 2.5rem;
+}
+
+.indicador-pasos__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.indicador-pasos__circulo {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-borde);
+  background: var(--landing-blanco);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-texto-suave);
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.indicador-pasos__circulo--activo {
+  border-color: var(--landing-rojo);
+  background: var(--landing-rojo);
+  color: #fff;
+}
+
+.indicador-pasos__circulo--completado {
+  border-color: var(--color-exito);
+  background: var(--color-exito);
+  color: #fff;
+}
+
+.indicador-pasos__etiqueta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.indicador-pasos__etiqueta--activa {
+  color: var(--landing-rojo);
+}
+
+.indicador-pasos__linea {
+  flex: 1;
+  height: 2px;
+  background: var(--color-borde);
+  margin: 0 0.5rem;
+}
+
+.indicador-pasos__linea--completada {
+  background: var(--color-exito);
+}
+
+/* ── TÍTULO DE SECCIÓN ─────────────────────────────────────── */
+.reserva-paso__titulo {
+  font-family: var(--fuente-display);
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--landing-negro);
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+
+.reserva-paso__descripcion {
+  font-size: 0.9375rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 2rem;
+}
+
+/* ── GRID DE SERVICIOS ─────────────────────────────────────── */
+.servicios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.servicio-card {
+  border: 1.5px solid var(--color-borde);
+  border-radius: 0.875rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  background: white;
+  text-align: left;
+}
+
+.servicio-card:hover {
+  border-color: rgba(204, 28, 46, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.servicio-card--seleccionado {
+  border-color: var(--landing-rojo);
+  border-width: 2px;
+  background: rgba(204, 28, 46, 0.03);
+}
+
+.servicio-card__nombre {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--landing-negro);
+  margin-bottom: 0.375rem;
+}
+
+.servicio-card__duracion {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.625rem;
+}
+
+.servicio-card__precio {
+  font-family: var(--fuente-display);
+  font-size: 1.375rem;
+  font-weight: 900;
+  color: var(--landing-rojo);
+}
+
+/* ── SELECCIÓN DE BARBERO ──────────────────────────────────── */
+.barberos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.barbero-card {
+  border: 1.5px solid var(--color-borde);
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: white;
+}
+
+.barbero-card:hover {
+  border-color: rgba(204, 28, 46, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+.barbero-card--seleccionado {
+  border-color: var(--landing-rojo);
+  border-width: 2px;
+  background: rgba(204, 28, 46, 0.03);
+}
+
+.barbero-card__avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--landing-negro);
+  color: var(--landing-blanco);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0 auto 0.75rem;
+}
+
+.barbero-card__nombre {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--landing-negro);
+}
+
+/* ── SELECTOR DE FECHA ─────────────────────────────────────── */
+.fechas-selector {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+  scrollbar-width: none;
+}
+
+.fechas-selector::-webkit-scrollbar { display: none; }
+
+.fecha-boton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--color-borde);
+  border-radius: 0.75rem;
+  background: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.fecha-boton:hover {
+  border-color: rgba(204, 28, 46, 0.35);
+}
+
+.fecha-boton--seleccionada {
+  border-color: var(--landing-rojo);
+  background: var(--landing-rojo);
+  color: white;
+}
+
+.fecha-boton__dia-semana {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.fecha-boton--seleccionada .fecha-boton__dia-semana {
+  opacity: 0.85;
+}
+
+.fecha-boton__numero {
+  font-family: var(--fuente-display);
+  font-size: 1.375rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.fecha-boton__mes {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* ── SLOTS ─────────────────────────────────────────────────── */
+.slots-titulo {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.875rem;
+}
+
+.slots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.slot-boton {
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--color-borde);
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--landing-negro);
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.slot-boton:hover {
+  border-color: rgba(204, 28, 46, 0.4);
+  color: var(--landing-rojo);
+}
+
+.slot-boton--seleccionado {
+  border-color: var(--landing-rojo);
+  background: var(--landing-rojo);
+  color: white;
+}
+
+.slots-vacio {
+  font-size: 0.9375rem;
+  color: var(--color-texto-suave);
+  padding: 1rem 0;
+}
+
+/* ── FORMULARIO CLIENTE ────────────────────────────────────── */
+.cliente-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 480px;
+}
+
+.cliente-form__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.cliente-form__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--landing-negro);
+}
+
+.cliente-form__input {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--color-borde);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--landing-negro);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.cliente-form__input:focus {
+  border-color: var(--landing-rojo);
+  box-shadow: 0 0 0 3px rgba(204, 28, 46, 0.1);
+}
+
+.cliente-form__input::placeholder {
+  color: var(--color-texto-muted);
+}
+
+.cliente-form__hint {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+}
+
+/* ── RESUMEN DE CONFIRMACIÓN ───────────────────────────────── */
+.reserva-resumen {
+  background: white;
+  border: 1.5px solid var(--color-borde);
+  border-radius: 1rem;
+  padding: 1.75rem;
+  max-width: 480px;
+  margin-bottom: 2rem;
+}
+
+.reserva-resumen__fila {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--color-borde-suave);
+}
+
+.reserva-resumen__fila:last-child {
+  border-bottom: none;
+}
+
+.reserva-resumen__icono {
+  color: var(--landing-rojo);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.reserva-resumen__etiqueta {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.125rem;
+}
+
+.reserva-resumen__valor {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--landing-negro);
+}
+
+/* ── PANTALLA ÉXITO ────────────────────────────────────────── */
+.reserva-exito {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.reserva-exito__icono {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: var(--color-exito-suave);
+  color: var(--color-exito);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.reserva-exito__titulo {
+  font-family: var(--fuente-display);
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--landing-negro);
+  letter-spacing: -0.025em;
+  margin-bottom: 0.75rem;
+}
+
+.reserva-exito__descripcion {
+  font-size: 1.0625rem;
+  color: var(--color-texto-suave);
+  line-height: 1.65;
+  max-width: 400px;
+  margin: 0 auto 2rem;
+}
+
+/* ── NAVEGACIÓN ENTRE PASOS ────────────────────────────────── */
+.reserva-navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-borde-suave);
+}
+
+.reserva-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.reserva-btn--primario {
+  background: var(--landing-rojo);
+  color: white;
+}
+
+.reserva-btn--primario:hover:not(:disabled) {
+  background: var(--landing-rojo-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(204, 28, 46, 0.3);
+}
+
+.reserva-btn--primario:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.reserva-btn--secundario {
+  background: transparent;
+  color: var(--color-texto-suave);
+  border: 1.5px solid var(--color-borde);
+}
+
+.reserva-btn--secundario:hover {
+  border-color: var(--color-texto-suave);
+  color: var(--landing-negro);
+}
+
+/* ── CARGANDO ──────────────────────────────────────────────── */
+.reserva-cargando {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.9375rem;
+  color: var(--color-texto-suave);
+  padding: 2rem 0;
+}
+
+.reserva-cargando__spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-borde);
+  border-top-color: var(--landing-rojo);
+  border-radius: 50%;
+  animation: girar-spinner 0.7s linear infinite;
+}
+
+@keyframes girar-spinner {
+  to { transform: rotate(360deg); }
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .reserva-publica__contenido {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .indicador-pasos__etiqueta {
+    display: none;
+  }
+
+  .servicios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reserva-paso__titulo {
+    font-size: 1.375rem;
+  }
+
+  .reserva-navegacion {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .reserva-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

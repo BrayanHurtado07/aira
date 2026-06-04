@@ -1,11 +1,93 @@
 import React, { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { motion } from 'motion/react'
 import {
   Plus, CheckCircle2, Check, XCircle, User, MessageSquare,
   Globe, Users, Clock, Calendar, Pencil, Save,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { springSuave, delayItem } from '@/plataforma/diseno/motion'
+
+// ── Botones de acción inline (reemplazan el menú de 3 puntos) ────────────────
+
+function BotonesAccion({
+  reserva,
+  ejecutando,
+  onEditar,
+  onConfirmar,
+  onCompletar,
+  onCancelar,
+}: {
+  reserva: Reserva
+  ejecutando: boolean
+  onEditar: () => void
+  onConfirmar: () => void
+  onCompletar: () => void
+  onCancelar: () => void
+}) {
+  const puedeEditar   = reserva.estado === 'PENDIENTE' || reserva.estado === 'CONFIRMADA'
+  const puedeConfirmar = reserva.estado === 'PENDIENTE'
+  const puedeCompletar = reserva.estado === 'CONFIRMADA'
+  const puedeCancelar  = !['CANCELADA', 'COMPLETADA', 'NO_ASISTIO'].includes(reserva.estado)
+
+  return (
+    <div className="reserva-acciones-fila">
+      <button
+        className="reserva-accion-btn reserva-accion-btn--editar"
+        onClick={onEditar}
+        disabled={!puedeEditar}
+        data-tooltip="Editar reserva"
+        type="button"
+        aria-label="Editar reserva"
+      >
+        <Pencil size={13} />
+      </button>
+
+      {puedeConfirmar && (
+        <button
+          className="reserva-accion-btn reserva-accion-btn--confirmar"
+          onClick={onConfirmar}
+          disabled={ejecutando}
+          data-tooltip="Confirmar"
+          data-tooltip-variante="confirmar"
+          type="button"
+          aria-label="Confirmar reserva"
+        >
+          <CheckCircle2 size={13} />
+        </button>
+      )}
+
+      {puedeCompletar && (
+        <button
+          className="reserva-accion-btn reserva-accion-btn--completar"
+          onClick={onCompletar}
+          disabled={ejecutando}
+          data-tooltip="Completar"
+          data-tooltip-variante="completar"
+          type="button"
+          aria-label="Completar reserva"
+        >
+          <Check size={13} />
+        </button>
+      )}
+
+      {puedeCancelar && (
+        <button
+          className="reserva-accion-btn reserva-accion-btn--cancelar"
+          onClick={onCancelar}
+          disabled={ejecutando}
+          data-tooltip="Cancelar reserva"
+          data-tooltip-variante="cancelar"
+          type="button"
+          aria-label="Cancelar reserva"
+        >
+          <XCircle size={13} />
+        </button>
+      )}
+    </div>
+  )
+}
+
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 
 import { usarReservas }        from '@/capacidades/reservas/ganchos/usarReservas'
@@ -18,7 +100,6 @@ import { EncabezadoPagina }    from '@/compartido/interfaz/primitivas/Encabezado
 import { SeccionTarjeta }      from '@/compartido/interfaz/primitivas/SeccionTarjeta'
 import { TablaDatos }          from '@/compartido/interfaz/primitivas/TablaDatos'
 import type { ColumnaTabla }   from '@/compartido/interfaz/primitivas/TablaDatos'
-import { MenuAcciones }        from '@/compartido/interfaz/primitivas/MenuAcciones'
 import { Pestanas }            from '@/compartido/interfaz/primitivas/Pestanas'
 import type { Pestana }        from '@/compartido/interfaz/primitivas/Pestanas'
 import { DialogoConfirmacion } from '@/compartido/interfaz/primitivas/DialogoConfirmacion'
@@ -362,15 +443,6 @@ export function PaginaReservas() {
     }
   }
 
-  const manejarAccion = (accionId: string, reserva: Reserva) => {
-    switch (accionId) {
-      case 'editar':    setReservaEditando(reserva);         break
-      case 'confirmar': void ejecutarConfirmar(reserva.id);  break
-      case 'completar': void ejecutarCompletar(reserva.id);  break
-      case 'cancelar':  setReservaCancelando(reserva.id);    break
-    }
-  }
-
   // ── Columnas ────────────────────────────────────────────────────────────────
 
   const columnas: ColumnaTabla<Reserva>[] = useMemo(() => [
@@ -380,16 +452,30 @@ export function PaginaReservas() {
       render: (r) => {
         const cliente = mapaClientes[r.cliente_id]
         return (
-          <div className="tabla-datos-celda-identidad">
-            <div className="tabla-celda-avatar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div className="tabla-celda-avatar" style={{ flexShrink: 0 }}>
               {cliente ? iniciales(cliente.nombre) : <User size={12} />}
             </div>
             <div>
-              <div style={{ fontWeight: 500 }}>
+              <div style={{
+                fontFamily: 'var(--fuente-display-sc)',
+                fontWeight: 700,
+                fontSize: 'var(--tamano-sm)',
+                letterSpacing: '0.02em',
+                color: 'var(--color-texto)',
+                lineHeight: 1.2,
+              }}>
                 {cliente?.nombre ?? 'Cliente'}
               </div>
               {cliente?.telefono && (
-                <div style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-texto-suave)' }}>
+                <div style={{
+                  fontFamily: 'var(--fuente-acento)',
+                  fontSize: '0.65rem',
+                  fontWeight: 500,
+                  letterSpacing: '0.06em',
+                  color: 'var(--color-texto-suave)',
+                  marginTop: '2px',
+                }}>
                   {cliente.telefono}
                 </div>
               )}
@@ -401,10 +487,12 @@ export function PaginaReservas() {
     {
       clave:    'barbero',
       etiqueta: 'Barbero',
-      render: (r) =>
-        mapaBarberos[r.barbero_id] ?? (
-          <span style={{ color: 'var(--color-texto-muted)', fontStyle: 'italic' }}>—</span>
-        ),
+      render: (r) => {
+        const nombre = mapaBarberos[r.barbero_id]
+        return nombre
+          ? <span style={{ fontFamily: 'var(--fuente-display-sc)', fontWeight: 700, fontSize: 'var(--tamano-sm)', letterSpacing: '0.02em' }}>{nombre}</span>
+          : <span style={{ color: 'var(--color-texto-muted)', fontStyle: 'italic' }}>—</span>
+      },
     },
     {
       clave:    'fecha',
@@ -413,13 +501,11 @@ export function PaginaReservas() {
         const fecha = new Date(r.fecha_hora_inicio)
         return (
           <div>
-            <div style={{ fontWeight: 500 }}>
-              {fecha.toLocaleDateString('es-PE', {
-                day: '2-digit', month: 'short', year: 'numeric',
-              })}
+            <div style={{ fontFamily: 'var(--fuente-display-sc)', fontWeight: 700, fontSize: 'var(--tamano-sm)', letterSpacing: '0.02em' }}>
+              {fecha.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
             </div>
-            <div className="celda-hora">
-              <Clock size={10} />
+            <div className="celda-hora" style={{ fontFamily: 'var(--fuente-acento)', fontSize: '0.65rem', letterSpacing: '0.06em' }}>
+              <Clock size={9} />
               {fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
@@ -448,15 +534,12 @@ export function PaginaReservas() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  const puedeEditar = (r: Reserva) =>
-    r.estado === 'PENDIENTE' || r.estado === 'CONFIRMADA'
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
       className="pagina-contenido"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18 }}
     >
       {/* Encabezado */}
       <EncabezadoPagina
@@ -475,22 +558,26 @@ export function PaginaReservas() {
       {/* Chips de resumen */}
       {!cargando && !error && reservas.length > 0 && (
         <div className="reservas-stats-fila">
-          <div className="reserva-stat-chip reserva-stat-chip--advertencia">
-            <span className="reserva-stat-valor">{stats.pendiente}</span>
-            <span className="reserva-stat-etiqueta">Pendientes</span>
-          </div>
-          <div className="reserva-stat-chip reserva-stat-chip--exito">
-            <span className="reserva-stat-valor">{stats.confirmada}</span>
-            <span className="reserva-stat-etiqueta">Confirmadas</span>
-          </div>
-          <div className="reserva-stat-chip reserva-stat-chip--primario">
-            <span className="reserva-stat-valor">{stats.completada}</span>
-            <span className="reserva-stat-etiqueta">Completadas</span>
-          </div>
-          <div className="reserva-stat-chip reserva-stat-chip--error">
-            <span className="reserva-stat-valor">{stats.cancelada}</span>
-            <span className="reserva-stat-etiqueta">Canceladas</span>
-          </div>
+          {[
+            { variante: 'advertencia', valor: stats.pendiente,  etiqueta: 'Pendientes'  },
+            { variante: 'exito',       valor: stats.confirmada, etiqueta: 'Confirmadas' },
+            { variante: 'primario',    valor: stats.completada, etiqueta: 'Completadas' },
+            { variante: 'error',       valor: stats.cancelada,  etiqueta: 'Canceladas'  },
+          ].map(({ variante, valor, etiqueta }, i) => (
+            <motion.div
+              key={etiqueta}
+              className={`reserva-stat-chip reserva-stat-chip--${variante}`}
+              initial={{ opacity: 0, y: 12, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ ...springSuave, delay: delayItem(i) }}
+              whileHover={{ y: -2, transition: { duration: 0.15 } }}
+            >
+              <div>
+                <div className="reserva-stat-valor">{valor}</div>
+                <div className="reserva-stat-etiqueta">{etiqueta}</div>
+              </div>
+            </motion.div>
+          ))}
         </div>
       )}
 
@@ -522,7 +609,7 @@ export function PaginaReservas() {
             filasCargando={6}
             vacioIcono={<Calendar size={24} />}
             vacioTitulo={
-              filtro === 'TODAS' ? 'Sin reservas aún'
+              filtro === 'TODAS'      ? 'Sin reservas aún'
               : filtro === 'PENDIENTE'  ? 'Sin reservas pendientes'
               : filtro === 'CONFIRMADA' ? 'Sin reservas confirmadas'
               : filtro === 'COMPLETADA' ? 'Sin reservas completadas'
@@ -534,38 +621,13 @@ export function PaginaReservas() {
                 : 'No hay reservas con este estado en este momento.'
             }
             acciones={(reserva) => (
-              <MenuAcciones
-                acciones={[
-                  {
-                    id:           'editar',
-                    etiqueta:     'Editar reserva',
-                    icono:        <Pencil size={14} />,
-                    deshabilitada: !puedeEditar(reserva),
-                  },
-                  {
-                    id:           'confirmar',
-                    etiqueta:     'Confirmar',
-                    icono:        <CheckCircle2 size={14} />,
-                    separador:    true,
-                    deshabilitada: reserva.estado !== 'PENDIENTE' || ejecutando,
-                  },
-                  {
-                    id:           'completar',
-                    etiqueta:     'Completar',
-                    icono:        <Check size={14} />,
-                    deshabilitada: reserva.estado !== 'CONFIRMADA' || ejecutando,
-                  },
-                  {
-                    id:           'cancelar',
-                    etiqueta:     'Cancelar reserva',
-                    icono:        <XCircle size={14} />,
-                    variante:     'peligro',
-                    separador:    true,
-                    deshabilitada:
-                      ['CANCELADA', 'COMPLETADA', 'NO_ASISTIO'].includes(reserva.estado) || ejecutando,
-                  },
-                ]}
-                onAccion={(id) => manejarAccion(id, reserva)}
+              <BotonesAccion
+                reserva={reserva}
+                ejecutando={ejecutando}
+                onEditar={() => setReservaEditando(reserva)}
+                onConfirmar={() => void ejecutarConfirmar(reserva.id)}
+                onCompletar={() => void ejecutarCompletar(reserva.id)}
+                onCancelar={() => setReservaCancelando(reserva.id)}
               />
             )}
           />

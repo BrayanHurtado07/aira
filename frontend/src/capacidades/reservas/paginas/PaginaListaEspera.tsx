@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+
 import { toast } from 'sonner'
 import { Clock, Plus, X, User } from 'lucide-react'
 import { mensajeDeError } from '@/plataforma/gobierno/errores/errores-dominio'
@@ -137,10 +137,7 @@ export function PaginaListaEspera() {
   ]
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)' }}
     >
       <EncabezadoPagina
@@ -254,6 +251,6 @@ export function PaginaListaEspera() {
           vacioMensaje="No hay clientes en lista de espera en este momento."
         />
       </SeccionTarjeta>
-    </motion.div>
+    </div>
   )
 }

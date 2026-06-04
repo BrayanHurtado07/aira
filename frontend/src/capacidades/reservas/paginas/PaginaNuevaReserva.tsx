@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+
 import { toast } from 'sonner'
 import { ArrowLeft, CalendarPlus } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
@@ -23,10 +23,7 @@ export function PaginaNuevaReserva() {
   })
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="pagina-contenido pagina-contenido--estrecha"
     >
       {/* Volver */}
@@ -51,6 +48,6 @@ export function PaginaNuevaReserva() {
           error={mutacion.error ? mensajeDeError(mutacion.error) : null}
         />
       </SeccionTarjeta>
-    </motion.div>
+    </div>
   )
 }

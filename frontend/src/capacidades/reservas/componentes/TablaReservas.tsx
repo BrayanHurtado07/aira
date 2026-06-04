@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
 import { EstadoReserva } from '@/capacidades/reservas/componentes/EstadoReserva';
 import { GuardiaPermiso } from '@/plataforma/activacion/GuardiaPermiso';
@@ -63,12 +62,9 @@ export function TablaReservas({
             </tr>
           </thead>
           <tbody>
-            {reservas.map((reserva, i) => (
-              <motion.tr
+            {reservas.map((reserva) => (
+              <tr
                 key={reserva.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15, delay: i * 0.03 }}
                 style={{ borderBottom: '1px solid var(--color-borde-suave)', transition: 'background-color var(--transicion)' }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-superficie-2)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -157,7 +153,7 @@ export function TablaReservas({
                     </GuardiaPermiso>
                   </div>
                 </td>
-              </motion.tr>
+              </tr>
             ))}
           </tbody>
         </table>

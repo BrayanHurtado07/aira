@@ -16,7 +16,7 @@
  *   />
  */
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { EsqueletoTabla } from '@/compartido/interfaz/retroalimentacion/Esqueleto'
 import { Vacio } from '@/compartido/interfaz/retroalimentacion/Vacio'
 
@@ -140,9 +140,9 @@ export function TablaDatos<T>({
               return (
                 <motion.tr
                   key={clave}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.14, delay: i * 0.025 }}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: 'spring', stiffness: 280, damping: 26, delay: Math.min(i, 8) * 0.045 }}
                   className={[
                     'tabla-datos-fila',
                     onClickFila ? 'tabla-datos-fila--clickable' : '',

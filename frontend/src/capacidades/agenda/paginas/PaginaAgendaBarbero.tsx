@@ -377,7 +377,7 @@ export function PaginaAgendaBarbero() {
             Define horarios semanales y bloquea días no disponibles
           </p>
         </div>
-        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radio-lg)', backgroundColor: 'rgba(52,82,204,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primario)' }}>
+        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radio-lg)', backgroundColor: 'var(--color-acento-suave)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primario)' }}>
           <CalendarDays size={18} />
         </div>
       </div>

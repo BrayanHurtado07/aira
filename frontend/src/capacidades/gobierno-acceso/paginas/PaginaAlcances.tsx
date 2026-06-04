@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
 import {
   Shield, UserPlus, UserMinus, CheckCircle2, XCircle, Search,
@@ -375,10 +375,7 @@ export function PaginaAlcances() {
   const activos = alcances.filter((a) => a.estado === 'ACTIVO').length;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="pagina-gobierno-acceso"
     >
       <EncabezadoPagina
@@ -407,6 +404,6 @@ export function PaginaAlcances() {
         {pestanaActiva === 'alcances' && <PestanaAlcances />}
         {pestanaActiva === 'asignar'  && <PestanaAsignar />}
       </div>
-    </motion.div>
+    </div>
   );
 }
