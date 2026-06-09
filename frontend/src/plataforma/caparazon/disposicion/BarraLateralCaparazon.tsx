@@ -55,7 +55,7 @@ export function BarraLateralCaparazon({ abierta, alCerrar, colapsada, alToggleCo
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
     >
       {/* ── Logo ── */}
-      <div className="barra-lateral__logo-area">
+      <div className="barra-lateral__logo-area" data-tour="logo">
         <motion.div
           className="barra-lateral__logo-icono"
           whileHover={{ scale: 1.05 }}
@@ -129,6 +129,7 @@ export function BarraLateralCaparazon({ abierta, alCerrar, colapsada, alToggleCo
                   end={esRutaPadre(item.ruta)}
                   onClick={alCerrar}
                   title={colapsadaActiva ? item.etiqueta : undefined}
+                  data-tour={item.dataTour}
                   className={({ isActive }) =>
                     [
                       'barra-lateral__nav-item',

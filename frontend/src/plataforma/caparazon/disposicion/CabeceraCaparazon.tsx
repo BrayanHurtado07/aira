@@ -1,4 +1,4 @@
-import { Moon, Sun, Menu } from 'lucide-react';
+import { Moon, Sun, Menu, HelpCircle } from 'lucide-react';
 import { SelectorContexto } from '@/plataforma/contexto/SelectorContexto';
 import { usarAlmacenSesion } from '@/plataforma/identidad/almacen-sesion';
 import { cerrarSesionGlobal } from '@/plataforma/identidad/cliente-autenticacion';
@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Boton } from '@/compartido/interfaz/primitivas/Boton';
 import { MigasDePan } from './MigasDePan';
 import { BuscadorGlobal } from './BuscadorGlobal';
+import { usarAlmacenTour } from '@/plataforma/tour/almacen-tour';
 
 interface Props {
   alAbrirBarra: () => void;
@@ -16,6 +17,7 @@ export function CabeceraCaparazon({ alAbrirBarra }: Props) {
   const { sesion, limpiarSesion } = usarAlmacenSesion();
   const { tema, alternarTema } = usarAlmacenTema();
   const navegar = useNavigate();
+  const { iniciarTour } = usarAlmacenTour();
 
   async function manejarCerrarSesion() {
     try { await cerrarSesionGlobal(); } finally {
@@ -45,11 +47,20 @@ export function CabeceraCaparazon({ alAbrirBarra }: Props) {
 
         <span className="cabecera-divisor" aria-hidden="true" />
 
-        <div className="cabecera-contexto">
+        <div className="cabecera-contexto" data-tour="selector-contexto">
           <SelectorContexto />
         </div>
 
-        <span className="cabecera-nombre-usuario">{sesion?.nombre}</span>
+        <span className="cabecera-nombre-usuario" data-tour="usuario">{sesion?.nombre}</span>
+
+        <button
+          onClick={iniciarTour}
+          className="btn-aira cabecera-btn-tour"
+          title="Ver tour de bienvenida"
+          aria-label="Ver tour de bienvenida"
+        >
+          <HelpCircle size={14} />
+        </button>
 
         <button
           onClick={alternarTema}

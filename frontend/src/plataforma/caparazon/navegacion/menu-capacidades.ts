@@ -32,39 +32,40 @@ export type ItemMenu = {
   ruta: string;
   Icono: LucideIcon;
   grupo: GrupoMenu;
+  dataTour?: string;
   // roles que pueden ver este item. Si undefined → todos los autenticados.
   rolesPermitidos?: Rol[];
 };
 
 export const MENU_CAPACIDADES: ItemMenu[] = [
   // ── Principal ──────────────────────────────────────────────────────────────
-  { etiqueta: 'Tablero',        ruta: '/tablero',                Icono: LayoutDashboard, grupo: 'principal',
+  { etiqueta: 'Tablero',        ruta: '/tablero',                Icono: LayoutDashboard, grupo: 'principal',   dataTour: 'nav-tablero',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA, ROL.BARBERO] },
 
   // ── Plataforma (solo SUPERADMIN) ───────────────────────────────────────────
-  { etiqueta: 'Empresas',       ruta: '/superadmin',             Icono: UserCog,         grupo: 'plataforma',
+  { etiqueta: 'Empresas',       ruta: '/superadmin',             Icono: UserCog,         grupo: 'plataforma',  dataTour: 'nav-empresas',
     rolesPermitidos: [ROL.SUPERADMIN] },
 
   // ── Reservas ───────────────────────────────────────────────────────────────
-  { etiqueta: 'Reservas',       ruta: '/reservas',               Icono: CalendarCheck,   grupo: 'reservas',
+  { etiqueta: 'Reservas',       ruta: '/reservas',               Icono: CalendarCheck,   grupo: 'reservas',    dataTour: 'nav-reservas',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA, ROL.BARBERO, ROL.CLIENTE] },
-  { etiqueta: 'Clientes',       ruta: '/reservas/clientes',      Icono: Users,           grupo: 'reservas',
+  { etiqueta: 'Clientes',       ruta: '/reservas/clientes',      Icono: Users,           grupo: 'reservas',    dataTour: 'nav-clientes',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
   { etiqueta: 'Lista espera',   ruta: '/reservas/lista-espera',  Icono: ListOrdered,     grupo: 'reservas',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
 
   // ── Agenda ─────────────────────────────────────────────────────────────────
-  { etiqueta: 'Mi agenda',      ruta: '/agenda/mi-agenda',       Icono: CalendarDays,    grupo: 'agenda',
+  { etiqueta: 'Mi agenda',      ruta: '/agenda/mi-agenda',       Icono: CalendarDays,    grupo: 'agenda',      dataTour: 'nav-mi-agenda',
     rolesPermitidos: [ROL.BARBERO] },
-  { etiqueta: 'Barberos',       ruta: '/agenda/barberos',        Icono: Scissors,        grupo: 'agenda',
+  { etiqueta: 'Barberos',       ruta: '/agenda/barberos',        Icono: Scissors,        grupo: 'agenda',      dataTour: 'nav-barberos',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
-  { etiqueta: 'Servicios',      ruta: '/agenda/servicios',       Icono: Wrench,          grupo: 'agenda',
+  { etiqueta: 'Servicios',      ruta: '/agenda/servicios',       Icono: Wrench,          grupo: 'agenda',      dataTour: 'nav-servicios',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
   { etiqueta: 'Tarifas esp.',   ruta: '/agenda/tarifas',         Icono: Tag,             grupo: 'agenda',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
 
   // ── Comunicación ───────────────────────────────────────────────────────────
-  { etiqueta: 'Canal WhatsApp', ruta: '/canal-whatsapp',         Icono: MessageCircle,   grupo: 'comunicacion',
+  { etiqueta: 'Canal WhatsApp', ruta: '/canal-whatsapp',         Icono: MessageCircle,   grupo: 'comunicacion', dataTour: 'nav-whatsapp',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
   { etiqueta: 'Notificaciones', ruta: '/notificaciones',         Icono: Bell,            grupo: 'comunicacion',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
@@ -72,15 +73,15 @@ export const MENU_CAPACIDADES: ItemMenu[] = [
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
 
   // ── Negocio ────────────────────────────────────────────────────────────────
-  { etiqueta: 'Lealtad',        ruta: '/lealtad',                Icono: Award,           grupo: 'negocio',
+  { etiqueta: 'Lealtad',        ruta: '/lealtad',                Icono: Award,           grupo: 'negocio',     dataTour: 'nav-lealtad',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA, ROL.CLIENTE] },
   { etiqueta: 'Inventario',     ruta: '/inventario',             Icono: Package,         grupo: 'negocio',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
 
   // ── Sistema ────────────────────────────────────────────────────────────────
-  { etiqueta: 'Organización',   ruta: '/organizacion',           Icono: Building2,       grupo: 'sistema',
+  { etiqueta: 'Organización',   ruta: '/organizacion',           Icono: Building2,       grupo: 'sistema',     dataTour: 'nav-organizacion',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
-  { etiqueta: 'Accesos',        ruta: '/gobierno-acceso',        Icono: Shield,          grupo: 'sistema',
+  { etiqueta: 'Accesos',        ruta: '/gobierno-acceso',        Icono: Shield,          grupo: 'sistema',     dataTour: 'nav-accesos',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
   { etiqueta: 'Suscripción',    ruta: '/monetizacion',           Icono: CreditCard,      grupo: 'sistema',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
