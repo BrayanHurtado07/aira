@@ -28,6 +28,7 @@ func (r Recordatorio) ValidarPuedeCancelarse() error {
 // RecordatorioPendiente contiene el contexto completo para armar el mensaje.
 type RecordatorioPendiente struct {
 	ID               string
+	EmpresaID        string
 	Canal            string
 	TelefonoCliente  string
 	NombreCliente    string

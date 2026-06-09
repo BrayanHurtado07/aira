@@ -82,6 +82,7 @@ func (r *RepositorioRecordatorioCockroach) Cancelar(ctx context.Context, id, can
 func (r *RepositorioRecordatorioCockroach) ObtenerPendientes(ctx context.Context, limite int) ([]recordatorios.RecordatorioPendiente, error) {
 	filas, err := r.pool.Query(ctx,
 		`SELECT rp.id_recordatorio,
+		        rv.id_empresa::text,
 		        rp.canal,
 		        COALESCE(c.telefono, ''),
 		        COALESCE(c.nombre, ''),
@@ -108,7 +109,7 @@ func (r *RepositorioRecordatorioCockroach) ObtenerPendientes(ctx context.Context
 	for filas.Next() {
 		var rec recordatorios.RecordatorioPendiente
 		if err := filas.Scan(
-			&rec.ID, &rec.Canal, &rec.TelefonoCliente,
+			&rec.ID, &rec.EmpresaID, &rec.Canal, &rec.TelefonoCliente,
 			&rec.NombreCliente, &rec.NombreBarberia,
 			&rec.NombreBarbero, &rec.FechaHoraReserva,
 		); err != nil {

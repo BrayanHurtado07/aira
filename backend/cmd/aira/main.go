@@ -74,6 +74,7 @@ func main() {
 	repoListaEspera          := cockroach.NuevoRepositorioListaEspera(pool)
 	repoTarifaEspecial       := cockroach.NuevoRepositorioTarifaEspecial(pool)
 	repoTablero              := cockroach.NuevoRepositorioTablero(pool)
+	repoSesionWhatsApp       := cockroach.NuevoRepositorioSesionWhatsApp(pool)
 
 	// ── Adaptadores ──────────────────────────────────────────────────────────
 
@@ -156,7 +157,12 @@ func main() {
 	cuObtenerMetricasTablero := casoTablero.NuevoCasoUsoObtenerMetricasTablero(repoTablero)
 
 	// ── Workers ───────────────────────────────────────────────────────────────
-	des := despachador.NuevoDespachadorLog()
+	var des despachador.DespachadorRecordatorio
+	if clave := os.Getenv("WA_CIFRADO_CLAVE"); clave != "" {
+		des = despachador.NuevoDespachadorWhatsApp(repoSesionWhatsApp, clave)
+	} else {
+		des = despachador.NuevoDespachadorLog()
+	}
 	workerNotificaciones.NuevoWorkerRecordatorio(repoRecordatorio, des).Iniciar(ctx)
 
 	// ── Servidor HTTP ─────────────────────────────────────────────────────────
