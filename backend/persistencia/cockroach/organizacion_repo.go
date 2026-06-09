@@ -96,6 +96,28 @@ func (r *RepositorioEmpresaCockroach) Guardar(ctx context.Context, empresa barbe
 	return ExtraerCampo(resultado.Datos, "id_empresa"), nil
 }
 
+func (r *RepositorioEmpresaCockroach) ActualizarSlug(ctx context.Context, empresaID, slug string) (string, error) {
+	resultado, err := LlamarProc(ctx, r.pool, "empresa_actualizar_slug", empresaID, slug)
+	if err != nil {
+		return "", err
+	}
+	if !resultado.Exito {
+		return "", fmt.Errorf("%s", resultado.Error)
+	}
+	return ExtraerCampo(resultado.Datos, "slug"), nil
+}
+
+func (r *RepositorioEmpresaCockroach) ResolverSlug(ctx context.Context, slug string) (string, error) {
+	resultado, err := LlamarProc(ctx, r.pool, "empresa_resolver_slug", slug)
+	if err != nil {
+		return "", err
+	}
+	if !resultado.Exito {
+		return "", fmt.Errorf("%s", resultado.Error)
+	}
+	return ExtraerCampo(resultado.Datos, "id_empresa"), nil
+}
+
 // RepositorioSucursalCockroach
 
 type RepositorioSucursalCockroach struct {

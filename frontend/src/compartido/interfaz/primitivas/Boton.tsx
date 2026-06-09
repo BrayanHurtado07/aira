@@ -18,14 +18,14 @@ const estilosBase: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   gap: '0.375rem',
-  fontWeight: 500,
+  fontWeight: 600,
   borderRadius: 'var(--radio-md)',
   border: '1px solid transparent',
   cursor: 'pointer',
   whiteSpace: 'nowrap',
-  letterSpacing: '-0.01em',
+  letterSpacing: '0.01em',
   lineHeight: 1,
-  fontFamily: 'inherit',
+  fontFamily: 'var(--fuente-acento)',
   userSelect: 'none',
 };
 

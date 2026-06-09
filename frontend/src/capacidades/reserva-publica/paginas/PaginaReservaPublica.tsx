@@ -23,7 +23,8 @@ type Paso = 0 | 1 | 2 | 3
 type DatosCliente = { nombre: string; telefono: string; correo: string }
 
 export function PaginaReservaPublica() {
-  const { empresaID } = useParams<{ empresaID: string }>()
+  const { slug } = useParams<{ slug: string }>()
+  const empresaID = slug
 
   const [paso, setPaso] = useState<Paso>(0)
   const [exito, setExito] = useState(false)

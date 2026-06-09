@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Bell, BellOff, Clock, MessageCircle, Mail, Phone,
@@ -409,8 +409,11 @@ export function PaginaRecordatorios() {
   const pendientes = recordatorios.filter((r) => r.estado === 'PENDIENTE').length;
 
   return (
-    <div
+    <motion.div
       className="pagina-notificaciones"
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
     >
       <EncabezadoPagina
         titulo="Recordatorios automáticos"
@@ -438,6 +441,6 @@ export function PaginaRecordatorios() {
         {pestanaActiva === 'programar'     && <PestanaProgramar />}
         {pestanaActiva === 'recordatorios' && <PestanaRecordatorios />}
       </div>
-    </div>
+    </motion.div>
   );
 }

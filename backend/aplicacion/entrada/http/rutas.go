@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"aira/aplicacion/orquestacion"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
@@ -1902,10 +1903,29 @@ func (rt *Rutas) manejarRefrescarSesion(w http.ResponseWriter, r *http.Request) 
 
 // ── Handlers públicos (sin autenticación) ─────────────────────────────────────
 
+// resolverEmpresaPublica acepta un UUID o un slug legible.
+// Si el param tiene 36 caracteres y contiene guiones (UUID v4), lo usa directamente.
+// Si no, resuelve el slug contra la BD.
+func (rt *Rutas) resolverEmpresaPublica(w http.ResponseWriter, r *http.Request, param string) (string, bool) {
+	if len(param) == 36 && strings.Contains(param, "-") {
+		return param, true
+	}
+	id, err := rt.repoEmpresa.ResolverSlug(r.Context(), param)
+	if err != nil || id == "" {
+		ResponderError(w, http.StatusNotFound, "barberia_no_encontrada")
+		return "", false
+	}
+	return id, true
+}
+
 func (rt *Rutas) manejarServiciosPublico(w http.ResponseWriter, r *http.Request) {
-	empresaID := chi.URLParam(r, "empresaID")
-	if empresaID == "" {
+	param := chi.URLParam(r, "empresaID")
+	if param == "" {
 		ResponderError(w, http.StatusBadRequest, "empresa_requerida")
+		return
+	}
+	empresaID, ok := rt.resolverEmpresaPublica(w, r, param)
+	if !ok {
 		return
 	}
 	lista, err := rt.repoServicios.ListarTodos(r.Context(), empresaID)
@@ -1917,9 +1937,13 @@ func (rt *Rutas) manejarServiciosPublico(w http.ResponseWriter, r *http.Request)
 }
 
 func (rt *Rutas) manejarBarberosPublico(w http.ResponseWriter, r *http.Request) {
-	empresaID := chi.URLParam(r, "empresaID")
-	if empresaID == "" {
+	param := chi.URLParam(r, "empresaID")
+	if param == "" {
 		ResponderError(w, http.StatusBadRequest, "empresa_requerida")
+		return
+	}
+	empresaID, ok := rt.resolverEmpresaPublica(w, r, param)
+	if !ok {
 		return
 	}
 	lista, err := rt.repoBarberos.ListarActivos(r.Context(), empresaID)
@@ -1931,9 +1955,13 @@ func (rt *Rutas) manejarBarberosPublico(w http.ResponseWriter, r *http.Request) 
 }
 
 func (rt *Rutas) manejarSucursalesPublico(w http.ResponseWriter, r *http.Request) {
-	empresaID := chi.URLParam(r, "empresaID")
-	if empresaID == "" {
+	param := chi.URLParam(r, "empresaID")
+	if param == "" {
 		ResponderError(w, http.StatusBadRequest, "empresa_requerida")
+		return
+	}
+	empresaID, ok := rt.resolverEmpresaPublica(w, r, param)
+	if !ok {
 		return
 	}
 	lista, err := rt.repoSucursales.ListarActivas(r.Context(), empresaID)
@@ -1971,6 +1999,13 @@ func (rt *Rutas) manejarCrearReservaPublica(w http.ResponseWriter, r *http.Reque
 	if solicitud.EmpresaID == "" || solicitud.BarberoID == "" || solicitud.ServicioID == "" ||
 		solicitud.FechaHoraInicio == "" || solicitud.ClienteNombre == "" || solicitud.ClienteTelefono == "" {
 		ResponderError(w, http.StatusBadRequest, "campos_requeridos")
+		return
+	}
+
+	// Resolver slug → UUID si es necesario
+	if empresaUUID, ok := rt.resolverEmpresaPublica(w, r, solicitud.EmpresaID); ok {
+		solicitud.EmpresaID = empresaUUID
+	} else {
 		return
 	}
 

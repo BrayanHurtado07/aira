@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-
+import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Scissors, Plus, Pencil, Power, PowerOff, Clock, DollarSign, Save,
+  Scissors, Plus, Pencil, Power, PowerOff, Clock, Save,
 } from 'lucide-react'
 
 import {
@@ -259,12 +259,12 @@ export function PaginaGestionServicios() {
       clave:    'nombre',
       etiqueta: 'Servicio',
       render: (s) => (
-        <div className="tabla-datos-celda-identidad">
+        <div className="tabla-celda-identidad">
           <div className="tabla-datos-avatar tabla-datos-avatar--icono">
             <Scissors size={13} />
           </div>
           <div>
-            <div style={{ fontWeight: 500 }}>{s.nombre}</div>
+            <p className="tabla-celda-nombre">{s.nombre}</p>
           </div>
         </div>
       ),
@@ -285,8 +285,7 @@ export function PaginaGestionServicios() {
       clave:    'precio',
       etiqueta: 'Precio',
       render: (s) => (
-        <span className="servicio-precio">
-          <DollarSign size={12} />
+        <span style={{ fontFamily: 'var(--fuente-acento)', fontWeight: 600, fontSize: 'var(--tamano-sm)' }}>
           S/ {s.precio.toFixed(2)}
         </span>
       ),
@@ -309,8 +308,11 @@ export function PaginaGestionServicios() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div
+    <motion.div
       className="pagina-contenido"
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
     >
       {/* Encabezado */}
       <EncabezadoPagina
@@ -458,6 +460,6 @@ export function PaginaGestionServicios() {
         alConfirmar={ejecutarToggle}
         alCancelar={() => setServicioToggle(null)}
       />
-    </div>
+    </motion.div>
   )
 }

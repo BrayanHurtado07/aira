@@ -78,6 +78,61 @@ func (r *RepositorioRecordatorioCockroach) Cancelar(ctx context.Context, id, can
 	return nil
 }
 
+// ObtenerPendientes devuelve recordatorios cuyo envío ya venció (enviar_en <= now).
+func (r *RepositorioRecordatorioCockroach) ObtenerPendientes(ctx context.Context, limite int) ([]recordatorios.RecordatorioPendiente, error) {
+	filas, err := r.pool.Query(ctx,
+		`SELECT rp.id_recordatorio,
+		        rp.canal,
+		        COALESCE(c.telefono, ''),
+		        COALESCE(c.nombre, ''),
+		        COALESCE(e.nombre, ''),
+		        COALESCE(b.nombre, ''),
+		        COALESCE(rv.fecha_hora_inicio::text, '')
+		 FROM recordatorio_programado rp
+		 JOIN reserva rv ON rv.id_reserva = rp.id_reserva
+		 JOIN cliente c  ON c.id_cliente  = rv.id_cliente
+		 JOIN empresa e  ON e.id_empresa  = rv.id_empresa
+		 JOIN barbero b  ON b.id_barbero  = rv.id_barbero
+		 WHERE rp.estado = 'PENDIENTE'
+		   AND rp.enviar_en <= now()
+		 ORDER BY rp.enviar_en
+		 LIMIT $1`,
+		limite,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("obtener recordatorios pendientes: %w", err)
+	}
+	defer filas.Close()
+
+	var resultado []recordatorios.RecordatorioPendiente
+	for filas.Next() {
+		var rec recordatorios.RecordatorioPendiente
+		if err := filas.Scan(
+			&rec.ID, &rec.Canal, &rec.TelefonoCliente,
+			&rec.NombreCliente, &rec.NombreBarberia,
+			&rec.NombreBarbero, &rec.FechaHoraReserva,
+		); err != nil {
+			return nil, fmt.Errorf("escanear recordatorio pendiente: %w", err)
+		}
+		resultado = append(resultado, rec)
+	}
+	if resultado == nil {
+		resultado = []recordatorios.RecordatorioPendiente{}
+	}
+	return resultado, nil
+}
+
+func (r *RepositorioRecordatorioCockroach) MarcarEnviado(ctx context.Context, id string) error {
+	resultado, err := LlamarProc(ctx, r.pool, "recordatorio_marcar_enviado", id)
+	if err != nil {
+		return err
+	}
+	if !resultado.Exito {
+		return fmt.Errorf("%s", resultado.Error)
+	}
+	return nil
+}
+
 // ListarPorEmpresa devuelve los recordatorios de la empresa con info del cliente y reserva.
 func (r *RepositorioRecordatorioCockroach) ListarPorEmpresa(ctx context.Context, empresaID string) ([]RecordatorioResumen, error) {
 	filas, err := r.pool.Query(ctx,

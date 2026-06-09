@@ -23,14 +23,15 @@ async function post<T>(url: string, body: unknown): Promise<T> {
   return json.datos as T
 }
 
-export const obtenerServiciosPublicos = (empresaID: string) =>
-  get<Servicio[]>(`${BASE}/empresas/${empresaID}/servicios`)
+// Las rutas públicas aceptan slug legible ("mi-barberia") o UUID de empresa.
+export const obtenerServiciosPublicos = (slug: string) =>
+  get<Servicio[]>(`${BASE}/empresas/${slug}/servicios`)
 
-export const obtenerBarberosPublicos = (empresaID: string) =>
-  get<Barbero[]>(`${BASE}/empresas/${empresaID}/barberos`)
+export const obtenerBarberosPublicos = (slug: string) =>
+  get<Barbero[]>(`${BASE}/empresas/${slug}/barberos`)
 
-export const obtenerSucursalesPublicas = (empresaID: string) =>
-  get<Sucursal[]>(`${BASE}/empresas/${empresaID}/sucursales`)
+export const obtenerSucursalesPublicas = (slug: string) =>
+  get<Sucursal[]>(`${BASE}/empresas/${slug}/sucursales`)
 
 export const obtenerSlotsPublicos = (barberoID: string, servicioID: string, fecha: string) =>
   get<BloqueDisponibilidad[]>(

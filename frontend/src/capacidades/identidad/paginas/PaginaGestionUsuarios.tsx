@@ -1,138 +1,246 @@
-import React from 'react';
-import { useState } from 'react';
-import { Campo } from '@/compartido/interfaz/primitivas/Campo';
-import { Boton } from '@/compartido/interfaz/primitivas/Boton';
-import { usarCambiarPassword } from '../ganchos/usarCambiarPassword';
+import React, { useState } from 'react'
+import { motion } from 'framer-motion'
+import { toast } from 'sonner'
+import { Users, UserX, KeyRound, Shield } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina'
+import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta'
+import { TablaDatos } from '@/compartido/interfaz/primitivas/TablaDatos'
+import { MenuAcciones } from '@/compartido/interfaz/primitivas/MenuAcciones'
+import { DialogoConfirmacion } from '@/compartido/interfaz/primitivas/DialogoConfirmacion'
+import { Campo } from '@/compartido/interfaz/primitivas/Campo'
+import { Boton } from '@/compartido/interfaz/primitivas/Boton'
+import { Insignia } from '@/compartido/interfaz/retroalimentacion/Insignia'
+import { Pestanas } from '@/compartido/interfaz/primitivas/Pestanas'
+import { listarUsuarios, inactivarUsuario, cambiarPassword } from '../servicios/servicio-identidad'
+import { mensajeDeError } from '@/plataforma/gobierno/errores/errores-dominio'
+import type { UsuarioResumen } from '../contratos/tipos'
 
-function FormularioCambiarPassword() {
-  const [contrasenaActual, setContrasenaActual] = useState('');
-  const [contrasenaNueva, setContrasenaNueva] = useState('');
-  const { ejecutar, enviando, exito, error } = usarCambiarPassword();
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-  const enviarFormulario = (e: React.FormEvent) => {
-    e.preventDefault();
-    ejecutar({ contrasena_actual: contrasenaActual, contrasena_nueva: contrasenaNueva });
-  };
-
-  return (
-    <form onSubmit={enviarFormulario} noValidate>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
-        <Campo etiqueta="Contraseña actual">
-          <input
-            type="password"
-            value={contrasenaActual}
-            onChange={(e) => setContrasenaActual(e.target.value)}
-            placeholder="••••••••"
-            required
-            style={{
-              width: '100%',
-              padding: 'var(--espacio-sm) var(--espacio-md)',
-              border: '1px solid var(--color-borde)',
-              borderRadius: 'var(--radio-md)',
-              fontSize: 'var(--texto-md)',
-              color: 'var(--color-texto)',
-              backgroundColor: 'var(--color-fondo-input)',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </Campo>
-
-        <Campo etiqueta="Nueva contraseña">
-          <input
-            type="password"
-            value={contrasenaNueva}
-            onChange={(e) => setContrasenaNueva(e.target.value)}
-            placeholder="••••••••"
-            required
-            style={{
-              width: '100%',
-              padding: 'var(--espacio-sm) var(--espacio-md)',
-              border: '1px solid var(--color-borde)',
-              borderRadius: 'var(--radio-md)',
-              fontSize: 'var(--texto-md)',
-              color: 'var(--color-texto)',
-              backgroundColor: 'var(--color-fondo-input)',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </Campo>
-
-        {error && (
-          <p
-            style={{
-              fontSize: 'var(--texto-sm)',
-              color: 'var(--color-error)',
-              backgroundColor: 'var(--color-error-suave)',
-              padding: 'var(--espacio-sm) var(--espacio-md)',
-              borderRadius: 'var(--radio-md)',
-              margin: 0,
-            }}
-          >
-            {error}
-          </p>
-        )}
-
-        {exito && (
-          <p
-            style={{
-              fontSize: 'var(--texto-sm)',
-              color: 'var(--color-exito)',
-              backgroundColor: 'var(--color-exito-suave)',
-              padding: 'var(--espacio-sm) var(--espacio-md)',
-              borderRadius: 'var(--radio-md)',
-              margin: 0,
-            }}
-          >
-            Contraseña actualizada correctamente.
-          </p>
-        )}
-
-        <Boton type="submit" variante="primario" tamano="md" cargando={enviando}>
-          Actualizar contraseña
-        </Boton>
-      </div>
-    </form>
-  );
+function iniciales(nombre: string): string {
+  return nombre.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
 }
 
-export function PaginaGestionUsuarios() {
+// ── Pestaña Usuarios ──────────────────────────────────────────────────────────
+
+function PestanaUsuarios() {
+  const clienteConsulta = useQueryClient()
+  const [confirmarInactivar, setConfirmarInactivar] = useState<UsuarioResumen | null>(null)
+
+  const consulta = useQuery({
+    queryKey: ['usuarios'],
+    queryFn: () => listarUsuarios(),
+  })
+
+  const mutInactivar = useMutation({
+    mutationFn: (u: UsuarioResumen) => inactivarUsuario(u.id),
+    onSuccess: (_, u) => {
+      clienteConsulta.invalidateQueries({ queryKey: ['usuarios'] })
+      toast.success('Usuario inactivado', { description: u.nombre })
+      setConfirmarInactivar(null)
+    },
+    onError: (err) => toast.error(mensajeDeError(err)),
+  })
+
+  const columnas = [
+    {
+      clave: 'nombre',
+      etiqueta: 'Usuario',
+      render: (u: UsuarioResumen) => (
+        <div className="tabla-celda-identidad">
+          <div className="tabla-celda-avatar">{iniciales(u.nombre)}</div>
+          <div>
+            <p className="tabla-celda-nombre">{u.nombre}</p>
+            <p style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-texto-suave)', margin: 0 }}>
+              {u.correo}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      clave: 'estado',
+      etiqueta: 'Estado',
+      render: (u: UsuarioResumen) => (
+        <Insignia variante={u.estado === 'ACTIVO' ? 'exito' : 'neutral'}>
+          {u.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}
+        </Insignia>
+      ),
+    },
+  ]
+
   return (
-    <div style={{ padding: 'var(--espacio-xl)' }}>
-      <h1
-        style={{
-          fontSize: 'var(--texto-2xl)',
-          fontWeight: 700,
-          color: 'var(--color-texto)',
-          marginBottom: 'var(--espacio-xl)',
-        }}
-      >
-        Gestión de Usuarios
-      </h1>
+    <>
+      <SeccionTarjeta titulo="Usuarios registrados" sinPaddingCuerpo>
+        <TablaDatos<UsuarioResumen>
+          columnas={columnas}
+          filas={consulta.data ?? []}
+          obtenerClave={(u) => u.id}
+          cargando={consulta.isLoading}
+          vacioIcono={<Users size={28} />}
+          vacioTitulo="Sin usuarios"
+          vacioMensaje="No hay usuarios activos en el sistema."
+          acciones={(u) => (
+            <MenuAcciones
+              acciones={[
+                {
+                  id: 'inactivar',
+                  etiqueta: 'Inactivar usuario',
+                  icono: <UserX size={14} />,
+                  variante: 'advertencia',
+                  deshabilitada: u.estado !== 'ACTIVO',
+                },
+              ]}
+              onAccion={(id) => { if (id === 'inactivar') setConfirmarInactivar(u) }}
+              titulo="Acciones del usuario"
+            />
+          )}
+        />
+      </SeccionTarjeta>
 
-      <div
+      <DialogoConfirmacion
+        abierto={!!confirmarInactivar}
+        titulo={`¿Inactivar a ${confirmarInactivar?.nombre ?? ''}?`}
+        descripcion="El usuario no podrá iniciar sesión. Esta acción puede revertirse reasignando un alcance activo."
+        variante="advertencia"
+        textoConfirmar="Sí, inactivar"
+        cargando={mutInactivar.isPending}
+        alConfirmar={() => confirmarInactivar && mutInactivar.mutate(confirmarInactivar)}
+        alCancelar={() => setConfirmarInactivar(null)}
+      />
+    </>
+  )
+}
+
+// ── Pestaña Cambiar contraseña ────────────────────────────────────────────────
+
+function PestanaCambiarPassword() {
+  const [actual, setActual]       = useState('')
+  const [nueva, setNueva]         = useState('')
+  const [confirmar, setConfirmar] = useState('')
+  const [errorLocal, setErrorLocal] = useState('')
+
+  const mutacion = useMutation({
+    mutationFn: () => cambiarPassword({ contrasena_actual: actual, contrasena_nueva: nueva }),
+    onSuccess: () => {
+      toast.success('Contraseña actualizada')
+      setActual('')
+      setNueva('')
+      setConfirmar('')
+      setErrorLocal('')
+    },
+    onError: (err) => setErrorLocal(mensajeDeError(err)),
+  })
+
+  const enviar = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (nueva.length < 8) { setErrorLocal('La contraseña debe tener al menos 8 caracteres'); return }
+    if (nueva !== confirmar) { setErrorLocal('Las contraseñas no coinciden'); return }
+    setErrorLocal('')
+    mutacion.mutate()
+  }
+
+  return (
+    <SeccionTarjeta titulo="Cambiar contraseña" icono={<KeyRound size={14} />} maxAncho={480}>
+      <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
+        <Campo
+          etiqueta="Contraseña actual"
+          requerido
+          type="password"
+          value={actual}
+          onChange={(e) => { setActual(e.target.value); setErrorLocal('') }}
+          placeholder="••••••••"
+        />
+        <Campo
+          etiqueta="Nueva contraseña"
+          requerido
+          type="password"
+          value={nueva}
+          onChange={(e) => { setNueva(e.target.value); setErrorLocal('') }}
+          placeholder="Mínimo 8 caracteres"
+        />
+        <Campo
+          etiqueta="Confirmar nueva contraseña"
+          requerido
+          type="password"
+          value={confirmar}
+          onChange={(e) => { setConfirmar(e.target.value); setErrorLocal('') }}
+          placeholder="Repite la nueva contraseña"
+          error={errorLocal || undefined}
+        />
+
+        <Boton type="submit" variante="primario" icono={<KeyRound size={14} />} cargando={mutacion.isPending}>
+          Actualizar contraseña
+        </Boton>
+      </form>
+    </SeccionTarjeta>
+  )
+}
+
+// ── Página ────────────────────────────────────────────────────────────────────
+
+const PESTANAS = [
+  { id: 'usuarios',  etiqueta: 'Usuarios',   icono: <Users size={14} /> },
+  { id: 'password',  etiqueta: 'Contraseña', icono: <KeyRound size={14} /> },
+]
+
+export function PaginaGestionUsuarios() {
+  const [pestanaActiva, setPestanaActiva] = useState('usuarios')
+
+  const consulta = useQuery({ queryKey: ['usuarios'], queryFn: listarUsuarios })
+  const total = consulta.data?.length ?? 0
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      style={{ display: 'flex', flexDirection: 'column' }}
+    >
+      <EncabezadoPagina
+        titulo="Usuarios"
+        descripcion="Gestión de usuarios del sistema y contraseña"
+        indicador={
+          total > 0 ? (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '99px',
+                backgroundColor: 'rgba(5,150,105,0.08)',
+                fontSize: 'var(--tamano-xs)',
+                fontWeight: 600,
+                color: 'var(--color-exito)',
+              }}
+            >
+              <Shield size={12} />
+              {total} {total === 1 ? 'usuario' : 'usuarios'}
+            </div>
+          ) : undefined
+        }
         style={{
-          maxWidth: '480px',
+          padding: 'var(--espacio-lg)',
+          borderBottom: '1px solid var(--color-borde)',
           backgroundColor: 'var(--color-superficie)',
-          borderRadius: 'var(--radio-lg)',
-          padding: 'var(--espacio-xl)',
-          boxShadow: 'var(--sombra-sm)',
         }}
-      >
-        <h2
-          style={{
-            fontSize: 'var(--texto-lg)',
-            fontWeight: 600,
-            color: 'var(--color-texto)',
-            marginBottom: 'var(--espacio-lg)',
-          }}
-        >
-          Cambiar contraseña
-        </h2>
+      />
 
-        <FormularioCambiarPassword />
+      <div style={{ padding: '0 var(--espacio-lg)', borderBottom: '1px solid var(--color-borde)', backgroundColor: 'var(--color-superficie)' }}>
+        <Pestanas
+          pestanas={PESTANAS}
+          activa={pestanaActiva}
+          alCambiar={setPestanaActiva}
+          variante="linea"
+        />
       </div>
-    </div>
-  );
+
+      <div style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)' }}>
+        {pestanaActiva === 'usuarios'  && <PestanaUsuarios />}
+        {pestanaActiva === 'password'  && <PestanaCambiarPassword />}
+      </div>
+    </motion.div>
+  )
 }

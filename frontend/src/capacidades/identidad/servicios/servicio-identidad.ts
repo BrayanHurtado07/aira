@@ -10,6 +10,7 @@ import type {
   SolicitudRestablecerPassword,
   SolicitudRefrescarSesion,
   RespuestaRefrescarSesion,
+  UsuarioResumen,
 } from '../contratos/tipos';
 
 export const iniciarSesion = (solicitud: SolicitudIniciarSesion) =>
@@ -19,10 +20,13 @@ export const registrarUsuario = (solicitud: SolicitudRegistrarUsuario) =>
   clienteHttp.post<void>('/identidad/usuarios', solicitud);
 
 export const cambiarPassword = (solicitud: SolicitudCambiarPassword) =>
-  clienteHttp.patch<void>('/identidad/password', solicitud);
+  clienteHttp.post<void>('/usuarios/cambiar-password', solicitud);
 
 export const inactivarUsuario = (usuarioId: string) =>
-  clienteHttp.patch<void>(`/identidad/usuarios/${usuarioId}/inactivar`);
+  clienteHttp.post<void>(`/usuarios/${usuarioId}/inactivar`);
+
+export const listarUsuarios = () =>
+  clienteHttp.get<UsuarioResumen[]>('/usuarios');
 
 export const solicitarVerificacionCorreo = (solicitud: SolicitudSolicitarVerificacion) =>
   clienteHttp.post<void>('/auth/verificar-correo/solicitar', solicitud);

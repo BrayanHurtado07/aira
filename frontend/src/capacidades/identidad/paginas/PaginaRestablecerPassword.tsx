@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { restablecerPassword } from '../servicios/servicio-identidad';
+import { Campo } from '@/compartido/interfaz/primitivas/Campo';
 
 type Estado = 'formulario' | 'exito' | 'error';
 
@@ -54,9 +55,23 @@ export function PaginaRestablecerPassword() {
             <h2 style={e.titulo}>Nueva contraseña</h2>
             <p style={e.subtitulo}>Elige una contraseña segura de al menos 8 caracteres.</p>
             <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-              <input type="password" value={nueva} onChange={(ev) => setNueva(ev.target.value)} placeholder="Nueva contraseña" required className="campo-input" />
-              <input type="password" value={confirmar} onChange={(ev) => setConfirmar(ev.target.value)} placeholder="Confirmar contraseña" required className="campo-input" />
-              {errorLocal && <p style={e.errorMsg}>{errorLocal}</p>}
+              <Campo
+                etiqueta="Nueva contraseña"
+                requerido
+                type="password"
+                value={nueva}
+                onChange={(ev) => setNueva(ev.target.value)}
+                placeholder="Mínimo 8 caracteres"
+              />
+              <Campo
+                etiqueta="Confirmar contraseña"
+                requerido
+                type="password"
+                value={confirmar}
+                onChange={(ev) => setConfirmar(ev.target.value)}
+                placeholder="Repite la nueva contraseña"
+                error={errorLocal || undefined}
+              />
               <button type="submit" disabled={enviando} style={{ ...e.boton, width: '100%' }}>
                 {enviando ? 'Guardando…' : 'Guardar nueva contraseña →'}
               </button>

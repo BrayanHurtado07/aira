@@ -58,3 +58,10 @@ export type RespuestaRefrescarSesion = {
   sesion_id: string;
   usuario_id: string;
 };
+
+export type UsuarioResumen = {
+  id: string;
+  nombre: string;
+  correo: string;
+  estado: string;
+};

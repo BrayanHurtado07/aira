@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 import { toast } from 'sonner';
 import {
@@ -455,8 +456,11 @@ export function PaginaOrganizacion() {
   const periodosActivos = periodos.filter((p) => p.estado === 'ACTIVO').length;
 
   return (
-    <div
+    <motion.div
       className="pagina-organizacion"
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
     >
       <EncabezadoPagina
         titulo="Organización"
@@ -485,6 +489,6 @@ export function PaginaOrganizacion() {
         {pestanaActiva === 'periodos'      && <PestanaPeriodos />}
         {pestanaActiva === 'configuracion' && <PestanaConfiguracion />}
       </div>
-    </div>
+    </motion.div>
   );
 }

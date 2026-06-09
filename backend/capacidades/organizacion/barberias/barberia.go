@@ -12,6 +12,7 @@ const (
 type Empresa struct {
 	ID     string
 	Nombre string
+	Slug   string
 	Estado EstadoEmpresa
 }
 

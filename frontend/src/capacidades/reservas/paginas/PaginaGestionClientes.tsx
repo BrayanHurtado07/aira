@@ -20,6 +20,8 @@ import { Boton } from '@/compartido/interfaz/primitivas/Boton';
 import { Campo } from '@/compartido/interfaz/primitivas/Campo';
 import { CampoEmail } from '@/compartido/interfaz/primitivas/CampoEmail';
 import { SelectorTelefono } from '@/compartido/interfaz/primitivas/SelectorTelefono';
+import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina';
+import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta';
 import type { Cliente, SolicitudRegistrarCliente } from '@/capacidades/reservas/contratos/tipos';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -340,24 +342,25 @@ export function PaginaGestionClientes() {
           <div className="tabla-celda-avatar">{iniciales(c.nombre)}</div>
           <div>
             <p className="tabla-celda-nombre">{c.nombre}</p>
+            {c.telefono && (
+              <p className="tabla-celda-sub" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {c.telefono}
+              </p>
+            )}
           </div>
         </div>
-      ),
-    },
-    {
-      clave: 'telefono',
-      etiqueta: 'Teléfono',
-      render: (c) => (
-        <span style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)', fontVariantNumeric: 'tabular-nums' }}>
-          {c.telefono || '—'}
-        </span>
       ),
     },
     {
       clave: 'correo',
       etiqueta: 'Correo',
       render: (c) => (
-        <span style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>
+        <span style={{
+          fontFamily: 'var(--fuente-acento)',
+          fontSize: 'var(--tamano-sm)',
+          color: 'var(--color-texto-suave)',
+          letterSpacing: '0.02em',
+        }}>
           {c.correo || <span style={{ opacity: 0.3 }}>—</span>}
         </span>
       ),
@@ -376,37 +379,24 @@ export function PaginaGestionClientes() {
       transition={{ duration: 0.2 }}
       style={{ display: 'flex', flexDirection: 'column' }}
     >
-      {/* Encabezado */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--espacio-lg)', borderBottom: '1px solid var(--color-borde)', backgroundColor: 'var(--color-superficie)' }}>
-        <div>
-          <h1 style={{ fontSize: 'var(--tamano-xl)', fontWeight: 700, color: 'var(--color-texto)', margin: 0, letterSpacing: '-0.02em' }}>
-            Clientes
-          </h1>
-          <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)', marginTop: '0.125rem' }}>
-            Administra los clientes de la barbería
-          </p>
-        </div>
-        {clientes.length > 0 && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.25rem 0.75rem', borderRadius: '99px', backgroundColor: 'rgba(5,150,105,0.08)', fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-exito)' }}>
-            <Users size={12} />
-            {clientes.length} {clientes.length === 1 ? 'cliente' : 'clientes'}
-          </div>
-        )}
-      </div>
+      <EncabezadoPagina
+        titulo="Clientes"
+        descripcion="Administra los clientes de la barbería"
+        indicador={
+          clientes.length > 0 ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.25rem 0.75rem', borderRadius: '99px', backgroundColor: 'rgba(5,150,105,0.08)', fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-exito)' }}>
+              <Users size={12} />
+              {clientes.length} {clientes.length === 1 ? 'cliente' : 'clientes'}
+            </div>
+          ) : undefined
+        }
+        style={{ padding: 'var(--espacio-lg)', borderBottom: '1px solid var(--color-borde)', backgroundColor: 'var(--color-superficie)' }}
+      />
 
       <div style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-xl)' }}>
 
         {/* Formulario de registro */}
-        <div style={{ border: '1px solid var(--color-borde)', borderRadius: 'var(--radio-xl)', padding: 'var(--espacio-lg)', backgroundColor: 'var(--color-superficie)', maxWidth: '480px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: 'var(--espacio-lg)' }}>
-            <div style={{ width: '2rem', height: '2rem', borderRadius: 'var(--radio-md)', backgroundColor: 'rgba(5,150,105,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-exito)' }}>
-              <UserPlus size={14} />
-            </div>
-            <h2 style={{ fontSize: 'var(--tamano-base)', fontWeight: 600, color: 'var(--color-texto)', margin: 0 }}>
-              Registrar cliente
-            </h2>
-          </div>
-
+        <SeccionTarjeta titulo="Registrar cliente" icono={<UserPlus size={14} />} maxAncho={480}>
           <form onSubmit={manejarEnvio} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
             <Campo
               etiqueta="Nombre completo" requerido error={errores.nombre}
@@ -414,14 +404,14 @@ export function PaginaGestionClientes() {
               placeholder="Ej: Juan Pérez"
             />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-texto)', letterSpacing: '0.01em' }}>
+              <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
                 Teléfono <span style={{ color: 'var(--color-error)' }}>*</span>
               </label>
               <SelectorTelefono valor={formulario.telefono} alCambiar={cambiar('telefono')} error={!!errores.telefono} />
               {errores.telefono && <span style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-error)' }}>{errores.telefono}</span>}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-texto)', letterSpacing: '0.01em' }}>
+              <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
                 Correo electrónico <span style={{ fontWeight: 400, color: 'var(--color-texto-suave)' }}>(Opcional)</span>
               </label>
               <CampoEmail valor={formulario.correo_electronico} alCambiar={cambiar('correo_electronico')} />
@@ -430,15 +420,14 @@ export function PaginaGestionClientes() {
               Registrar cliente
             </Boton>
           </form>
-        </div>
+        </SeccionTarjeta>
 
         {/* Tabla */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--espacio-md)', flexWrap: 'wrap', gap: 'var(--espacio-sm)' }}>
-            <p style={{ fontSize: 'var(--tamano-xs)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-texto-suave)', margin: 0 }}>
-              Clientes registrados
-            </p>
-            {clientes.length > 3 && (
+        <SeccionTarjeta
+          titulo="Clientes registrados"
+          sinPaddingCuerpo
+          acciones={
+            clientes.length > 3 ? (
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <Search size={13} style={{ position: 'absolute', left: '0.625rem', color: 'var(--color-texto-suave)', pointerEvents: 'none' }} />
                 <input
@@ -447,9 +436,9 @@ export function PaginaGestionClientes() {
                   className="campo-input" style={{ paddingLeft: '2rem', width: '260px' }}
                 />
               </div>
-            )}
-          </div>
-
+            ) : undefined
+          }
+        >
           <TablaDatos<Cliente>
             columnas={columnas}
             filas={clientesFiltrados}
@@ -467,7 +456,7 @@ export function PaginaGestionClientes() {
               />
             )}
           />
-        </div>
+        </SeccionTarjeta>
       </div>
 
       {/* Modal de edición */}

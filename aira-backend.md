@@ -1,6 +1,6 @@
 # AIRA — Estado Backend Go
 > Inventario completo de casos de uso, repositorios, rutas HTTP y brechas de implementación.
-> Actualizado: 2026-05-28
+> Actualizado: 2026-06-09
 
 ---
 
@@ -8,7 +8,7 @@
 
 ```
 HTTP (Chi)
-  └── rutas.go (70+ endpoints)
+  └── rutas.go (78+ endpoints)
         └── Manejadores (handlers en rutas.go)
               └── Casos de uso (capacidades/[dominio]/casos_uso/)
                     ├── Repositorios (capacidades/[dominio]/*/repositorio.go)
@@ -24,9 +24,9 @@ Entrada HTTP → Manejador → Caso de uso → Políticas de dominio → Control
 
 ---
 
-## Casos de uso implementados (31)
+## Casos de uso implementados (~38)
 
-### Identidad — `/capacidades/identidad/casos_uso/`
+### Identidad — `/capacidades/identidad/casos_uso/` ✅ COMPLETO
 
 | Caso de uso | Archivo | Función almacenada | Evento publicado | Estado |
 |-------------|---------|-------------------|-----------------|--------|
@@ -35,11 +35,14 @@ Entrada HTTP → Manejador → Caso de uso → Políticas de dominio → Control
 | CerrarSesion | `cerrar_sesion.go` | `usuario_cerrar_sesion` | SesionRevocada | ✅ |
 | InactivarUsuario | `inactivar_usuario.go` | — (UPDATE directo) | UsuarioInactivado | ✅ |
 | CambiarPassword | `cambiar_password.go` | — (UPDATE directo) | PasswordCambiado | ✅ |
+| **RefrescarSesion** | `refrescar_sesion.go` | `usuario_refrescar_sesion` | — | ✅ **NUEVO** |
+| **VerificarCorreo** | `verificar_correo.go` | `usuario_verificar_correo` | — | ✅ **NUEVO** |
+| **SolicitarVerificacionCorreo** | `solicitar_verificacion_correo.go` | `verificacion_correo_crear` | — | ✅ **NUEVO** |
+| **SolicitarRestablecimientoPassword** | `solicitar_restablecimiento_password.go` | — | — | ✅ **NUEVO** |
+| **RestablecerPassword** | `restablecer_password.go` | — | — | ✅ **NUEVO** |
 
-**Falta:**
-- `VerificarCorreo` — usa `usuario_verificar_correo` + `verificacion_correo_crear` — **sin implementar**
-- `RenovarSesion` — refresh token en DB pero sin lógica Go
-- `RestablecerPassword` — sin flujo de recuperación
+**Pendiente:**
+- Integrar envío real de email (SMTP/SendGrid) en `SolicitarVerificacionCorreo` y `SolicitarRestablecimientoPassword`
 
 ### Organización — `/capacidades/organizacion/casos_uso/`
 
@@ -65,7 +68,7 @@ Entrada HTTP → Manejador → Caso de uso → Políticas de dominio → Control
 - CRUD de roles y permisos — actualmente solo se listan (seed data)
 - Validación de límites de plan en `GuardiaPoliticas` — definida pero no integrada a handlers
 
-### Agenda — `/capacidades/agenda/casos_uso/`
+### Agenda — `/capacidades/agenda/casos_uso/` ✅ EXPANDIDO
 
 | Caso de uso | Archivo | Función almacenada | Evento publicado | Estado |
 |-------------|---------|-------------------|-----------------|--------|
@@ -73,12 +76,14 @@ Entrada HTTP → Manejador → Caso de uso → Políticas de dominio → Control
 | CrearServicio | `crear_servicio.go` | `servicio_crear` | ServicioRegistrado | ✅ |
 | RegistrarDisponibilidad | `registrar_disponibilidad.go` | `disponibilidad_registrar` | DisponibilidadCreada | ✅ |
 | AsignarServicioBarbero | `asignar_servicio_barbero.go` | `barbero_servicio_asignar` | — | ✅ |
+| **RegistrarExcepcionDisponibilidad** | `registrar_excepcion_disponibilidad.go` | `excepcion_disponibilidad_registrar` | — | ✅ **NUEVO** |
+| **CrearTarifaEspecial** | — | `tarifa_especial_crear` | — | ⚠️ repo listo, caso de uso pendiente |
 
-**Falta:**
-- `RegistrarExcepcionDisponibilidad` — usa `excepcion_disponibilidad_registrar` — **sin implementar**
-- `CrearTarifaEspecial` — usa `tarifa_especial_crear` — **sin implementar**
-- Actualización de barbero tiene endpoint `PATCH /api/barberos/{id}` pero **no hay caso de uso** — el handler llama directo al repo
-- Actualización de servicio igual — handler llama directo al repo sin caso de uso
+**Handler directo al repo (viola 3DD):**
+- `PATCH /api/barberos/{id}` → llama `repoBarbero.ActualizarBarbero()` sin caso de uso
+- `PATCH /api/barberos/{id}/estado` → llama `repoBarbero.ActualizarEstadoBarbero()` sin caso de uso
+- `PATCH /api/servicios/{id}` → llama `repoServicio.ActualizarServicio()` sin caso de uso
+- `PATCH /api/servicios/{id}/estado` → llama `repoServicio.ActualizarEstadoServicio()` sin caso de uso
 
 ### Reservas — `/capacidades/reservas/casos_uso/`
 
@@ -91,9 +96,13 @@ Entrada HTTP → Manejador → Caso de uso → Políticas de dominio → Control
 | CompletarReserva | `completar_reserva.go` | `reserva_completar` | ReservaCompletada | ✅ |
 
 **Falta:**
-- `AgregarComplementoReserva` — usa `complemento_reserva_agregar` — **sin implementar**
-- `IngresarListaEspera` — usa `lista_espera_ingresar` — **sin implementar**
+- `AgregarComplementoReserva` — función BD lista — **sin implementar**
+- `IngresarListaEspera` — repo + entidad listos — **sin caso de uso**
 - `MarcarNoAsistio` — estado `NO_ASISTIO` existe en DB, sin caso de uso ni endpoint
+
+**Handler directo al repo (viola 3DD):**
+- `PATCH /api/clientes/{id}` → sin caso de uso
+- `PATCH /api/clientes/{id}/estado` → sin caso de uso
 
 ### Canal WhatsApp — `/capacidades/canal_whatsapp/casos_uso/`
 
@@ -107,103 +116,108 @@ Entrada HTTP → Manejador → Caso de uso → Políticas de dominio → Control
 **Falta:**
 - `GestionarSesionWhatsAppEmpresa` — tabla `sesion_whatsapp_empresa` sin endpoint
 - `CrearIndicacionBot` — tabla `indicacion_bot` sin CRUD
-- Lógica real del bot Serbio/Luna IA — `atender_chat.go` es un orquestador base
+- Lógica real del bot Serbio/Luna IA
 
 ### Monetización — `/capacidades/monetizacion/casos_uso/`
 
-| Caso de uso | Archivo | Función almacenada | Evento publicado | Estado |
-|-------------|---------|-------------------|-----------------|--------|
-| ActivarSuscripcion | `activar_suscripcion.go` | `suscripcion_activar` | — | ✅ |
-| SuspenderSuscripcion | `suspender_suscripcion.go` | `suscripcion_suspender` | — | ✅ |
-| CancelarSuscripcion | `cancelar_suscripcion.go` | `suscripcion_cancelar` | — | ✅ |
+| Caso de uso | Archivo | Función almacenada | Estado |
+|-------------|---------|-------------------|--------|
+| ActivarSuscripcion | `activar_suscripcion.go` | `suscripcion_activar` | ✅ |
+| SuspenderSuscripcion | `suspender_suscripcion.go` | `suscripcion_suspender` | ✅ |
+| CancelarSuscripcion | `cancelar_suscripcion.go` | `suscripcion_cancelar` | ✅ |
 
 **Falta:**
-- Validación de `plan_limite` — `control_por_plan.go` solo verifica existencia de suscripción activa, no valida límites (MAX_BARBEROS, MAX_SUCURSALES, etc.)
+- Validación de `plan_limite` — `control_por_plan.go` solo verifica existencia de suscripción activa
 
 ### Lealtad — `/capacidades/lealtad/casos_uso/`
 
-| Caso de uso | Archivo | Función almacenada | Evento publicado | Estado |
-|-------------|---------|-------------------|-----------------|--------|
-| AcumularSello | `acumular_sello.go` | `sello_acumular` | — | ✅ |
-| AnularSello | `anular_sello.go` | `sello_anular` | — | ✅ |
-| AplicarCanje | `aplicar_canje.go` | `canje_recompensa_aplicar` | — | ✅ |
+| Caso de uso | Archivo | Función almacenada | Estado |
+|-------------|---------|-------------------|--------|
+| AcumularSello | `acumular_sello.go` | `sello_acumular` | ✅ |
+| AnularSello | `anular_sello.go` | `sello_anular` | ✅ |
+| AplicarCanje | `aplicar_canje.go` | `canje_recompensa_aplicar` | ✅ |
 
 **Falta:**
-- `CrearProgramaLealtad` — usa `programa_lealtad_crear` — **sin implementar** (la tabla se asume ya poblada)
+- `CrearProgramaLealtad` — repo listo en `lealtad/programas/`, falta caso de uso
 - `ActualizarProgramaLealtad` — sin implementar
 
 ### Notificaciones — `/capacidades/notificaciones/casos_uso/`
 
-| Caso de uso | Archivo | Función almacenada | Evento publicado | Estado |
-|-------------|---------|-------------------|-----------------|--------|
-| ProgramarRecordatorio | `programar_recordatorio.go` | `recordatorio_programar` | — | ✅ |
-| CancelarRecordatorio | `cancelar_recordatorio.go` | `recordatorio_cancelar` | — | ✅ |
+| Caso de uso | Archivo | Función almacenada | Estado |
+|-------------|---------|-------------------|--------|
+| ProgramarRecordatorio | `programar_recordatorio.go` | `recordatorio_programar` | ✅ |
+| CancelarRecordatorio | `cancelar_recordatorio.go` | `recordatorio_cancelar` | ✅ |
 
 **Falta:**
-- `CrearPlantillaMensaje` — usa `plantilla_mensaje_crear` — **sin implementar**
-- Worker de envío — recordatorios se programan pero **nadie los despacha** (sin cron/worker)
+- `CrearPlantillaMensaje` — función BD lista, sin caso de uso
+- Worker de envío — nadie despacha `recordatorio_programado`
+
+### Tablero — `/capacidades/tablero/` ✅ NUEVO
+
+| Caso de uso | Archivo | Estado |
+|-------------|---------|--------|
+| ObtenerMetricasTablero | `casos_uso/obtener_metricas.go` | ✅ |
+
+- Repositorio propio (`repositorio.go`) con queries de métricas
+- Entidades en `metricas.go`
+- Ruta: `GET /api/tablero/metricas`
+
+### Inventario — `/capacidades/inventario/` ⚠️ PARCIAL (NUEVO)
+
+| Caso de uso | Archivo | Función almacenada | Estado |
+|-------------|---------|-------------------|--------|
+| **CrearProducto** | `casos_uso/crear_producto.go` | `producto_crear` | ✅ **NUEVO** |
+| **RegistrarMovimientoInventario** | `casos_uso/registrar_movimiento_inventario.go` | `movimiento_inventario_registrar` | ✅ **NUEVO** |
+
+**Falta:**
+- Caso de uso `ObtenerStock` — sin implementar
+- `GET /api/productos` — sin ruta
+- `GET /api/inventario/stock` — sin ruta
 
 ---
 
-## Capacidades completamente ausentes en Go (5)
+## Capacidades completamente ausentes en Go (4)
 
-### ❌ Comisiones — `/capacidades/comisiones/` (NO EXISTE)
+### ❌ Comisiones
+- Entidades: `EsquemaComision`, `Liquidacion`, `Comision`
+- Casos de uso requeridos: `CrearEsquemaComision`, `GenerarComision`, `CalcularLiquidacion`, `AprobarLiquidacion`, `PagarLiquidacion`
+- Funciones BD ya listas: `esquema_comision_crear`, `comision_generar`, `liquidacion_calcular`, `liquidacion_aprobar`, `liquidacion_pagar`
 
-Requiere crear desde cero:
-- Entidad `EsquemaComision`, `Liquidacion`, `Comision`
-- Repositorios con `RepositorioComisionCockroach`
-- Casos de uso: `CrearEsquemaComision`, `GenerarComision`, `CalcularLiquidacion`, `AprobarLiquidacion`, `PagarLiquidacion`
-- Endpoints: 8 nuevos
-- Funciones almacenadas ya listas: `esquema_comision_crear`, `comision_generar`, `liquidacion_calcular`, `liquidacion_aprobar`, `liquidacion_pagar`
+### ❌ Reputación
+- Entidades: `Resena`, `CalificacionBarbero`, `CalificacionSucursal`
+- Casos de uso requeridos: `CrearResena`, `CalificarBarbero`, `CalificarSucursal`
+- Funciones BD ya listas: `resena_crear`, `calificacion_barbero_registrar`, `calificacion_sucursal_registrar`
 
-### ❌ Reputación — `/capacidades/reputacion/` (NO EXISTE)
+### ❌ Campañas
+- Entidades: `Campana`, `ReglaAutomatizacion`, `DestinatarioCampana`
+- Casos de uso requeridos: `CrearCampana`, `ProgramarCampana`, `AgregarDestinatario`, `CrearReglaAutomatizacion`
+- Funciones BD ya listas: `campana_crear`, `campana_programar`, `destinatario_campana_agregar`, `regla_automatizacion_crear`
 
-Requiere crear desde cero:
-- Entidad `Resena`, `CalificacionBarbero`, `CalificacionSucursal`
-- Repositorios
-- Casos de uso: `CrearResena`, `CalificarBarbero`, `CalificarSucursal`
-- Endpoints: 5 nuevos
-- Funciones almacenadas ya listas: `resena_crear`, `calificacion_barbero_registrar`, `calificacion_sucursal_registrar`
-
-### ❌ Inventario — `/capacidades/inventario/` (NO EXISTE)
-
-Requiere crear desde cero:
-- Entidad `Producto`, `StockSucursal`, `MovimientoInventario`
-- Repositorios
-- Casos de uso: `CrearProducto`, `RegistrarMovimiento`, `ObtenerStock`
-- Endpoints: 6 nuevos
-- Funciones almacenadas ya listas: `movimiento_inventario_registrar`, `producto_crear`
-
-### ❌ Campañas — `/capacidades/campanias/` (NO EXISTE)
-
-Requiere crear desde cero:
-- Entidad `Campana`, `ReglaAutomatizacion`, `DestinatarioCampana`
-- Repositorios
-- Casos de uso: `CrearCampana`, `ProgramarCampana`, `AgregarDestinatario`, `CrearReglaAutomatizacion`
-- Endpoints: 7 nuevos
-- Funciones almacenadas ya listas: `campana_crear`, `campana_programar`, `destinatario_campana_agregar`, `regla_automatizacion_crear`
-
-### ❌ Integraciones — `/capacidades/integraciones/` (NO EXISTE)
-
-Requiere crear desde cero:
-- Entidad `TokenGoogleCalendar`, `EventoCalendar`
-- Repositorios
-- Casos de uso: `ConectarGoogleCalendar`, `RegistrarEventoCalendar`
-- Funciones almacenadas ya listas: `evento_calendar_registrar`, `evento_calendar_actualizar_estado`
+### ❌ Integraciones
+- Entidades: `TokenGoogleCalendar`, `EventoCalendar`
+- Casos de uso requeridos: `ConectarGoogleCalendar`, `RegistrarEventoCalendar`
+- Funciones BD ya listas: `evento_calendar_registrar`, `evento_calendar_actualizar_estado`
 
 ---
 
 ## Rutas HTTP — estado actual
 
-### Rutas implementadas (70+)
+### Rutas implementadas (78+)
 
 ```
+--- Identidad ---
 POST   /api/auth/registrar                               ✅
 POST   /api/auth/sesion                                  ✅
 POST   /api/auth/cerrar-sesion                           ✅
+POST   /api/auth/renovar-sesion                          ✅ NUEVO (RefrescarSesion)
+POST   /api/auth/verificar-correo                        ✅ NUEVO
+POST   /api/auth/solicitar-verificacion                  ✅ NUEVO
+POST   /api/auth/solicitar-reset                         ✅ NUEVO
+POST   /api/auth/restablecer-password                    ✅ NUEVO
 POST   /api/usuarios/{usuarioID}/inactivar               ✅
 POST   /api/usuarios/cambiar-password                    ✅
 
+--- Organización ---
 GET    /api/sucursales                                   ✅
 GET    /api/sucursales/todas                             ✅
 PATCH  /api/sucursales/{sucursalID}/estado               ✅
@@ -213,31 +227,37 @@ POST   /api/empresas/{empresaID}/periodos                ✅
 GET    /api/periodos                                     ✅
 POST   /api/periodos/{periodoID}/cerrar                  ✅
 
+--- Gobierno de Acceso ---
 POST   /api/alcances                                     ✅
 DELETE /api/alcances/{alcanceID}                         ✅
 GET    /api/alcances                                     ✅
 GET    /api/roles                                        ✅
 GET    /api/usuarios                                     ✅
 
+--- Agenda ---
 GET    /api/barberos                                     ✅
 POST   /api/barberos                                     ✅
-PATCH  /api/barberos/{barberoID}                         ✅
-PATCH  /api/barberos/{barberoID}/estado                  ✅
+PATCH  /api/barberos/{barberoID}                         ✅ (⚠️ handler directo al repo)
+PATCH  /api/barberos/{barberoID}/estado                  ✅ (⚠️ handler directo al repo)
 POST   /api/barberos/{barberoID}/servicios               ✅
 GET    /api/barberos/{barberoID}/servicios               ✅
 DELETE /api/barberos/{barberoID}/servicios/{servicioID}  ✅
+POST   /api/barberos/{barberoID}/excepciones             ✅ NUEVO
+GET    /api/barberos/{barberoID}/excepciones             ✅ NUEVO
+DELETE /api/barberos/{barberoID}/excepciones/{id}        ✅ NUEVO
 GET    /api/servicios                                    ✅
 POST   /api/servicios                                    ✅
-PATCH  /api/servicios/{servicioID}                       ✅
-PATCH  /api/servicios/{servicioID}/estado                ✅
+PATCH  /api/servicios/{servicioID}                       ✅ (⚠️ handler directo al repo)
+PATCH  /api/servicios/{servicioID}/estado                ✅ (⚠️ handler directo al repo)
 POST   /api/disponibilidad                               ✅
 GET    /api/disponibilidad/{barberoID}                   ✅
 GET    /api/agenda/slots                                 ✅
 
+--- Reservas ---
 POST   /api/clientes                                     ✅
 GET    /api/clientes                                     ✅
-PATCH  /api/clientes/{clienteID}                         ✅
-PATCH  /api/clientes/{clienteID}/estado                  ✅
+PATCH  /api/clientes/{clienteID}                         ✅ (⚠️ handler directo al repo)
+PATCH  /api/clientes/{clienteID}/estado                  ✅ (⚠️ handler directo al repo)
 GET    /api/reservas                                     ✅
 POST   /api/reservas                                     ✅
 PATCH  /api/reservas/{reservaID}                         ✅
@@ -245,17 +265,20 @@ POST   /api/reservas/{reservaID}/confirmar               ✅
 POST   /api/reservas/{reservaID}/cancelar                ✅
 POST   /api/reservas/{reservaID}/completar               ✅
 
+--- Canal WhatsApp ---
 POST   /api/conversaciones                               ✅
 POST   /api/mensajes                                     ✅
 POST   /api/sesiones-chat                                ✅
 PATCH  /api/sesiones-chat/{sesionChatID}                 ✅
 
+--- Monetización ---
 POST   /api/suscripciones                                ✅
 POST   /api/suscripciones/{id}/suspender                 ✅
 POST   /api/suscripciones/{id}/cancelar                  ✅
 GET    /api/suscripciones                                ✅
 GET    /api/planes                                       ✅
 
+--- Lealtad ---
 POST   /api/sellos                                       ✅
 POST   /api/sellos/{selloID}/anular                      ✅
 POST   /api/canjes                                       ✅
@@ -264,26 +287,26 @@ GET    /api/lealtad/tarjetas                             ✅
 GET    /api/lealtad/tarjetas/{clienteID}                 ✅
 GET    /api/lealtad/clientes/{clienteID}/sellos          ✅
 
+--- Notificaciones ---
 GET    /api/recordatorios                                ✅
 POST   /api/recordatorios                                ✅
 POST   /api/recordatorios/{recordatorioID}/cancelar      ✅
+
+--- Tablero ---
+GET    /api/tablero/metricas                             ✅ NUEVO
+
+--- Inventario (parcial) ---
+POST   /api/inventario/movimientos                       ✅ NUEVO
 ```
 
 ### Rutas faltantes (por implementar)
 
 ```
---- Identidad ---
-POST   /api/auth/verificar-correo                        ❌ verificar email tras registro
-POST   /api/auth/reenviar-verificacion                   ❌
-POST   /api/auth/renovar-sesion                          ❌ refresh token
-
 --- Organización ---
 GET    /api/empresas/{empresaID}/configuracion           ❌
 PATCH  /api/empresas/{empresaID}/configuracion           ❌
 
 --- Agenda ---
-POST   /api/barberos/{barberoID}/excepciones             ❌ excepcion_disponibilidad
-GET    /api/barberos/{barberoID}/excepciones             ❌
 POST   /api/agenda/tarifas-especiales                    ❌
 
 --- Reservas ---
@@ -294,24 +317,33 @@ POST   /api/lista-espera                                 ❌
 GET    /api/lista-espera                                 ❌
 
 --- Canal WhatsApp ---
-POST   /api/whatsapp/sesion                              ❌ registrar sesión WA empresa
+POST   /api/whatsapp/sesion                              ❌
 GET    /api/whatsapp/sesion                              ❌
-POST   /api/indicaciones-bot                             ❌ CRUD indicaciones bot
+POST   /api/indicaciones-bot                             ❌
 GET    /api/indicaciones-bot                             ❌
 
 --- Lealtad ---
-POST   /api/lealtad/programa                             ❌ crear programa lealtad
+POST   /api/lealtad/programa                             ❌
 PATCH  /api/lealtad/programa/{programaID}                ❌
 
 --- Notificaciones ---
-POST   /api/plantillas-mensaje                           ❌ crear plantilla
+POST   /api/plantillas-mensaje                           ❌
 GET    /api/plantillas-mensaje                           ❌
 
---- Config negocio ---
-POST   /api/comisiones/esquemas                          ❌ crear esquema comisión
-GET    /api/comisiones/esquemas                          ❌
+--- Inventario (completar) ---
+POST   /api/productos                                    ❌ (caso de uso existe, falta ruta)
+GET    /api/productos                                    ❌
+GET    /api/inventario/stock                             ❌
+
+--- Rutas PÚBLICAS (sin JWT) para reserva-publica frontend ---
+GET    /api/publica/slots                                ❌ CRÍTICO — el wizard frontend no funciona sin esto
+POST   /api/publica/reservas                             ❌ CRÍTICO
+GET    /api/publica/servicios                            ❌
+GET    /api/publica/barberos                             ❌
 
 --- Comisiones (capacidad nueva) ---
+POST   /api/comisiones/esquemas                          ❌
+GET    /api/comisiones/esquemas                          ❌
 POST   /api/comisiones/generar/{reservaID}               ❌
 GET    /api/comisiones                                   ❌
 POST   /api/liquidaciones/calcular                       ❌
@@ -324,12 +356,6 @@ POST   /api/resenas                                      ❌
 GET    /api/resenas                                      ❌
 POST   /api/resenas/{id}/calificar-barbero               ❌
 POST   /api/resenas/{id}/calificar-sucursal              ❌
-
---- Inventario (capacidad nueva) ---
-POST   /api/productos                                    ❌
-GET    /api/productos                                    ❌
-POST   /api/inventario/movimientos                       ❌
-GET    /api/inventario/stock                             ❌
 
 --- Campañas (capacidad nueva) ---
 POST   /api/campanias                                    ❌
@@ -345,35 +371,32 @@ DELETE /api/integraciones/google-calendar                ❌
 
 ---
 
-## Problemas arquitecturales detectados
+## Problemas arquitecturales
 
 ### 1. Manejadores con lógica directa al repositorio (viola 3DD)
-Los siguientes handlers en `rutas.go` llaman directamente al repositorio **sin pasar por un caso de uso**:
-- `PATCH /api/barberos/{id}` → llama `repoBarbero.ActualizarBarbero()` sin caso de uso
-- `PATCH /api/barberos/{id}/estado` → llama `repoBarbero.ActualizarEstadoBarbero()` sin caso de uso
-- `PATCH /api/servicios/{id}` → llama `repoServicio.ActualizarServicio()` sin caso de uso
-- `PATCH /api/servicios/{id}/estado` → llama `repoServicio.ActualizarEstadoServicio()` sin caso de uso
-- `PATCH /api/clientes/{id}` → llama `repoCliente.ActualizarCliente()` sin caso de uso
-- `PATCH /api/clientes/{id}/estado` → llama `repoCliente.ActualizarEstadoCliente()` sin caso de uso
-- `PATCH /api/sucursales/{id}/estado` → llama `repoSucursal.ActualizarEstadoSucursal()` sin caso de uso
-- `POST /api/periodos/{id}/cerrar` → llama `repoPeriodo.Cerrar()` sin caso de uso (falta orquestar eventos + auditoría)
+8 handlers llaman directamente al repositorio sin pasar por un caso de uso:
+- `PATCH /api/barberos/{id}` y `/estado`
+- `PATCH /api/servicios/{id}` y `/estado`
+- `PATCH /api/clientes/{id}` y `/estado`
+- `PATCH /api/sucursales/{id}/estado`
+- `POST /api/periodos/{id}/cerrar`
 
-**Impacto:** No se publican eventos, no se registra auditoría correctamente, no se aplican políticas de dominio.
+**Impacto:** No se publican eventos, no se registra auditoría, no se aplican políticas de dominio.
 
 ### 2. GuardiaPoliticas definida pero no integrada
-`/aplicacion/orquestacion/guardia_politicas.go` tiene `PuedeEjecutar()` que verifica permisos, pero los handlers no lo invocan. Solo `ValidarSesion` middleware verifica JWT.
+`/aplicacion/orquestacion/guardia_politicas.go` tiene `PuedeEjecutar()` que verifica permisos, pero los handlers no lo invocan. Solo `ValidarSesion` middleware verifica JWT. **Riesgo: cualquier usuario autenticado accede a cualquier endpoint.**
 
 ### 3. Publicador de eventos solo hace logging
-`NuevoPublicadorLog()` escribe a stdout. No hay integración con ningún message broker (Redis Streams, NATS, etc.).
+`NuevoPublicadorLog()` escribe a stdout. No hay integración con ningún message broker.
 
 ### 4. Worker de notificaciones inexistente
-`recordatorio_programado` acumula registros pero no hay goroutine/cron que los procese y los envíe vía WhatsApp o email.
+`recordatorio_programado` acumula registros pero no hay goroutine/cron que los procese.
 
 ### 5. `control_por_plan.go` incompleto
-Solo verifica si hay suscripción activa. No valida los límites del plan (`MAX_BARBEROS`, `MAX_SUCURSALES`, etc.) contra `plan_limite`.
+Solo verifica si hay suscripción activa. No valida los límites del plan contra `plan_limite`.
 
-### 6. Refresh token sin flujo
-La columna `refresh_token_hash` existe y se guarda, pero no hay endpoint `/api/auth/renovar-sesion`.
+### 6. Rutas públicas para reserva-publica inexistentes
+El frontend tiene un wizard completo en `/reserva/:sucursalSlug` pero no existen endpoints públicos (sin JWT) para servirlo.
 
 ---
 
@@ -391,27 +414,26 @@ La columna `refresh_token_hash` existe y se guarda, pero no hay endpoint `/api/a
 
 ---
 
-## Prioridad de implementación — Hoja de ruta
+## Prioridad de implementación
 
-### Fase inmediata (gaps críticos en flujo existente)
-1. `GuardarConfiguracionEmpresa` — configuracion_empresa
-2. `CrearProgramaLealtad` — sin esto el programa lealtad asume datos en DB
-3. `VerificarCorreo` + `CrearVerificacion` — flujo de registro completo
-4. Convertir handlers con lógica directa → casos de uso completos (auditoría + eventos)
-5. `GuardiaPoliticas` integrado a handlers
+### Fase crítica (bloquean seguridad o flujo base)
+1. Rutas públicas `/api/publica/*` — sin esto PaginaReservaPublica no funciona
+2. `GuardiaPoliticas` integrada a handlers de escritura
+3. `CrearProgramaLealtad` — repo listo
+4. `GuardarConfiguracionEmpresa` — repo y función BD listas
 
 ### Fase media (funcionalidades de negocio)
-6. `RegistrarExcepcionDisponibilidad`
-7. `MarcarNoAsistio`
-8. `ComisionesCapacidad` — esquema + generar + liquidar
-9. `ReputacionCapacidad` — reseñas + calificaciones
+5. `IngresarListaEspera` — repo listo
+6. `MarcarNoAsistio`
+7. Convertir 8 handlers directos → casos de uso
+8. `ComisionesCapacidad`
+9. `ReputacionCapacidad`
 10. `CrearPlantillaMensaje` + CRUD indicaciones bot
-11. Worker de notificaciones (cron para `recordatorio_programado`)
+11. Worker de notificaciones
 
 ### Fase avanzada (capacidades nuevas)
-12. `InventarioCapacidad` — productos + stock + movimientos
-13. `CampaniasCapacidad` — marketing + automatización
-14. `IntegracionesCapacidad` — Google Calendar
-15. Validación de límites de plan (`plan_limite`)
-16. Publicador real de eventos (Redis Streams / NATS)
-17. Refresh token
+12. Completar `InventarioCapacidad` (GET endpoints)
+13. `CampaniasCapacidad`
+14. `IntegracionesCapacidad`
+15. Validación límites de plan
+16. Publicador real de eventos

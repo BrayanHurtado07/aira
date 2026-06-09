@@ -7,7 +7,7 @@ const PaginaReservaPublica = lazy(() =>
 
 export const rutasReservaPublica: RouteObject[] = [
   {
-    path: '/reservar/:empresaID',
+    path: '/reservar/:slug',
     element: (
       <Suspense fallback={null}>
         <PaginaReservaPublica />

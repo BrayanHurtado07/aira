@@ -1,72 +1,53 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
-import { CalendarDays, Clock, ChevronDown, ChevronUp, Ban, Trash2 } from 'lucide-react';
-import { usarDisponibilidadBarbero } from '@/capacidades/agenda/ganchos/usarDisponibilidadBarbero';
-import { usarExcepcionesBarbero } from '@/capacidades/agenda/ganchos/usarExcepcionesBarbero';
-import { usarBarberos } from '@/capacidades/agenda/ganchos/usarBarberos';
-import { Boton } from '@/compartido/interfaz/primitivas/Boton';
-import { Campo } from '@/compartido/interfaz/primitivas/Campo';
-import { Vacio } from '@/compartido/interfaz/retroalimentacion/Vacio';
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
+import { CalendarDays, Clock, Ban, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { usarDisponibilidadBarbero } from '@/capacidades/agenda/ganchos/usarDisponibilidadBarbero'
+import { usarExcepcionesBarbero } from '@/capacidades/agenda/ganchos/usarExcepcionesBarbero'
+import { usarBarberos } from '@/capacidades/agenda/ganchos/usarBarberos'
+import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina'
+import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta'
+import { Selector } from '@/compartido/interfaz/primitivas/Selector'
+import { SelectorFecha } from '@/compartido/interfaz/primitivas/SelectorFecha'
+import { Boton } from '@/compartido/interfaz/primitivas/Boton'
+import { Campo } from '@/compartido/interfaz/primitivas/Campo'
+import { Vacio } from '@/compartido/interfaz/retroalimentacion/Vacio'
 import type {
   SolicitudRegistrarDisponibilidad,
   BloqueDisponibilidad,
   ExcepcionDisponibilidad,
   SolicitudRegistrarExcepcion,
   MotivoExcepcion,
-} from '@/capacidades/agenda/contratos/tipos';
+} from '@/capacidades/agenda/contratos/tipos'
+
+// ── Constantes ────────────────────────────────────────────────────────────────
 
 const DIAS_SEMANA = [
-  { valor: 0, etiqueta: 'Domingo' },
-  { valor: 1, etiqueta: 'Lunes' },
-  { valor: 2, etiqueta: 'Martes' },
-  { valor: 3, etiqueta: 'Miércoles' },
-  { valor: 4, etiqueta: 'Jueves' },
-  { valor: 5, etiqueta: 'Viernes' },
-  { valor: 6, etiqueta: 'Sábado' },
-];
+  { valor: '0', etiqueta: 'Domingo' },
+  { valor: '1', etiqueta: 'Lunes' },
+  { valor: '2', etiqueta: 'Martes' },
+  { valor: '3', etiqueta: 'Miércoles' },
+  { valor: '4', etiqueta: 'Jueves' },
+  { valor: '5', etiqueta: 'Viernes' },
+  { valor: '6', etiqueta: 'Sábado' },
+]
 
-const MOTIVOS: { valor: MotivoExcepcion; etiqueta: string }[] = [
+const OPCIONES_MOTIVO = [
   { valor: 'VACACION', etiqueta: 'Vacación' },
   { valor: 'FERIADO', etiqueta: 'Feriado' },
   { valor: 'CIERRE', etiqueta: 'Cierre' },
   { valor: 'OTRO', etiqueta: 'Otro' },
-];
-
-const ESTADO_INICIAL: SolicitudRegistrarDisponibilidad = {
-  barbero_id: '',
-  dia_semana: 1,
-  hora_inicio: '09:00',
-  hora_fin: '18:00',
-};
-
-const EXCEPCION_INICIAL: SolicitudRegistrarExcepcion = {
-  fecha: '',
-  motivo: 'VACACION',
-  descripcion: '',
-};
-
-const estiloSelect: React.CSSProperties = {
-  width: '100%',
-  padding: '0.5rem 0.75rem',
-  border: '1px solid var(--color-borde)',
-  borderRadius: 'var(--radio-md)',
-  fontSize: 'var(--tamano-sm)',
-  color: 'var(--color-texto)',
-  backgroundColor: 'var(--color-fondo-input)',
-  boxSizing: 'border-box',
-  lineHeight: 1.5,
-};
+]
 
 function etiquetaDia(numero: number): string {
-  return DIAS_SEMANA.find((d) => d.valor === numero)?.etiqueta ?? `Día ${numero}`;
+  return DIAS_SEMANA.find((d) => d.valor === String(numero))?.etiqueta ?? `Día ${numero}`
 }
 
 function etiquetaMotivo(motivo: string): string {
-  return MOTIVOS.find((m) => m.valor === motivo)?.etiqueta ?? motivo;
+  return OPCIONES_MOTIVO.find((m) => m.valor === motivo)?.etiqueta ?? motivo
 }
 
-// ── PanelHorarios ─────────────────────────────────────────────────────────────
+// ── Panel Horarios ────────────────────────────────────────────────────────────
 
 function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
   if (bloques.length === 0) {
@@ -74,18 +55,18 @@ function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
       <Vacio
         icono={<Clock size={24} />}
         titulo="Sin horarios registrados"
-        mensaje="Usa el formulario de arriba para añadir disponibilidad."
+        mensaje="Registra disponibilidad usando el formulario de arriba."
       />
-    );
+    )
   }
 
   const porDia = DIAS_SEMANA.map((d) => ({
     ...d,
-    bloques: bloques.filter((b) => b.dia_semana === d.valor),
-  })).filter((d) => d.bloques.length > 0);
+    bloques: bloques.filter((b) => b.dia_semana === Number(d.valor)),
+  })).filter((d) => d.bloques.length > 0)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)', maxWidth: '600px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-sm)' }}>
       {porDia.map((dia) => (
         <motion.div
           key={dia.valor}
@@ -101,12 +82,10 @@ function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
         >
           <div
             style={{
-              padding: '0.625rem 1rem',
+              padding: '0.5rem 1rem',
               backgroundColor: 'var(--color-superficie-2)',
               borderBottom: '1px solid var(--color-borde)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
             }}
           >
             <CalendarDays size={13} style={{ color: 'var(--color-primario)' }} />
@@ -119,15 +98,9 @@ function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
           </div>
           <div style={{ padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             {dia.bloques.map((b) => (
-              <div
-                key={b.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.375rem 0', borderBottom: '1px solid var(--color-borde-suave)',
-                }}
-              >
+              <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
                 <Clock size={12} style={{ color: 'var(--color-texto-suave)', flexShrink: 0 }} />
-                <span style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto)', fontWeight: 500 }}>
+                <span style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500 }}>
                   {b.hora_inicio} – {b.hora_fin}
                 </span>
               </div>
@@ -136,126 +109,83 @@ function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
         </motion.div>
       ))}
     </div>
-  );
+  )
 }
 
-// ── PanelExcepciones ──────────────────────────────────────────────────────────
+// ── Panel Excepciones ─────────────────────────────────────────────────────────
 
-function PanelExcepciones({
-  barberoId,
-  barberoNombre,
-}: {
-  barberoId: string;
-  barberoNombre: string;
-}) {
-  const [excepcionForm, setExcepcionForm] = useState<SolicitudRegistrarExcepcion>(EXCEPCION_INICIAL);
+function PanelExcepciones({ barberoId, barberoNombre }: { barberoId: string; barberoNombre: string }) {
+  const [form, setForm] = useState<SolicitudRegistrarExcepcion>({ fecha: '', motivo: 'VACACION', descripcion: '' })
   const { excepciones, cargandoExcepciones, registrar, registrando, eliminar, errorRegistrar } =
-    usarExcepcionesBarbero(barberoId);
+    usarExcepcionesBarbero(barberoId)
 
-  const cambiarExcepcion =
-    (campo: keyof SolicitudRegistrarExcepcion) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      setExcepcionForm((prev) => ({ ...prev, [campo]: e.target.value }));
-    };
-
-  const enviarExcepcion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!excepcionForm.fecha) {
-      toast.error('Selecciona una fecha');
-      return;
-    }
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.fecha) { toast.error('Selecciona una fecha'); return }
     try {
-      await registrar(excepcionForm);
-      setExcepcionForm(EXCEPCION_INICIAL);
-      toast.success('Día bloqueado', {
-        description: `${excepcionForm.fecha} · ${etiquetaMotivo(excepcionForm.motivo)}`,
-      });
+      await registrar(form)
+      setForm({ fecha: '', motivo: 'VACACION', descripcion: '' })
+      toast.success('Día bloqueado', { description: `${form.fecha} · ${etiquetaMotivo(form.motivo)}` })
     } catch {
-      toast.error(errorRegistrar ?? 'No se pudo registrar el bloqueo');
+      toast.error(errorRegistrar ?? 'No se pudo registrar el bloqueo')
     }
-  };
+  }
 
   const manejarEliminar = async (ex: ExcepcionDisponibilidad) => {
     try {
-      await eliminar(ex.id);
-      toast.success('Bloqueo eliminado', { description: ex.fecha });
+      await eliminar(ex.id)
+      toast.success('Bloqueo eliminado', { description: ex.fecha })
     } catch {
-      toast.error('No se pudo eliminar el bloqueo');
+      toast.error('No se pudo eliminar el bloqueo')
     }
-  };
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)', maxWidth: '520px' }}>
-      {/* Formulario */}
-      <form
-        onSubmit={enviarExcepcion}
-        style={{
-          border: '1px solid var(--color-borde)',
-          borderRadius: 'var(--radio-xl)',
-          padding: 'var(--espacio-lg)',
-          backgroundColor: 'var(--color-superficie)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--espacio-md)',
-        }}
-      >
-        <p style={{ fontSize: 'var(--tamano-xs)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-texto-suave)', margin: 0 }}>
-          Bloquear día a {barberoNombre}
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)' }}>
+      <SeccionTarjeta titulo={`Bloquear día a ${barberoNombre}`} icono={<Ban size={14} />} maxAncho={520}>
+        <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
+                Fecha <span style={{ color: 'var(--color-error)' }}>*</span>
+              </label>
+              <SelectorFecha
+                soloFecha
+                valor={form.fecha}
+                alCambiar={(v) => setForm((p) => ({ ...p, fecha: v }))}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
+                Motivo
+              </label>
+              <Selector
+                valor={form.motivo}
+                alCambiar={(v) => setForm((p) => ({ ...p, motivo: v as MotivoExcepcion }))}
+                opciones={OPCIONES_MOTIVO}
+              />
+            </div>
+          </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
-          <Campo etiqueta="Fecha" requerido>
-            <input
-              type="date"
-              value={excepcionForm.fecha}
-              onChange={cambiarExcepcion('fecha')}
-              required
-              className="campo-input"
-              style={{ ...estiloSelect }}
-            />
-          </Campo>
-
-          <Campo etiqueta="Motivo">
-            <select
-              value={excepcionForm.motivo}
-              onChange={cambiarExcepcion('motivo')}
-              className="campo-input"
-              style={estiloSelect}
-            >
-              {MOTIVOS.map((m) => (
-                <option key={m.valor} value={m.valor}>{m.etiqueta}</option>
-              ))}
-            </select>
-          </Campo>
-        </div>
-
-        <Campo etiqueta="Descripción (opcional)">
-          <input
-            type="text"
-            value={excepcionForm.descripcion ?? ''}
-            onChange={cambiarExcepcion('descripcion')}
-            placeholder="Ej. Semana santa, viaje, etc."
-            className="campo-input"
-            style={{ ...estiloSelect }}
+          <Campo
+            etiqueta="Descripción (opcional)"
+            value={form.descripcion ?? ''}
+            onChange={(e) => setForm((p) => ({ ...p, descripcion: e.target.value }))}
+            placeholder="Ej: Semana santa, viaje…"
           />
-        </Campo>
 
-        <Boton type="submit" variante="secundario" cargando={registrando}>
-          Bloquear día
-        </Boton>
-      </form>
+          <Boton type="submit" variante="secundario" icono={<Ban size={14} />} cargando={registrando}>
+            Bloquear día
+          </Boton>
+        </form>
+      </SeccionTarjeta>
 
-      {/* Lista de excepciones */}
       {cargandoExcepciones ? (
         <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>Cargando bloqueos…</p>
       ) : excepciones.length === 0 ? (
-        <Vacio
-          icono={<Ban size={20} />}
-          titulo="Sin días bloqueados"
-          mensaje="Cuando bloquees un día aparecerá aquí."
-        />
+        <Vacio icono={<Ban size={20} />} titulo="Sin días bloqueados" mensaje="Los días bloqueados aparecerán aquí." />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', maxWidth: 520 }}>
           {excepciones.map((ex) => (
             <motion.div
               key={ex.id}
@@ -264,9 +194,7 @@ function PanelExcepciones({
               exit={{ opacity: 0, x: 4 }}
               transition={{ duration: 0.15 }}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
                 padding: '0.625rem 0.875rem',
                 border: '1px solid var(--color-borde)',
                 borderRadius: 'var(--radio-md)',
@@ -275,9 +203,7 @@ function PanelExcepciones({
             >
               <Ban size={14} style={{ color: 'var(--color-error)', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 'var(--tamano-sm)', fontWeight: 600, color: 'var(--color-texto)' }}>
-                  {ex.fecha}
-                </p>
+                <p style={{ margin: 0, fontSize: 'var(--tamano-sm)', fontWeight: 600 }}>{ex.fecha}</p>
                 <p style={{ margin: 0, fontSize: 'var(--tamano-xs)', color: 'var(--color-texto-suave)' }}>
                   {etiquetaMotivo(ex.motivo)}{ex.descripcion ? ` · ${ex.descripcion}` : ''}
                 </p>
@@ -287,14 +213,9 @@ function PanelExcepciones({
                 onClick={() => manejarEliminar(ex)}
                 title="Eliminar bloqueo"
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0.25rem',
-                  color: 'var(--color-texto-suave)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderRadius: 'var(--radio-sm)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '0.25rem', color: 'var(--color-texto-suave)',
+                  display: 'flex', alignItems: 'center', borderRadius: 'var(--radio-sm)',
                 }}
               >
                 <Trash2 size={13} />
@@ -304,127 +225,149 @@ function PanelExcepciones({
         </div>
       )}
     </div>
-  );
+  )
 }
 
-// ── PaginaAgendaBarbero ───────────────────────────────────────────────────────
+// ── Página ────────────────────────────────────────────────────────────────────
+
+const ESTADO_INICIAL: SolicitudRegistrarDisponibilidad = {
+  barbero_id: '',
+  dia_semana: 1,
+  hora_inicio: '09:00',
+  hora_fin: '18:00',
+}
 
 export function PaginaAgendaBarbero() {
-  const { barberos, cargando: cargandoBarberos } = usarBarberos();
-  const [formulario, setFormulario] = useState<SolicitudRegistrarDisponibilidad>(ESTADO_INICIAL);
-  const [errores, setErrores] = useState<Record<string, string>>({});
-  const [verHorarios, setVerHorarios] = useState(false);
-  const [verExcepciones, setVerExcepciones] = useState(false);
+  const { barberos, cargando: cargandoBarberos } = usarBarberos()
+  const [formulario, setFormulario] = useState<SolicitudRegistrarDisponibilidad>(ESTADO_INICIAL)
+  const [errores, setErrores] = useState<Record<string, string>>({})
+  const [verHorarios, setVerHorarios] = useState(false)
+  const [verExcepciones, setVerExcepciones] = useState(false)
 
   const { registrar, registrando, bloques, cargandoBloques } = usarDisponibilidadBarbero(
     formulario.barbero_id || undefined,
-  );
+  )
 
-  const cambiar =
-    (campo: keyof SolicitudRegistrarDisponibilidad) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const valor = campo === 'dia_semana' ? parseInt(e.target.value, 10) : e.target.value;
-      setFormulario((prev) => ({ ...prev, [campo]: valor }));
-      setErrores((prev) => ({ ...prev, [campo]: '' }));
-    };
+  const barberoSeleccionado = barberos.find((b) => b.id === formulario.barbero_id)
 
-  const manejarEnvio = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const nuevosErrores: Record<string, string> = {};
-    if (!formulario.barbero_id) nuevosErrores.barbero_id = 'Selecciona un barbero';
+  const opcionesBarberos = barberos
+    .filter((b) => b.estado === 'ACTIVO')
+    .map((b) => ({ valor: b.id, etiqueta: b.nombre }))
+
+  const cambiarCampo = (campo: keyof SolicitudRegistrarDisponibilidad, valor: string | number) => {
+    setFormulario((prev) => ({ ...prev, [campo]: valor }))
+    setErrores((prev) => ({ ...prev, [campo]: '' }))
+  }
+
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const nuevos: Record<string, string> = {}
+    if (!formulario.barbero_id) nuevos.barbero_id = 'Selecciona un barbero'
     if (formulario.hora_inicio >= formulario.hora_fin)
-      nuevosErrores.hora_fin = 'La hora de fin debe ser posterior a la de inicio';
-    if (Object.keys(nuevosErrores).length > 0) { setErrores(nuevosErrores); return; }
+      nuevos.hora_fin = 'La hora de fin debe ser posterior a la de inicio'
+    if (Object.keys(nuevos).length > 0) { setErrores(nuevos); return }
 
     try {
-      await registrar(formulario);
-      setFormulario((prev) => ({ ...prev, dia_semana: 1, hora_inicio: '09:00', hora_fin: '18:00' }));
-      setVerHorarios(true);
+      await registrar(formulario)
+      setFormulario((prev) => ({ ...prev, dia_semana: 1, hora_inicio: '09:00', hora_fin: '18:00' }))
+      setVerHorarios(true)
       toast.success('Disponibilidad registrada', {
         description: `${etiquetaDia(formulario.dia_semana)} · ${formulario.hora_inicio} – ${formulario.hora_fin}`,
-      });
+      })
     } catch {
-      toast.error('No se pudo registrar la disponibilidad');
+      toast.error('No se pudo registrar la disponibilidad')
     }
-  };
-
-  const barberoSeleccionado = barberos.find((b) => b.id === formulario.barbero_id);
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+      style={{ display: 'flex', flexDirection: 'column' }}
     >
-      {/* Header */}
-      <div
+      <EncabezadoPagina
+        titulo="Agenda de disponibilidad"
+        descripcion="Define horarios semanales y bloquea días no disponibles"
+        indicador={
+          barberoSeleccionado ? (
+            <div
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                padding: '0.25rem 0.75rem', borderRadius: '99px',
+                backgroundColor: 'rgba(204,28,46,0.08)',
+                fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-primario)',
+              }}
+            >
+              <CalendarDays size={11} />
+              {barberoSeleccionado.nombre}
+            </div>
+          ) : undefined
+        }
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
           padding: 'var(--espacio-lg)',
           borderBottom: '1px solid var(--color-borde)',
           backgroundColor: 'var(--color-superficie)',
-          flexShrink: 0,
         }}
-      >
-        <div>
-          <h1 style={{ fontSize: 'var(--tamano-xl)', fontWeight: 700, color: 'var(--color-texto)', margin: 0, letterSpacing: '-0.02em' }}>
-            Agenda de disponibilidad
-          </h1>
-          <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)', marginTop: '0.125rem' }}>
-            Define horarios semanales y bloquea días no disponibles
-          </p>
-        </div>
-        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radio-lg)', backgroundColor: 'var(--color-acento-suave)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primario)' }}>
-          <CalendarDays size={18} />
-        </div>
-      </div>
+      />
 
-      <div style={{ flex: 1, overflow: 'auto', padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-xl)' }}>
+      <div style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-xl)' }}>
 
-        {/* Formulario de registro de disponibilidad semanal */}
-        <div style={{ maxWidth: '480px', border: '1px solid var(--color-borde)', borderRadius: 'var(--radio-xl)', padding: 'var(--espacio-lg)', backgroundColor: 'var(--color-superficie)' }}>
-          <form onSubmit={manejarEnvio} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
-            <Campo etiqueta="Barbero" requerido error={errores.barbero_id}>
-              <select
-                value={formulario.barbero_id}
-                onChange={cambiar('barbero_id')}
-                className="campo-input"
-                style={{ ...estiloSelect, borderColor: errores.barbero_id ? 'var(--color-error)' : 'var(--color-borde)' }}
-                disabled={cargandoBarberos}
-              >
-                <option value="">{cargandoBarberos ? 'Cargando…' : 'Seleccionar barbero'}</option>
-                {barberos.map((b) => (
-                  <option key={b.id} value={b.id}>{b.nombre}</option>
-                ))}
-              </select>
-            </Campo>
+        {/* Formulario disponibilidad */}
+        <SeccionTarjeta titulo="Registrar disponibilidad" icono={<Clock size={14} />} maxAncho={520}>
+          <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
 
-            <Campo etiqueta="Día de la semana">
-              <select
-                value={formulario.dia_semana}
-                onChange={cambiar('dia_semana')}
-                className="campo-input"
-                style={estiloSelect}
-              >
-                {DIAS_SEMANA.map((dia) => (
-                  <option key={dia.valor} value={dia.valor}>{dia.etiqueta}</option>
-                ))}
-              </select>
-            </Campo>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
-              <Campo etiqueta="Hora de inicio" type="time" value={formulario.hora_inicio} onChange={cambiar('hora_inicio')} className="campo-input" />
-              <Campo etiqueta="Hora de fin" type="time" value={formulario.hora_fin} onChange={cambiar('hora_fin')} className="campo-input" error={errores.hora_fin} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
+                Barbero <span style={{ color: 'var(--color-error)' }}>*</span>
+              </label>
+              <Selector
+                valor={formulario.barbero_id}
+                alCambiar={(v) => cambiarCampo('barbero_id', v)}
+                opciones={opcionesBarberos}
+                placeholder="Selecciona barbero"
+                cargando={cargandoBarberos}
+                error={!!errores.barbero_id}
+              />
+              {errores.barbero_id && (
+                <span style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-error)' }}>
+                  {errores.barbero_id}
+                </span>
+              )}
             </div>
 
-            <Boton type="submit" variante="primario" cargando={registrando} style={{ marginTop: '0.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
+                Día de la semana
+              </label>
+              <Selector
+                valor={String(formulario.dia_semana)}
+                alCambiar={(v) => cambiarCampo('dia_semana', parseInt(v, 10))}
+                opciones={DIAS_SEMANA}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+              <Campo
+                etiqueta="Hora de inicio"
+                type="time"
+                value={formulario.hora_inicio}
+                onChange={(e) => cambiarCampo('hora_inicio', e.target.value)}
+              />
+              <Campo
+                etiqueta="Hora de fin"
+                type="time"
+                value={formulario.hora_fin}
+                onChange={(e) => cambiarCampo('hora_fin', e.target.value)}
+                error={errores.hora_fin}
+              />
+            </div>
+
+            <Boton type="submit" variante="primario" cargando={registrando}>
               Registrar disponibilidad
             </Boton>
           </form>
-        </div>
+        </SeccionTarjeta>
 
         {/* Horarios del barbero seleccionado */}
         {formulario.barbero_id && (
@@ -432,7 +375,11 @@ export function PaginaAgendaBarbero() {
             <button
               type="button"
               onClick={() => setVerHorarios((v) => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 'var(--espacio-md)' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                marginBottom: 'var(--espacio-md)',
+              }}
             >
               <p style={{ fontSize: 'var(--tamano-xs)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-texto-suave)', margin: 0 }}>
                 Horarios de {barberoSeleccionado?.nombre ?? 'barbero'}
@@ -466,7 +413,11 @@ export function PaginaAgendaBarbero() {
             <button
               type="button"
               onClick={() => setVerExcepciones((v) => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 'var(--espacio-md)' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                marginBottom: 'var(--espacio-md)',
+              }}
             >
               <Ban size={13} style={{ color: 'var(--color-error)' }} />
               <p style={{ fontSize: 'var(--tamano-xs)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-texto-suave)', margin: 0 }}>
@@ -498,5 +449,5 @@ export function PaginaAgendaBarbero() {
 
       </div>
     </motion.div>
-  );
+  )
 }

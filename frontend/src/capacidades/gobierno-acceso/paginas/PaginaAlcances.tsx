@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 
 import { toast } from 'sonner';
 import {
@@ -255,6 +256,7 @@ function PestanaAsignar() {
                 onChange={(e) => setBuscarUsuario(e.target.value)}
               />
             </div>
+
             {usuariosFiltrados.length > 0 && (
               <div className="alcance-usuario-lista">
                 {usuariosFiltrados.map((u) => (
@@ -271,28 +273,61 @@ function PestanaAsignar() {
                       formulario.usuario_id === u.id ? 'alcance-usuario-opcion--activa' : '',
                     ].filter(Boolean).join(' ')}
                   >
-                    <div className="tabla-celda-avatar" style={{ width: '1.75rem', height: '1.75rem', fontSize: '0.65rem' }}>
+                    <div className="tabla-celda-avatar" style={{ width: '2rem', height: '2rem', fontSize: '0.65rem', flexShrink: 0 }}>
                       {(u.nombre ?? '?').split(' ').map((p: string) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?'}
                     </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 'var(--tamano-sm)', fontWeight: 500 }}>{u.nombre ?? '—'}</p>
-                      <p style={{ margin: 0, fontSize: 'var(--tamano-xs)', color: 'var(--color-texto-suave)' }}>{u.correo ?? ''}</p>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p style={{
+                        margin: 0,
+                        fontFamily: 'var(--fuente-display-sc)',
+                        fontSize: 'var(--tamano-sm)',
+                        fontWeight: 700,
+                        letterSpacing: '0.02em',
+                        color: 'var(--color-texto)',
+                        lineHeight: 1.3,
+                      }}>
+                        {u.nombre || u.correo.split('@')[0]}
+                      </p>
+                      <p style={{
+                        margin: 0,
+                        fontFamily: 'var(--fuente-acento)',
+                        fontSize: '0.65rem',
+                        fontWeight: 500,
+                        letterSpacing: '0.04em',
+                        color: 'var(--color-texto-suave)',
+                        lineHeight: 1.4,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {u.correo}
+                      </p>
                     </div>
                     {formulario.usuario_id === u.id && (
-                      <CheckCircle2 size={14} style={{ marginLeft: 'auto', color: 'var(--color-exito)', flexShrink: 0 }} />
+                      <CheckCircle2 size={14} style={{ flexShrink: 0, color: 'var(--color-exito)' }} />
                     )}
                   </button>
                 ))}
               </div>
             )}
+
             {usuarioSeleccionado && !buscarUsuario && (
               <div className="alcance-seleccionado-chip">
-                <CheckCircle2 size={12} style={{ color: 'var(--color-exito)' }} />
-                <span>{usuarioSeleccionado.nombre}</span>
+                <CheckCircle2 size={12} style={{ color: 'var(--color-exito)', flexShrink: 0 }} />
+                <span style={{
+                  fontFamily: 'var(--fuente-display-sc)',
+                  fontSize: 'var(--tamano-sm)',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  color: 'var(--color-texto)',
+                  flex: 1,
+                }}>
+                  {usuarioSeleccionado.nombre || usuarioSeleccionado.correo}
+                </span>
                 <button
                   type="button"
                   onClick={() => setFormulario((p) => ({ ...p, usuario_id: '' }))}
-                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-texto-suave)', padding: 0 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-texto-suave)', padding: 0, display: 'flex' }}
                 >
                   <XCircle size={13} />
                 </button>
@@ -309,7 +344,7 @@ function PestanaAsignar() {
           </label>
           <div className="alcance-roles-lista">
             {roles.length === 0 ? (
-              <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--fuente-acento)', fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)', margin: 0 }}>
                 Cargando roles…
               </p>
             ) : (
@@ -323,8 +358,17 @@ function PestanaAsignar() {
                     formulario.rol_id === rol.id ? 'alcance-rol-opcion--activa' : '',
                   ].filter(Boolean).join(' ')}
                 >
-                  <Shield size={13} style={{ flexShrink: 0 }} />
-                  <span>{rol.nombre}</span>
+                  <Shield size={13} style={{ flexShrink: 0, color: formulario.rol_id === rol.id ? 'var(--color-primario)' : 'var(--color-texto-suave)' }} />
+                  <span style={{
+                    fontFamily: 'var(--fuente-acento)',
+                    fontSize: 'var(--tamano-sm)',
+                    fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    color: 'var(--color-texto)',
+                    textTransform: 'uppercase' as const,
+                  }}>
+                    {rol.nombre}
+                  </span>
                   {formulario.rol_id === rol.id && (
                     <CheckCircle2 size={13} style={{ marginLeft: 'auto', color: 'var(--color-exito)', flexShrink: 0 }} />
                   )}
@@ -339,18 +383,24 @@ function PestanaAsignar() {
         {formulario.usuario_id && formulario.rol_id && (
           <div className="alcance-preview">
             <Shield size={13} style={{ color: 'var(--color-primario)', flexShrink: 0 }} />
-            <span style={{ fontSize: 'var(--tamano-sm)' }}>
-              <strong>{usuarioSeleccionado?.nombre}</strong>
+            <span style={{ fontFamily: 'var(--fuente-acento)', fontSize: 'var(--tamano-sm)', color: 'var(--color-texto)', letterSpacing: '0.02em' }}>
+              <span style={{ fontFamily: 'var(--fuente-display-sc)', fontWeight: 700 }}>
+                {usuarioSeleccionado?.nombre || usuarioSeleccionado?.correo}
+              </span>
               {' '}tendrá acceso como{' '}
-              <strong>{rolSeleccionado?.nombre}</strong>
+              <span style={{ fontFamily: 'var(--fuente-acento)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                {rolSeleccionado?.nombre}
+              </span>
             </span>
           </div>
         )}
 
         {exitoAsignar && (
           <div className="alcance-exito-banner">
-            <CheckCircle2 size={14} />
-            <span>Acceso asignado correctamente.</span>
+            <CheckCircle2 size={14} style={{ flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--fuente-acento)', letterSpacing: '0.02em' }}>
+              Acceso asignado correctamente.
+            </span>
           </div>
         )}
 
@@ -375,8 +425,11 @@ export function PaginaAlcances() {
   const activos = alcances.filter((a) => a.estado === 'ACTIVO').length;
 
   return (
-    <div
+    <motion.div
       className="pagina-gobierno-acceso"
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
     >
       <EncabezadoPagina
         titulo="Gobierno de Acceso"
@@ -404,6 +457,6 @@ export function PaginaAlcances() {
         {pestanaActiva === 'alcances' && <PestanaAlcances />}
         {pestanaActiva === 'asignar'  && <PestanaAsignar />}
       </div>
-    </div>
+    </motion.div>
   );
 }

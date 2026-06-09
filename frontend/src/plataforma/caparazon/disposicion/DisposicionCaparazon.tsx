@@ -3,15 +3,29 @@ import { BarraLateralCaparazon } from './BarraLateralCaparazon';
 import { CabeceraCaparazon } from './CabeceraCaparazon';
 import { EspacioTrabajoCaparazon } from './EspacioTrabajoCaparazon';
 
+const CLAVE_COLAPSO = 'aira:sidebar-colapsada';
+
 export function DisposicionCaparazon() {
   const [barraAbierta, setBarraAbierta] = useState(false);
+  const [colapsada, setColapsada] = useState(() => {
+    try { return localStorage.getItem(CLAVE_COLAPSO) === '1'; }
+    catch { return false; }
+  });
 
   const abrirBarra  = useCallback(() => setBarraAbierta(true),  []);
   const cerrarBarra = useCallback(() => setBarraAbierta(false), []);
 
+  const toggleColapso = useCallback(() => {
+    setColapsada((prev) => {
+      const siguiente = !prev;
+      try { localStorage.setItem(CLAVE_COLAPSO, siguiente ? '1' : '0'); }
+      catch { /* ignorar */ }
+      return siguiente;
+    });
+  }, []);
+
   return (
     <div className="disposicion-caparazon">
-      {/* Overlay semitransparente — solo visible en móvil cuando la barra está abierta */}
       {barraAbierta && (
         <div
           className="barra-lateral-overlay"
@@ -20,9 +34,15 @@ export function DisposicionCaparazon() {
         />
       )}
 
-      <BarraLateralCaparazon abierta={barraAbierta} alCerrar={cerrarBarra} />
+      <BarraLateralCaparazon
+        abierta={barraAbierta}
+        alCerrar={cerrarBarra}
+        colapsada={colapsada}
+        alToggleColapso={toggleColapso}
+      />
 
-      <div className="columna-caparazon-derecha">
+      {/* colapsada--colapsada sólo se aplica en desktop vía CSS */}
+      <div className={['columna-caparazon-derecha', colapsada ? 'columna-caparazon-derecha--colapsada' : ''].filter(Boolean).join(' ')}>
         <CabeceraCaparazon alAbrirBarra={abrirBarra} />
         <EspacioTrabajoCaparazon />
       </div>

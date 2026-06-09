@@ -1,26 +1,60 @@
+import type { LucideIcon } from 'lucide-react';
+import {
+  LayoutDashboard, CalendarCheck, Users, ListOrdered,
+  Scissors, Wrench, Tag, MessageCircle, Bell, FileText,
+  Award, Package, Building2, Shield, CreditCard,
+} from 'lucide-react';
+
+export type GrupoMenu =
+  | 'principal'
+  | 'reservas'
+  | 'agenda'
+  | 'comunicacion'
+  | 'negocio'
+  | 'sistema';
+
+export const ETIQUETAS_GRUPO: Record<GrupoMenu, string> = {
+  principal:   '',
+  reservas:    'Reservas',
+  agenda:      'Agenda',
+  comunicacion:'Comunicación',
+  negocio:     'Negocio',
+  sistema:     'Sistema',
+};
+
 export type ItemMenu = {
   etiqueta: string;
   ruta: string;
-  icono: string;
-  capacidad?: string;
-  /** Roles que pueden ver este item. Undefined = visible para todos. */
+  Icono: LucideIcon;
+  grupo: GrupoMenu;
   soloAdmin?: boolean;
 };
 
 export const MENU_CAPACIDADES: ItemMenu[] = [
-  { etiqueta: 'Tablero',        ruta: '/tablero',           icono: '⊞' },
-  { etiqueta: 'Reservas',       ruta: '/reservas',          icono: '📅' },
-  { etiqueta: 'Clientes',       ruta: '/reservas/clientes', icono: '👥' },
-  { etiqueta: 'Barberos',       ruta: '/agenda/barberos',   icono: '✂️',  soloAdmin: true },
-  { etiqueta: 'Servicios',      ruta: '/agenda/servicios',  icono: '🗓️', soloAdmin: true },
-  { etiqueta: 'Tarifas esp.',   ruta: '/agenda/tarifas',    icono: '🏷️', soloAdmin: true },
-  { etiqueta: 'Canal WhatsApp', ruta: '/canal-whatsapp',    icono: '💬', capacidad: 'CANAL_WHATSAPP', soloAdmin: true },
-  { etiqueta: 'Lealtad',        ruta: '/lealtad',           icono: '⭐', capacidad: 'LEALTAD', soloAdmin: true },
-  { etiqueta: 'Inventario',      ruta: '/inventario',        icono: '📦', soloAdmin: true },
-  { etiqueta: 'Lista espera',    ruta: '/reservas/lista-espera', icono: '⏳', soloAdmin: true },
-  { etiqueta: 'Notificaciones', ruta: '/notificaciones',    icono: '🔔', soloAdmin: true },
-  { etiqueta: 'Plantillas',     ruta: '/plantillas',        icono: '📄', soloAdmin: true },
-  { etiqueta: 'Organización',   ruta: '/organizacion',      icono: '🏢', soloAdmin: true },
-  { etiqueta: 'Accesos',        ruta: '/gobierno-acceso',   icono: '🔑', soloAdmin: true },
-  { etiqueta: 'Suscripción',    ruta: '/monetizacion',      icono: '💳', soloAdmin: true },
+  // ── Principal ──────────────────────────────────────────────────────
+  { etiqueta: 'Tablero',        ruta: '/tablero',                Icono: LayoutDashboard, grupo: 'principal' },
+
+  // ── Reservas ───────────────────────────────────────────────────────
+  { etiqueta: 'Reservas',       ruta: '/reservas',               Icono: CalendarCheck,   grupo: 'reservas' },
+  { etiqueta: 'Clientes',       ruta: '/reservas/clientes',      Icono: Users,           grupo: 'reservas' },
+  { etiqueta: 'Lista espera',   ruta: '/reservas/lista-espera',  Icono: ListOrdered,     grupo: 'reservas',  soloAdmin: true },
+
+  // ── Agenda ─────────────────────────────────────────────────────────
+  { etiqueta: 'Barberos',       ruta: '/agenda/barberos',        Icono: Scissors,        grupo: 'agenda',    soloAdmin: true },
+  { etiqueta: 'Servicios',      ruta: '/agenda/servicios',       Icono: Wrench,          grupo: 'agenda',    soloAdmin: true },
+  { etiqueta: 'Tarifas esp.',   ruta: '/agenda/tarifas',         Icono: Tag,             grupo: 'agenda',    soloAdmin: true },
+
+  // ── Comunicación ───────────────────────────────────────────────────
+  { etiqueta: 'Canal WhatsApp', ruta: '/canal-whatsapp',         Icono: MessageCircle,   grupo: 'comunicacion', soloAdmin: true },
+  { etiqueta: 'Notificaciones', ruta: '/notificaciones',         Icono: Bell,            grupo: 'comunicacion', soloAdmin: true },
+  { etiqueta: 'Plantillas',     ruta: '/plantillas',             Icono: FileText,        grupo: 'comunicacion', soloAdmin: true },
+
+  // ── Negocio ────────────────────────────────────────────────────────
+  { etiqueta: 'Lealtad',        ruta: '/lealtad',                Icono: Award,           grupo: 'negocio',   soloAdmin: true },
+  { etiqueta: 'Inventario',     ruta: '/inventario',             Icono: Package,         grupo: 'negocio',   soloAdmin: true },
+
+  // ── Sistema ────────────────────────────────────────────────────────
+  { etiqueta: 'Organización',   ruta: '/organizacion',           Icono: Building2,       grupo: 'sistema',   soloAdmin: true },
+  { etiqueta: 'Accesos',        ruta: '/gobierno-acceso',        Icono: Shield,          grupo: 'sistema',   soloAdmin: true },
+  { etiqueta: 'Suscripción',    ruta: '/monetizacion',           Icono: CreditCard,      grupo: 'sistema',   soloAdmin: true },
 ];

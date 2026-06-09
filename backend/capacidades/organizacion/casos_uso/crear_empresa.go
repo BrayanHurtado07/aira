@@ -2,10 +2,16 @@ package casos_uso
 
 import (
 	"context"
+	"regexp"
+	"strings"
+	"unicode"
 
 	"aira/capacidades/organizacion/barberias"
 	"aira/compartido/eventos"
 	"aira/plataforma/gobierno/auditoria"
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 type SolicitudCrearEmpresa struct {
@@ -21,6 +27,7 @@ type SolicitudCrearEmpresa struct {
 
 type RespuestaCrearEmpresa struct {
 	EmpresaID string
+	Slug      string
 }
 
 type CasoUsoCrearEmpresa struct {
@@ -51,6 +58,8 @@ func (c *CasoUsoCrearEmpresa) Ejecutar(
 		return RespuestaCrearEmpresa{}, err
 	}
 
+	slug, _ := c.repositorio.ActualizarSlug(ctx, id, generarSlugDesdeNombre(solicitud.Nombre))
+
 	c.auditoria.Registrar(ctx, auditoria.Evento{
 		UsuarioID: solicitud.CreadoPor,
 		EmpresaID: id,
@@ -62,5 +71,17 @@ func (c *CasoUsoCrearEmpresa) Ejecutar(
 
 	c.publicador.Publicar(ctx, eventos.BarberiaCreada(id, solicitud.Nombre, solicitud.CreadoPor))
 
-	return RespuestaCrearEmpresa{EmpresaID: id}, nil
+	return RespuestaCrearEmpresa{EmpresaID: id, Slug: slug}, nil
+}
+
+var reNoAlfa = regexp.MustCompile(`[^a-z0-9\s-]`)
+var reEspacios = regexp.MustCompile(`[\s-]+`)
+
+func generarSlugDesdeNombre(nombre string) string {
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	sin, _, _ := transform.String(t, nombre)
+	sin = strings.ToLower(sin)
+	sin = reNoAlfa.ReplaceAllString(sin, "")
+	sin = reEspacios.ReplaceAllString(sin, "-")
+	return strings.Trim(sin, "-")
 }
