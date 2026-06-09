@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Scissors, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MENU_CAPACIDADES, ETIQUETAS_GRUPO } from '../navegacion/menu-capacidades';
 import type { GrupoMenu } from '../navegacion/menu-capacidades';
-import { usarAlmacenSesion } from '@/plataforma/identidad/almacen-sesion';
+import { usarRolActivo } from '@/plataforma/identidad/ganchos/usarRolActivo';
+import { etiquetaRol } from '@/plataforma/identidad/roles';
 import { springLento } from '@/plataforma/diseno/motion';
 
 // ── Grupos en orden de aparición ──────────────────────────────────────────────
@@ -28,13 +29,16 @@ interface Props {
 // ── Componente ────────────────────────────────────────────────────────────────
 
 export function BarraLateralCaparazon({ abierta, alCerrar, colapsada, alToggleColapso }: Props) {
-  const nombreRol = usarAlmacenSesion((s) => s.sesion?.nombreRol ?? '');
-  const esAdmin   = !nombreRol || nombreRol.toUpperCase().includes('ADMIN');
+  const { nombreRol } = usarRolActivo();
 
   // En móvil (overlay abierto), siempre expandida
   const colapsadaActiva = colapsada && !abierta;
 
-  const itemsVisibles = MENU_CAPACIDADES.filter((item) => esAdmin || !item.soloAdmin);
+  const upper = nombreRol.toUpperCase().trim();
+  const itemsVisibles = MENU_CAPACIDADES.filter((item) => {
+    if (!item.rolesPermitidos) return true;
+    return item.rolesPermitidos.some((r) => r === upper);
+  });
   const gruposConItems = ORDEN_GRUPOS.filter((g) =>
     itemsVisibles.some((item) => item.grupo === g),
   );
@@ -72,7 +76,7 @@ export function BarraLateralCaparazon({ abierta, alCerrar, colapsada, alToggleCo
             >
               <p className="barra-lateral__nombre">AIRA</p>
               <p className="barra-lateral__rol">
-                {esAdmin ? 'Barbería Admin' : 'Panel Barbero'}
+                {etiquetaRol(nombreRol)}
               </p>
             </motion.div>
           )}
