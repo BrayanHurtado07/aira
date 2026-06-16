@@ -4,49 +4,67 @@ import { usarAlmacenTour } from './almacen-tour';
 import { usarRolActivo } from '@/plataforma/identidad/ganchos/usarRolActivo';
 import { PASOS_TOUR, PASOS_TOUR_BARBERO } from './pasos-tour';
 
+// Colores hardcodeados — el tour siempre se muestra en blanco/oscuro
+// sin importar si el usuario está en tema claro u oscuro.
 const OPCIONES_TOUR = {
-  primaryColor:     'var(--color-primario, #CC1C2E)',
-  backgroundColor:  'var(--color-fondo-elevado, #ffffff)',
-  textColor:        'var(--color-texto, #1a1a1a)',
-  overlayColor:     'rgba(0, 0, 0, 0.45)',
-  showProgress:     true,
-  skipBeacon:       true,
-  buttons:          ['back', 'close', 'primary', 'skip'] as ButtonType[],
-  zIndex:           9999,
+  primaryColor:    '#CC1C2E',
+  backgroundColor: '#ffffff',
+  textColor:       '#111827',
+  overlayColor:    'rgba(0, 0, 0, 0.55)',
+  showProgress:    true,
+  skipBeacon:      true,
+  buttons:         ['back', 'close', 'primary', 'skip'] as ButtonType[],
+  zIndex:          10000,
 };
 
 const ESTILOS_TOUR = {
   tooltip: {
-    borderRadius: '0.75rem',
-    padding:      '1.25rem',
-    boxShadow:    '0 8px 32px rgba(0,0,0,0.12)',
-    maxWidth:     '340px',
+    borderRadius: '12px',
+    padding:      '20px 22px',
+    boxShadow:    '0 20px 60px rgba(0,0,0,0.25)',
+    maxWidth:     '360px',
+    background:   '#ffffff',
   } as React.CSSProperties,
   tooltipTitle: {
-    fontSize:     '0.9375rem',
+    fontSize:     '1rem',
     fontWeight:   700,
-    marginBottom: '0.5rem',
+    marginBottom: '6px',
+    color:        '#111827',
   } as React.CSSProperties,
   tooltipContent: {
     fontSize:   '0.875rem',
-    lineHeight: '1.55',
+    lineHeight: '1.6',
+    color:      '#374151',
     padding:    '0',
+    margin:     '0',
+  } as React.CSSProperties,
+  tooltipFooter: {
+    marginTop: '16px',
   } as React.CSSProperties,
   buttonNext: {
-    backgroundColor: 'var(--color-primario, #CC1C2E)',
-    borderRadius:    '0.5rem',
+    backgroundColor: '#CC1C2E',
+    borderRadius:    '8px',
     fontSize:        '0.8125rem',
-    fontWeight:      '600',
-    padding:         '0.5rem 1rem',
+    fontWeight:      600,
+    padding:         '8px 16px',
+    color:           '#ffffff',
+    border:          'none',
   } as React.CSSProperties,
   buttonBack: {
-    color:       'var(--color-texto-suave, #64748b)',
+    color:       '#6b7280',
     fontSize:    '0.8125rem',
-    marginRight: '0.5rem',
+    marginRight: '8px',
+    background:  'transparent',
+    border:      'none',
   } as React.CSSProperties,
   buttonSkip: {
-    color:    'var(--color-texto-suave, #64748b)',
-    fontSize: '0.8125rem',
+    color:      '#9ca3af',
+    fontSize:   '0.8125rem',
+    background: 'transparent',
+    border:     'none',
+  } as React.CSSProperties,
+  options: {
+    zIndex: 10000,
   } as React.CSSProperties,
 };
 
@@ -68,14 +86,8 @@ export function TourAplicativo() {
   const manejarEvento = useCallback(
     (data: EventData) => {
       const { status, type } = data;
-
-      if (type === EVENTS.TOUR_END) {
-        marcarCompletado();
-        return;
-      }
-      if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-        marcarCompletado();
-      }
+      if (type === EVENTS.TOUR_END) { marcarCompletado(); return; }
+      if (status === STATUS.FINISHED || status === STATUS.SKIPPED) { marcarCompletado(); }
     },
     [marcarCompletado],
   );

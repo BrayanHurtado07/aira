@@ -99,22 +99,49 @@ func (r *RepositorioAlcanceCockroach) ValidarPermiso(ctx context.Context, usuari
 
 func (r *RepositorioAlcanceCockroach) ObtenerNombreRol(ctx context.Context, usuarioID, empresaID string) (string, error) {
 	var nombre string
-	err := r.pool.QueryRow(ctx,
-		`SELECT rl.nombre
-		 FROM alcance a
-		 JOIN rol rl ON rl.id_rol = a.id_rol
-		 WHERE a.id_usuario = $1
-		   AND a.id_empresa = $2
-		   AND a.estado = 'ACTIVO'
-		 ORDER BY a.creado_en DESC
-		 LIMIT 1`,
-		usuarioID, empresaID,
-	).Scan(&nombre)
+	var err error
+
+	// SUPERADMIN no está ligado a ninguna empresa: busca por usuario solamente.
+	if empresaID == "" {
+		err = r.pool.QueryRow(ctx,
+			`SELECT rl.nombre
+			 FROM alcance a
+			 JOIN rol rl ON rl.id_rol = a.id_rol
+			 WHERE a.id_usuario = $1
+			   AND a.estado = 'ACTIVO'
+			 ORDER BY a.creado_en DESC
+			 LIMIT 1`,
+			usuarioID,
+		).Scan(&nombre)
+	} else {
+		err = r.pool.QueryRow(ctx,
+			`SELECT rl.nombre
+			 FROM alcance a
+			 JOIN rol rl ON rl.id_rol = a.id_rol
+			 WHERE a.id_usuario = $1
+			   AND a.id_empresa = $2
+			   AND a.estado = 'ACTIVO'
+			 ORDER BY a.creado_en DESC
+			 LIMIT 1`,
+			usuarioID, empresaID,
+		).Scan(&nombre)
+	}
 	if err != nil {
-		// No alcance encontrado — no es un error, el usuario simplemente no tiene rol asignado
 		return "", nil
 	}
 	return nombre, nil
+}
+
+func (r *RepositorioAlcanceCockroach) BuscarIDRolPorNombre(ctx context.Context, nombre string) (string, error) {
+	var id string
+	err := r.pool.QueryRow(ctx,
+		`SELECT id_rol FROM rol WHERE nombre = $1 LIMIT 1`,
+		nombre,
+	).Scan(&id)
+	if err != nil {
+		return "", fmt.Errorf("rol %q no encontrado", nombre)
+	}
+	return id, nil
 }
 
 // AlcanceResumen para listados en el frontend.

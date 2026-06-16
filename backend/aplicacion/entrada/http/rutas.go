@@ -111,6 +111,10 @@ type Rutas struct {
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
 
+	// Plataforma SUPERADMIN
+	onboardearEmpresa         *casoOrg.CasoUsoOnboardearEmpresa
+	listarEmpresasPlataforma  *casoOrg.CasoUsoListarEmpresasPlataforma
+
 	// Repositorios de listado
 	repoEmpresa               *repoCockroach.RepositorioEmpresaCockroach
 	repoBarberos              *repoCockroach.RepositorioBarberosCockroach
@@ -137,6 +141,17 @@ type Rutas struct {
 	// Seguridad
 	guardia    *orquestacion.GuardiaPoliticas
 	middleware *MiddlewareAutenticacion
+}
+
+// exigirSuperAdmin verifica que el usuario en sesión tenga el rol SUPERADMIN.
+// Retorna false y escribe 403 si no lo tiene.
+func (rt *Rutas) exigirSuperAdmin(w http.ResponseWriter, r *http.Request, ses identidad.ContextoSesion) bool {
+	nombreRol, _ := rt.repoAlcance.ObtenerNombreRol(r.Context(), ses.UsuarioID, ses.EmpresaID)
+	if nombreRol != "SUPERADMIN" {
+		ResponderError(w, http.StatusForbidden, "solo SUPERADMIN puede realizar esta operacion")
+		return false
+	}
+	return true
 }
 
 // autorizarOResponder verifica que el usuario en sesión tiene el permiso indicado.
@@ -185,6 +200,10 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Post("/api/auth/cerrar-sesion", rt.manejarCerrarSesion)
 		r.Post("/api/usuarios/{usuarioID}/inactivar", rt.manejarInactivarUsuario)
 		r.Post("/api/usuarios/cambiar-password", rt.manejarCambiarPassword)
+
+		// Plataforma SUPERADMIN
+		r.Get("/api/superadmin/empresas", rt.manejarListarEmpresasPlataforma)
+		r.Post("/api/superadmin/empresas", rt.manejarOnboardearEmpresa)
 
 		// Organización
 		r.Get("/api/sucursales", rt.manejarListarSucursales)
@@ -2063,4 +2082,49 @@ func (rt *Rutas) manejarObtenerMetricasTablero(w http.ResponseWriter, r *http.Re
 	}
 
 	ResponderOK(w, resp)
+}
+
+// ── Plataforma SUPERADMIN ─────────────────────────────────────────────────────
+
+func (rt *Rutas) manejarListarEmpresasPlataforma(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_requerida")
+		return
+	}
+	if !rt.exigirSuperAdmin(w, r, sesion) {
+		return
+	}
+
+	resp, err := rt.listarEmpresasPlataforma.Ejecutar(r.Context())
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, resp)
+}
+
+func (rt *Rutas) manejarOnboardearEmpresa(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_requerida")
+		return
+	}
+	if !rt.exigirSuperAdmin(w, r, sesion) {
+		return
+	}
+
+	var s casoOrg.SolicitudOnboardearEmpresa
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	s.CreadoPor = sesion.UsuarioID
+
+	resp, err := rt.onboardearEmpresa.Ejecutar(r.Context(), s)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderCreado(w, resp)
 }

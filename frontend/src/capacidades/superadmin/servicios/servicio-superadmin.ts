@@ -1,14 +1,17 @@
 import { clienteHttp } from '@/integraciones/http/cliente';
+import type {
+  EmpresaResumen,
+  SolicitudOnboardearEmpresa,
+  RespuestaOnboardearEmpresa,
+} from '../contratos/tipos';
 
-export type SolicitudCrearEmpresa = {
-  nombre: string;
-};
+type RespuestaListar = { empresas: EmpresaResumen[]; total: number };
 
-export type RespuestaCrearEmpresa = {
-  id: string;
-  nombre: string;
-  slug: string;
-};
+export const listarEmpresasPlataforma = () =>
+  clienteHttp.get<RespuestaListar>('/superadmin/empresas');
 
-export const crearEmpresa = (solicitud: SolicitudCrearEmpresa) =>
-  clienteHttp.post<RespuestaCrearEmpresa>('/empresas', solicitud);
+export const onboardearEmpresa = (solicitud: SolicitudOnboardearEmpresa) =>
+  clienteHttp.post<RespuestaOnboardearEmpresa>('/superadmin/empresas', solicitud);
+
+// ── compat: el servicio anterior usaba /empresas sin datos de admin ────────────
+export type { EmpresaResumen, SolicitudOnboardearEmpresa, RespuestaOnboardearEmpresa };

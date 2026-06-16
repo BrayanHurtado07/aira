@@ -118,6 +118,45 @@ func (r *RepositorioEmpresaCockroach) ResolverSlug(ctx context.Context, slug str
 	return ExtraerCampo(resultado.Datos, "id_empresa"), nil
 }
 
+func (r *RepositorioEmpresaCockroach) ListarTodasConMetricas(ctx context.Context) ([]barberias.EmpresaResumen, error) {
+	filas, err := r.pool.Query(ctx, `
+		SELECT
+			e.id_empresa,
+			e.nombre,
+			COALESCE(e.slug, '') AS slug,
+			e.estado,
+			e.creado_en::text,
+			COUNT(DISTINCT b.id_barbero)   FILTER (WHERE b.estado = 'ACTIVO')                           AS barberos_activos,
+			COUNT(DISTINCT s.id_sucursal)  FILTER (WHERE s.estado = 'ACTIVO')                           AS sucursales_activas,
+			COUNT(DISTINCT rv.id_reserva)  FILTER (WHERE rv.creado_en >= NOW() - INTERVAL '30 days')    AS reservas_ultimo_mes,
+			COALESCE(MAX(su.estado) FILTER (WHERE su.estado = 'ACTIVA'), 'SIN_SUSCRIPCION')             AS estado_suscripcion
+		FROM empresa e
+		LEFT JOIN barbero      b  ON b.id_empresa  = e.id_empresa
+		LEFT JOIN sucursal     s  ON s.id_empresa  = e.id_empresa
+		LEFT JOIN reserva      rv ON rv.id_empresa = e.id_empresa
+		LEFT JOIN suscripcion  su ON su.id_empresa = e.id_empresa
+		GROUP BY e.id_empresa, e.nombre, e.slug, e.estado, e.creado_en
+		ORDER BY e.creado_en DESC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("listar empresas plataforma: %w", err)
+	}
+	defer filas.Close()
+
+	var lista []barberias.EmpresaResumen
+	for filas.Next() {
+		var em barberias.EmpresaResumen
+		if err := filas.Scan(
+			&em.ID, &em.Nombre, &em.Slug, &em.Estado, &em.CreadoEn,
+			&em.BarberosActivos, &em.SucursalesActivas, &em.ReservasUltimoMes, &em.EstadoSuscripcion,
+		); err != nil {
+			return nil, fmt.Errorf("scan empresa resumen: %w", err)
+		}
+		lista = append(lista, em)
+	}
+	return lista, filas.Err()
+}
+
 // RepositorioSucursalCockroach
 
 type RepositorioSucursalCockroach struct {

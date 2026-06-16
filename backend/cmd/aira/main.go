@@ -156,6 +156,10 @@ func main() {
 
 	cuObtenerMetricasTablero := casoTablero.NuevoCasoUsoObtenerMetricasTablero(repoTablero)
 
+	// Plataforma SUPERADMIN
+	cuOnboardearEmpresa        := casoOrg.NuevoCasoUsoOnboardearEmpresa(repoEmpresa, repoUsuario, repoAlcance, publicador, aud)
+	cuListarEmpresasPlataforma := casoOrg.NuevoCasoUsoListarEmpresasPlataforma(repoEmpresa)
+
 	// ── Workers ───────────────────────────────────────────────────────────────
 	var des despachador.DespachadorRecordatorio
 	if clave := os.Getenv("WA_CIFRADO_CLAVE"); clave != "" {
@@ -189,6 +193,7 @@ func main() {
 		cuAgregarComplementoReserva, cuIngresarListaEspera,
 		cuCrearTarifaEspecial, cuRefrescarSesion,
 		cuObtenerMetricasTablero,
+		cuOnboardearEmpresa, cuListarEmpresasPlataforma,
 		repoSesion,
 	); err != nil {
 		log.Fatalf("servidor: %v", err)

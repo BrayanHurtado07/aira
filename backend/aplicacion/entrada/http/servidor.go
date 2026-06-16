@@ -111,6 +111,9 @@ func (s *Servidor) Iniciar(
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion,
 	// Tablero
 	obtenerMetricasTablero *casoTablero.CasoUsoObtenerMetricasTablero,
+	// Plataforma SUPERADMIN
+	onboardearEmpresa *casoOrg.CasoUsoOnboardearEmpresa,
+	listarEmpresasPlataforma *casoOrg.CasoUsoListarEmpresasPlataforma,
 	// Infraestructura
 	repoSesiones sesiones.RepositorioSesion,
 ) error {
@@ -195,6 +198,9 @@ func (s *Servidor) Iniciar(
 		refrescarSesion: refrescarSesion,
 		// Tablero
 		obtenerMetricasTablero: obtenerMetricasTablero,
+		// Plataforma SUPERADMIN
+		onboardearEmpresa:        onboardearEmpresa,
+		listarEmpresasPlataforma: listarEmpresasPlataforma,
 		// Repositorios de listado
 		repoEmpresa:        repoCockroach.NuevoRepositorioEmpresa(s.pool),
 		repoBarberos:       repoCockroach.NuevoRepositorioBarbero(s.pool),

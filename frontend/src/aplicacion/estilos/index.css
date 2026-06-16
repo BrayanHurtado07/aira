@@ -5450,56 +5450,100 @@ img { max-width: 100%; display: block; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SUPERADMIN — Página de gestión de empresas
+   SUPERADMIN — Panel de plataforma
    ═══════════════════════════════════════════════════════════════════ */
 
-.superadmin-empresa-creada {
+.pagina-superadmin {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--espacio-xl);
+}
+
+/* ── KPIs ── */
+.superadmin-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--espacio-md);
-  padding: var(--espacio-md);
+}
+
+@media (max-width: 900px) { .superadmin-kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .superadmin-kpis { grid-template-columns: 1fr; } }
+
+.superadmin-kpi {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-md);
+  padding: var(--espacio-lg);
   background: var(--color-fondo-elevado);
   border: 1px solid var(--color-borde);
-  border-radius: var(--radio-md);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-xs);
 }
 
-.superadmin-empresa-creada__icono {
-  color: var(--color-exito);
+.superadmin-kpi--skeleton {
+  min-height: 80px;
+}
+
+.superadmin-kpi__icono {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-fondo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin-top: 2px;
+  opacity: 0.9;
 }
 
-.superadmin-empresa-creada__nombre {
-  font-size: var(--tamano-base);
-  font-weight: 600;
+.superadmin-kpi__valor {
+  font-size: 1.625rem;
+  font-weight: 700;
   color: var(--color-texto);
+  line-height: 1;
 }
 
-.superadmin-empresa-creada__slug {
+.superadmin-kpi__etiqueta {
   font-size: var(--tamano-xs);
   color: var(--color-texto-suave);
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.superadmin-kpi__sub {
+  font-size: var(--tamano-xs);
+  color: var(--color-texto-muted);
   margin-top: 0.125rem;
 }
 
-.superadmin-empresa-creada__url-fila {
+/* ── Formulario secciones ── */
+.superadmin-form-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-sm);
+  padding: var(--espacio-md);
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-md);
+}
+
+.superadmin-form-seccion__titulo {
   display: flex;
   align-items: center;
-  gap: var(--espacio-sm);
-  margin-top: var(--espacio-sm);
-  flex-wrap: wrap;
-}
-
-.superadmin-empresa-creada__url {
+  gap: 0.375rem;
   font-size: var(--tamano-xs);
-  color: var(--color-primario);
-  word-break: break-all;
-  background: var(--color-acento-suave);
-  padding: 0.125rem 0.375rem;
-  border-radius: var(--radio-sm);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
 }
 
-.superadmin-empresa-creada__copiar {
-  display: flex;
+/* ── Botón enlace en tabla ── */
+.superadmin-btn-enlace {
+  display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   font-size: var(--tamano-xs);
@@ -5507,13 +5551,13 @@ img { max-width: 100%; display: block; }
   background: none;
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-sm);
-  padding: 0.125rem 0.5rem;
+  padding: 0.25rem 0.625rem;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
   white-space: nowrap;
 }
 
-.superadmin-empresa-creada__copiar:hover {
+.superadmin-btn-enlace:hover {
   color: var(--color-primario);
   border-color: var(--color-primario);
 }
