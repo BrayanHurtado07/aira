@@ -37,6 +37,8 @@ var (
 	ErrEmpresaNoExiste        = errors.New("empresa_no_existe")
 	ErrEmpresaSinSuscripcion  = errors.New("empresa_sin_suscripcion_activa")
 	ErrLimitePlanExcedido     = errors.New("limite_plan_excedido")
+	ErrSuscripcionNoExiste    = errors.New("suscripcion_no_existe")
+	ErrSuscripcionCancelada   = errors.New("suscripcion_cancelada")
 	ErrSucursalNoActiva       = errors.New("sucursal_no_activa")
 	ErrSucursalNoExiste       = errors.New("sucursal_no_existe")
 	ErrSucursalFueraDeEmpresa = errors.New("sucursal_fuera_de_empresa")

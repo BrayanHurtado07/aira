@@ -28,6 +28,8 @@ import (
 	casoReservas "aira/capacidades/reservas/casos_uso"
 	casoTablero "aira/capacidades/tablero/casos_uso"
 	"aira/plataforma/gobierno/auditoria"
+	pagosPlataforma "aira/plataforma/pagos"
+	"aira/plataforma/whatsapp"
 	repoCockroach "aira/persistencia/cockroach"
 
 	"github.com/go-chi/chi/v5"
@@ -237,8 +239,19 @@ func (s *Servidor) Iniciar(
 		cargarInactivos:        cargarInactivos,
 		despacharCampana:       despacharCampana,
 		repoCampana:            repoCockroach.NuevoRepositorioCampana(s.pool),
-		conversarAira:          conversarAira,
-		recibirWebhookWA:       casoCanal.NuevoCasoUsoRecibirWebhookWhatsApp(repoCockroach.NuevoRepositorioSesionWhatsApp(s.pool), conversarAira),
+		conversarAira: conversarAira,
+		recibirWebhookWA: casoCanal.NuevoCasoUsoRecibirWebhookWhatsApp(
+			repoCockroach.NuevoRepositorioSesionWhatsApp(s.pool),
+			conversarAira,
+			whatsapp.NuevoDespachadorChatMeta(repoCockroach.NuevoRepositorioSesionWhatsApp(s.pool), os.Getenv("WA_CIFRADO_CLAVE")),
+		),
+		repoConversacionWA: repoCockroach.NuevoRepositorioConversacion(s.pool),
+		repoSesionChatWA:   repoCockroach.NuevoRepositorioSesionChat(s.pool),
+		cobrarSuscripcion: casoMonetizacion.NuevoCasoUsoCobrarSuscripcion(
+			repoCockroach.NuevoRepositorioPago(s.pool),
+			pagosPlataforma.NuevaPasarela(),
+			s.aud,
+		),
 		// Plataforma SUPERADMIN
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,

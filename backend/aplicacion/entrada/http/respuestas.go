@@ -82,8 +82,12 @@ func traducirError(err error) (int, string) {
 	case errores.ErrEmpresaSinSuscripcion:
 		return http.StatusPaymentRequired, err.Error()
 
+	case errores.ErrSuscripcionNoExiste:
+		return http.StatusNotFound, err.Error()
+
 	// Conflictos de negocio — 409
-	case errores.ErrLimitePlanExcedido,
+	case errores.ErrSuscripcionCancelada,
+		errores.ErrLimitePlanExcedido,
 		errores.ErrListaEsperaNoPromovible,
 		errores.ErrReservaNoCompletada,
 		errores.ErrComisionYaGenerada,

@@ -64,6 +64,20 @@ func (r *RepositorioConversacionCockroach) ObtenerActiva(ctx context.Context, id
 	return c, nil
 }
 
+// EmpresaDeConversacion devuelve la empresa dueña de una conversación. Sirve para
+// validar pertenencia de inquilino antes de operar sobre ella.
+func (r *RepositorioConversacionCockroach) EmpresaDeConversacion(ctx context.Context, conversacionID string) (string, error) {
+	var empresaID string
+	err := r.pool.QueryRow(ctx,
+		`SELECT id_empresa FROM conversacion WHERE id_conversacion = $1`,
+		conversacionID,
+	).Scan(&empresaID)
+	if err != nil {
+		return "", errores.ErrConversacionNoExiste
+	}
+	return empresaID, nil
+}
+
 // RepositorioMensajeCockroach
 
 type RepositorioMensajeCockroach struct {
@@ -156,6 +170,22 @@ func (r *RepositorioSesionChatCockroach) Actualizar(
 		return fmt.Errorf("%s", resultado.Error)
 	}
 	return nil
+}
+
+// EmpresaDeSesionChat devuelve la empresa dueña de una sesión de chat (vía su
+// conversación). Sirve para validar pertenencia de inquilino.
+func (r *RepositorioSesionChatCockroach) EmpresaDeSesionChat(ctx context.Context, sesionChatID string) (string, error) {
+	var empresaID string
+	err := r.pool.QueryRow(ctx,
+		`SELECT c.id_empresa
+		 FROM sesion_chat s JOIN conversacion c ON c.id_conversacion = s.id_conversacion
+		 WHERE s.id_sesion_chat = $1`,
+		sesionChatID,
+	).Scan(&empresaID)
+	if err != nil {
+		return "", errores.ErrConversacionNoExiste
+	}
+	return empresaID, nil
 }
 
 func (r *RepositorioSesionChatCockroach) ObtenerPorConversacion(ctx context.Context, conversacionID string) (sesion_chat.SesionChat, error) {

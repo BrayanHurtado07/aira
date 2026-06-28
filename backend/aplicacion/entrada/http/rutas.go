@@ -11,11 +11,10 @@ import (
 	casoCampanias "aira/capacidades/campanias/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
-	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
-	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	"aira/capacidades/gobierno_acceso/permisos"
 	casoIdentidad "aira/capacidades/identidad/casos_uso"
+	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
 	casoInventario "aira/capacidades/inventario/casos_uso"
 	casoLealtad "aira/capacidades/lealtad/casos_uso"
 	casoMonetizacion "aira/capacidades/monetizacion/casos_uso"
@@ -23,6 +22,7 @@ import (
 	casoOrg "aira/capacidades/organizacion/casos_uso"
 	"aira/capacidades/organizacion/periodos"
 	"aira/capacidades/organizacion/sedes"
+	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoReservas "aira/capacidades/reservas/casos_uso"
 	casoTablero "aira/capacidades/tablero/casos_uso"
 	repoCockroach "aira/persistencia/cockroach"
@@ -44,39 +44,39 @@ type Rutas struct {
 	restablecerPassword               *casoIdentidad.CasoUsoRestablecerPassword
 
 	// Organización
-	crearEmpresa                 *casoOrg.CasoUsoCrearEmpresa
-	crearSucursal                *casoOrg.CasoUsoCrearSucursal
-	actualizarEstadoSucursal     *casoOrg.CasoUsoActualizarEstadoSucursal
-	crearPeriodo                 *casoOrg.CasoUsoCrearPeriodo
-	cerrarPeriodo                *casoOrg.CasoUsoCerrarPeriodo
-	guardarConfiguracion         *casoOrg.CasoUsoGuardarConfiguracionEmpresa
+	crearEmpresa             *casoOrg.CasoUsoCrearEmpresa
+	crearSucursal            *casoOrg.CasoUsoCrearSucursal
+	actualizarEstadoSucursal *casoOrg.CasoUsoActualizarEstadoSucursal
+	crearPeriodo             *casoOrg.CasoUsoCrearPeriodo
+	cerrarPeriodo            *casoOrg.CasoUsoCerrarPeriodo
+	guardarConfiguracion     *casoOrg.CasoUsoGuardarConfiguracionEmpresa
 
 	// Gobierno de Acceso
 	asignarAlcance *casoGobierno.CasoUsoAsignarAlcance
 	revocarAlcance *casoGobierno.CasoUsoRevocarAlcance
 
 	// Agenda
-	registrarBarbero                   *casoAgenda.CasoUsoRegistrarBarbero
-	actualizarBarbero                  *casoAgenda.CasoUsoActualizarBarbero
-	actualizarEstadoBarbero            *casoAgenda.CasoUsoActualizarEstadoBarbero
-	desasignarServicio                 *casoAgenda.CasoUsoDesasignarServicioBarbero
-	crearServicio                      *casoAgenda.CasoUsoCrearServicio
-	actualizarServicio                 *casoAgenda.CasoUsoActualizarServicio
-	actualizarEstadoServicio           *casoAgenda.CasoUsoActualizarEstadoServicio
-	registrarDisponibilidad            *casoAgenda.CasoUsoRegistrarDisponibilidad
-	asignarServicioBarbero             *casoAgenda.CasoUsoAsignarServicioBarbero
-	registrarExcepcionDisponibilidad   *casoAgenda.CasoUsoRegistrarExcepcionDisponibilidad
+	registrarBarbero                 *casoAgenda.CasoUsoRegistrarBarbero
+	actualizarBarbero                *casoAgenda.CasoUsoActualizarBarbero
+	actualizarEstadoBarbero          *casoAgenda.CasoUsoActualizarEstadoBarbero
+	desasignarServicio               *casoAgenda.CasoUsoDesasignarServicioBarbero
+	crearServicio                    *casoAgenda.CasoUsoCrearServicio
+	actualizarServicio               *casoAgenda.CasoUsoActualizarServicio
+	actualizarEstadoServicio         *casoAgenda.CasoUsoActualizarEstadoServicio
+	registrarDisponibilidad          *casoAgenda.CasoUsoRegistrarDisponibilidad
+	asignarServicioBarbero           *casoAgenda.CasoUsoAsignarServicioBarbero
+	registrarExcepcionDisponibilidad *casoAgenda.CasoUsoRegistrarExcepcionDisponibilidad
 
 	// Reservas
-	registrarCliente       *casoReservas.CasoUsoRegistrarCliente
-	actualizarCliente      *casoReservas.CasoUsoActualizarCliente
+	registrarCliente        *casoReservas.CasoUsoRegistrarCliente
+	actualizarCliente       *casoReservas.CasoUsoActualizarCliente
 	actualizarEstadoCliente *casoReservas.CasoUsoActualizarEstadoCliente
-	registrarReserva       *casoReservas.CasoUsoRegistrarReserva
-	actualizarReserva      *casoReservas.CasoUsoActualizarReserva
-	confirmarReserva       *casoReservas.CasoUsoConfirmarReserva
-	cancelarReserva        *casoReservas.CasoUsoCancelarReserva
-	completarReserva       *casoReservas.CasoUsoCompletarReserva
-	marcarNoAsistio        *casoReservas.CasoUsoMarcarNoAsistio
+	registrarReserva        *casoReservas.CasoUsoRegistrarReserva
+	actualizarReserva       *casoReservas.CasoUsoActualizarReserva
+	confirmarReserva        *casoReservas.CasoUsoConfirmarReserva
+	cancelarReserva         *casoReservas.CasoUsoCancelarReserva
+	completarReserva        *casoReservas.CasoUsoCompletarReserva
+	marcarNoAsistio         *casoReservas.CasoUsoMarcarNoAsistio
 
 	// Canal WhatsApp
 	iniciarConversacion *casoCanal.CasoUsoIniciarConversacion
@@ -88,6 +88,7 @@ type Rutas struct {
 	activarSuscripcion   *casoMonetizacion.CasoUsoActivarSuscripcion
 	suspenderSuscripcion *casoMonetizacion.CasoUsoSuspenderSuscripcion
 	cancelarSuscripcion  *casoMonetizacion.CasoUsoCancelarSuscripcion
+	cobrarSuscripcion    *casoMonetizacion.CasoUsoCobrarSuscripcion
 
 	// Lealtad
 	crearProgramaLealtad *casoLealtad.CasoUsoCrearProgramaLealtad
@@ -101,7 +102,7 @@ type Rutas struct {
 	crearPlantilla        *casoNotificaciones.CasoUsoCrearPlantilla
 
 	// Inventario
-	crearProducto              *casoInventario.CasoUsoCrearProducto
+	crearProducto                 *casoInventario.CasoUsoCrearProducto
 	registrarMovimientoInventario *casoInventario.CasoUsoRegistrarMovimientoInventario
 
 	// Reservas — complementos y lista de espera
@@ -124,15 +125,15 @@ type Rutas struct {
 	repoComision         *repoCockroach.RepositorioComisionCockroach
 
 	// Reputación
-	registrarResena         *casoReputacion.CasoUsoRegistrarResena
-	actualizarEstadoResena  *casoReputacion.CasoUsoActualizarEstadoResena
-	repoReputacion          *repoCockroach.RepositorioReputacionCockroach
+	registrarResena        *casoReputacion.CasoUsoRegistrarResena
+	actualizarEstadoResena *casoReputacion.CasoUsoActualizarEstadoResena
+	repoReputacion         *repoCockroach.RepositorioReputacionCockroach
 
 	// Integraciones (Google Calendar)
-	conectarGoogle      *casoIntegraciones.CasoUsoConectarGoogleCalendar
-	desconectarGoogle   *casoIntegraciones.CasoUsoDesconectarGoogleCalendar
-	sincronizarReserva  *casoIntegraciones.CasoUsoSincronizarReserva
-	repoIntegracion     *repoCockroach.RepositorioIntegracionCockroach
+	conectarGoogle     *casoIntegraciones.CasoUsoConectarGoogleCalendar
+	desconectarGoogle  *casoIntegraciones.CasoUsoDesconectarGoogleCalendar
+	sincronizarReserva *casoIntegraciones.CasoUsoSincronizarReserva
+	repoIntegracion    *repoCockroach.RepositorioIntegracionCockroach
 
 	// Campañas
 	crearCampana     *casoCampanias.CasoUsoCrearCampana
@@ -141,38 +142,40 @@ type Rutas struct {
 	repoCampana      *repoCockroach.RepositorioCampanaCockroach
 
 	// Aira IA (cerebro conversacional)
-	conversarAira    *casoCanal.CasoUsoConversarAira
-	recibirWebhookWA *casoCanal.CasoUsoRecibirWebhookWhatsApp
+	conversarAira      *casoCanal.CasoUsoConversarAira
+	recibirWebhookWA   *casoCanal.CasoUsoRecibirWebhookWhatsApp
+	repoConversacionWA *repoCockroach.RepositorioConversacionCockroach
+	repoSesionChatWA   *repoCockroach.RepositorioSesionChatCockroach
 
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
 
 	// Plataforma SUPERADMIN
-	onboardearEmpresa         *casoOrg.CasoUsoOnboardearEmpresa
-	listarEmpresasPlataforma  *casoOrg.CasoUsoListarEmpresasPlataforma
+	onboardearEmpresa        *casoOrg.CasoUsoOnboardearEmpresa
+	listarEmpresasPlataforma *casoOrg.CasoUsoListarEmpresasPlataforma
 
 	// Repositorios de listado
-	repoEmpresa               *repoCockroach.RepositorioEmpresaCockroach
-	repoBarberos              *repoCockroach.RepositorioBarberosCockroach
-	repoServicios             *repoCockroach.RepositorioServicioCockroach
-	repoReservas              *repoCockroach.RepositorioReservaCockroach
-	repoClientes              *repoCockroach.RepositorioClienteCockroach
-	repoSucursales            *repoCockroach.RepositorioSucursalCockroach
-	repoPeriodo               *repoCockroach.RepositorioPeriodoCockroach
-	repoDisponibilidad        *repoCockroach.RepositorioDisponibilidadCockroach
+	repoEmpresa                 *repoCockroach.RepositorioEmpresaCockroach
+	repoBarberos                *repoCockroach.RepositorioBarberosCockroach
+	repoServicios               *repoCockroach.RepositorioServicioCockroach
+	repoReservas                *repoCockroach.RepositorioReservaCockroach
+	repoClientes                *repoCockroach.RepositorioClienteCockroach
+	repoSucursales              *repoCockroach.RepositorioSucursalCockroach
+	repoPeriodo                 *repoCockroach.RepositorioPeriodoCockroach
+	repoDisponibilidad          *repoCockroach.RepositorioDisponibilidadCockroach
 	repoExcepcionDisponibilidad *repoCockroach.RepositorioExcepcionDisponibilidadCockroach
-	repoTarifas               *repoCockroach.RepositorioTarifaEspecialCockroach
-	repoProductos             *repoCockroach.RepositorioProductoCockroach
-	repoMovimientoInventario  *repoCockroach.RepositorioMovimientoInventarioCockroach
-	repoListaEspera           *repoCockroach.RepositorioListaEsperaCockroach
-	repoComplementoReserva    *repoCockroach.RepositorioComplementoReservaCockroach
-	repoPlantillas            *repoCockroach.RepositorioPlantillaCockroach
-	repoSello                 *repoCockroach.RepositorioSelloCockroach
-	repoRecordatorio          *repoCockroach.RepositorioRecordatorioCockroach
-	repoAlcance               *repoCockroach.RepositorioAlcanceCockroach
-	repoSuscripcion           *repoCockroach.RepositorioSuscripcionCockroach
-	repoPlan                  *repoCockroach.RepositorioPlanCockroach
-	repoIdentidad             *repoCockroach.RepositorioUsuarioCockroach
+	repoTarifas                 *repoCockroach.RepositorioTarifaEspecialCockroach
+	repoProductos               *repoCockroach.RepositorioProductoCockroach
+	repoMovimientoInventario    *repoCockroach.RepositorioMovimientoInventarioCockroach
+	repoListaEspera             *repoCockroach.RepositorioListaEsperaCockroach
+	repoComplementoReserva      *repoCockroach.RepositorioComplementoReservaCockroach
+	repoPlantillas              *repoCockroach.RepositorioPlantillaCockroach
+	repoSello                   *repoCockroach.RepositorioSelloCockroach
+	repoRecordatorio            *repoCockroach.RepositorioRecordatorioCockroach
+	repoAlcance                 *repoCockroach.RepositorioAlcanceCockroach
+	repoSuscripcion             *repoCockroach.RepositorioSuscripcionCockroach
+	repoPlan                    *repoCockroach.RepositorioPlanCockroach
+	repoIdentidad               *repoCockroach.RepositorioUsuarioCockroach
 
 	// Seguridad
 	guardia    *orquestacion.GuardiaPoliticas
@@ -305,6 +308,7 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Post("/api/suscripciones", rt.manejarActivarSuscripcion)
 		r.Post("/api/suscripciones/{suscripcionID}/suspender", rt.manejarSuspenderSuscripcion)
 		r.Post("/api/suscripciones/{suscripcionID}/cancelar", rt.manejarCancelarSuscripcion)
+		r.Post("/api/suscripciones/{suscripcionID}/cobrar", rt.manejarCobrarSuscripcion)
 
 		// Lealtad
 		r.Post("/api/lealtad/programa", rt.manejarCrearProgramaLealtad)
@@ -1460,6 +1464,9 @@ func (rt *Rutas) manejarRegistrarMensaje(w http.ResponseWriter, r *http.Request)
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
 		return
 	}
+	if !rt.exigirConversacionDelTenant(w, r, s.ConversacionID, sesion.EmpresaID) {
+		return
+	}
 	resp, err := rt.registrarMensaje.Ejecutar(r.Context(), s)
 	if err != nil {
 		ResponderErrorDominio(w, err)
@@ -1480,6 +1487,9 @@ func (rt *Rutas) manejarIniciarSesionChat(w http.ResponseWriter, r *http.Request
 	var s casoCanal.SolicitudIniciarSesionChat
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	if !rt.exigirConversacionDelTenant(w, r, s.ConversacionID, sesion.EmpresaID) {
 		return
 	}
 	resp, err := rt.gestionarSesionChat.Iniciar(r.Context(), s)
@@ -1505,6 +1515,9 @@ func (rt *Rutas) manejarActualizarSesionChat(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	s.SesionChatID = chi.URLParam(r, "sesionChatID")
+	if !rt.exigirSesionChatDelTenant(w, r, s.SesionChatID, sesion.EmpresaID) {
+		return
+	}
 	if err := rt.gestionarSesionChat.Actualizar(r.Context(), s); err != nil {
 		ResponderErrorDominio(w, err)
 		return
@@ -1535,6 +1548,27 @@ func (rt *Rutas) manejarActivarSuscripcion(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	ResponderCreado(w, resp)
+}
+
+func (rt *Rutas) manejarCobrarSuscripcion(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.SuscripcionGestionar) {
+		return
+	}
+	resp, err := rt.cobrarSuscripcion.Ejecutar(r.Context(), casoMonetizacion.SolicitudCobrarSuscripcion{
+		SuscripcionID: chi.URLParam(r, "suscripcionID"),
+		EmpresaID:     sesion.EmpresaID,
+		CobradoPor:    sesion.UsuarioID,
+	})
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, resp)
 }
 
 func (rt *Rutas) manejarSuspenderSuscripcion(w http.ResponseWriter, r *http.Request) {
@@ -2258,6 +2292,28 @@ func (rt *Rutas) manejarConversarAira(w http.ResponseWriter, r *http.Request) {
 	ResponderOK(w, resp)
 }
 
+// exigirConversacionDelTenant verifica que la conversación pertenezca a la empresa
+// del contexto operativo. Responde 404 (no revela existencia ajena) y devuelve false.
+func (rt *Rutas) exigirConversacionDelTenant(w http.ResponseWriter, r *http.Request, conversacionID, empresaID string) bool {
+	duena, err := rt.repoConversacionWA.EmpresaDeConversacion(r.Context(), conversacionID)
+	if err != nil || duena != empresaID {
+		ResponderError(w, http.StatusNotFound, "conversacion_no_encontrada")
+		return false
+	}
+	return true
+}
+
+// exigirSesionChatDelTenant verifica que la sesión de chat pertenezca a la empresa
+// del contexto operativo (vía su conversación). Responde 404 y devuelve false.
+func (rt *Rutas) exigirSesionChatDelTenant(w http.ResponseWriter, r *http.Request, sesionChatID, empresaID string) bool {
+	duena, err := rt.repoSesionChatWA.EmpresaDeSesionChat(r.Context(), sesionChatID)
+	if err != nil || duena != empresaID {
+		ResponderError(w, http.StatusNotFound, "sesion_chat_no_encontrada")
+		return false
+	}
+	return true
+}
+
 // manejarVerificacionWebhookWhatsApp responde el handshake GET que Meta hace al
 // registrar la URL del webhook: devuelve hub.challenge si el verify_token coincide.
 func (rt *Rutas) manejarVerificacionWebhookWhatsApp(w http.ResponseWriter, r *http.Request) {
@@ -2699,7 +2755,7 @@ func (rt *Rutas) manejarCrearReservaPublica(w http.ResponseWriter, r *http.Reque
 		ServicioID:      solicitud.ServicioID,
 		FechaHoraInicio: solicitud.FechaHoraInicio,
 		Origen:          "WEB", // CHECK chk_reserva_origen: WHATSAPP|WEB|MANUAL
-		CreadoPor:       "",     // reserva pública: creado_por = NULL (sin usuario del sistema)
+		CreadoPor:       "",    // reserva pública: creado_por = NULL (sin usuario del sistema)
 	})
 	if err != nil {
 		ResponderErrorDominio(w, err)
