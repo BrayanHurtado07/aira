@@ -48,6 +48,9 @@ const (
 	// Integraciones
 	IntegracionGestionar = "INTEGRACION_GESTIONAR"
 
+	// Campañas
+	CampanaGestionar = "CAMPANA_GESTIONAR"
+
 	// Lealtad
 	SelloGestionar         = "SELLO_GESTIONAR"
 	ProgramaLealtadGestionar = "PROGRAMA_LEALTAD_GESTIONAR"

@@ -13,6 +13,7 @@ import (
 	"aira/aplicacion/orquestacion"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
+	casoCampanias "aira/capacidades/campanias/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
 	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
 	casoReputacion "aira/capacidades/reputacion/casos_uso"
@@ -126,6 +127,9 @@ func (s *Servidor) Iniciar(
 	conectarGoogle *casoIntegraciones.CasoUsoConectarGoogleCalendar,
 	desconectarGoogle *casoIntegraciones.CasoUsoDesconectarGoogleCalendar,
 	sincronizarReserva *casoIntegraciones.CasoUsoSincronizarReserva,
+	crearCampana *casoCampanias.CasoUsoCrearCampana,
+	cargarInactivos *casoCampanias.CasoUsoCargarInactivos,
+	despacharCampana *casoCampanias.CasoUsoDespacharCampana,
 	// Plataforma SUPERADMIN
 	onboardearEmpresa *casoOrg.CasoUsoOnboardearEmpresa,
 	listarEmpresasPlataforma *casoOrg.CasoUsoListarEmpresasPlataforma,
@@ -228,6 +232,10 @@ func (s *Servidor) Iniciar(
 		desconectarGoogle:      desconectarGoogle,
 		sincronizarReserva:     sincronizarReserva,
 		repoIntegracion:        repoCockroach.NuevoRepositorioIntegracion(s.pool),
+		crearCampana:           crearCampana,
+		cargarInactivos:        cargarInactivos,
+		despacharCampana:       despacharCampana,
+		repoCampana:            repoCockroach.NuevoRepositorioCampana(s.pool),
 		// Plataforma SUPERADMIN
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,

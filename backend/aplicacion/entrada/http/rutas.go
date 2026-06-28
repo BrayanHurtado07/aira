@@ -7,6 +7,7 @@ import (
 
 	"aira/aplicacion/orquestacion"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
+	casoCampanias "aira/capacidades/campanias/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
 	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
@@ -131,6 +132,12 @@ type Rutas struct {
 	desconectarGoogle   *casoIntegraciones.CasoUsoDesconectarGoogleCalendar
 	sincronizarReserva  *casoIntegraciones.CasoUsoSincronizarReserva
 	repoIntegracion     *repoCockroach.RepositorioIntegracionCockroach
+
+	// Campañas
+	crearCampana     *casoCampanias.CasoUsoCrearCampana
+	cargarInactivos  *casoCampanias.CasoUsoCargarInactivos
+	despacharCampana *casoCampanias.CasoUsoDespacharCampana
+	repoCampana      *repoCockroach.RepositorioCampanaCockroach
 
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
@@ -359,6 +366,12 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Get("/api/integraciones/google/estado", rt.manejarEstadoGoogle)
 		r.Post("/api/integraciones/google/desconectar", rt.manejarDesconectarGoogle)
 		r.Post("/api/reservas/{reservaID}/sincronizar-calendar", rt.manejarSincronizarReservaCalendar)
+
+		// Campañas
+		r.Get("/api/campanias", rt.manejarListarCampanas)
+		r.Post("/api/campanias", rt.manejarCrearCampana)
+		r.Post("/api/campanias/{campanaID}/destinatarios/inactivos", rt.manejarCargarInactivos)
+		r.Post("/api/campanias/{campanaID}/despachar", rt.manejarDespacharCampana)
 	})
 }
 
@@ -2290,6 +2303,90 @@ func (rt *Rutas) manejarSincronizarReservaCalendar(w http.ResponseWriter, r *htt
 		return
 	}
 	ResponderCreado(w, map[string]string{"id_evento_calendar": id})
+}
+
+// ── Campañas ──────────────────────────────────────────────────────────────────
+
+func (rt *Rutas) manejarCrearCampana(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CampanaGestionar) {
+		return
+	}
+	var s casoCampanias.SolicitudCrearCampana
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	s.EmpresaID = sesion.EmpresaID
+	s.CreadoPor = sesion.UsuarioID
+	id, err := rt.crearCampana.Ejecutar(r.Context(), s)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderCreado(w, map[string]string{"id_campana": id})
+}
+
+func (rt *Rutas) manejarCargarInactivos(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CampanaGestionar) {
+		return
+	}
+	var s struct {
+		Dias int `json:"dias"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&s)
+	if s.Dias <= 0 {
+		s.Dias = 60
+	}
+	n, err := rt.cargarInactivos.Ejecutar(r.Context(), chi.URLParam(r, "campanaID"), s.Dias, sesion.UsuarioID)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, map[string]int{"total_destinatarios": n})
+}
+
+func (rt *Rutas) manejarDespacharCampana(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CampanaGestionar) {
+		return
+	}
+	n, err := rt.despacharCampana.Ejecutar(r.Context(), chi.URLParam(r, "campanaID"), sesion.EmpresaID, sesion.UsuarioID)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, map[string]int{"enviados": n})
+}
+
+func (rt *Rutas) manejarListarCampanas(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CampanaGestionar) {
+		return
+	}
+	lista, err := rt.repoCampana.ListarCampanas(r.Context(), sesion.EmpresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
 }
 
 func (rt *Rutas) manejarListarListaEspera(w http.ResponseWriter, r *http.Request) {

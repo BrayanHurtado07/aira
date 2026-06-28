@@ -74,7 +74,8 @@ func traducirError(err error) (int, string) {
 		errores.ErrConfiguracionNoEncontrada,
 		errores.ErrListaEsperaNoExiste,
 		errores.ErrLiquidacionNoExiste,
-		errores.ErrResenaNoExiste:
+		errores.ErrResenaNoExiste,
+		errores.ErrCampanaNoExiste:
 		return http.StatusNotFound, err.Error()
 
 	// Monetización — 402 Pago requerido (empresa sin suscripción activa)
@@ -95,6 +96,10 @@ func traducirError(err error) (int, string) {
 		errores.ErrEstadoResenaInvalido,
 		errores.ErrTokenGoogleNoActivo,
 		errores.ErrEventoCalendarYaExiste,
+		errores.ErrCampanaNoEnBorrador,
+		errores.ErrCampanaSinDestinatarios,
+		errores.ErrCampanaNoDespachable,
+		errores.ErrPlantillaNoValida,
 		errores.ErrReservaNoConfirmable,
 		errores.ErrReservaYaCerrada,
 		errores.ErrReservaNoCompletable,

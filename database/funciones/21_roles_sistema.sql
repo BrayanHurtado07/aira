@@ -40,7 +40,8 @@ INSERT INTO permiso (id_permiso, codigo, capacidad, descripcion) VALUES
   ('00000001-0000-4000-8000-000000000027', 'BARBERO_SERVICIO_ASIGNAR','agenda',          'Asignar servicios a barberos'),
   ('00000001-0000-4000-8000-000000000028', 'COMISION_GESTIONAR',      'comisiones',      'Gestionar comisiones y liquidaciones'),
   ('00000001-0000-4000-8000-000000000029', 'REPUTACION_GESTIONAR',    'reputacion',      'Moderar reseñas y calificaciones'),
-  ('00000001-0000-4000-8000-000000000030', 'INTEGRACION_GESTIONAR',   'integraciones',   'Gestionar integraciones (Google Calendar)')
+  ('00000001-0000-4000-8000-000000000030', 'INTEGRACION_GESTIONAR',   'integraciones',   'Gestionar integraciones (Google Calendar)'),
+  ('00000001-0000-4000-8000-000000000031', 'CAMPANA_GESTIONAR',       'campanias',       'Gestionar campañas de marketing')
 ON CONFLICT DO NOTHING;
 
 -- SUPERADMIN: todos los permisos

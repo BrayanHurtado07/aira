@@ -102,6 +102,15 @@ var (
 	ErrEventoCalendarYaExiste = errors.New("evento_calendar_ya_existe")
 )
 
+// Campañas
+var (
+	ErrCampanaNoExiste         = errors.New("campana_no_existe")
+	ErrCampanaNoEnBorrador     = errors.New("campana_no_en_borrador")
+	ErrCampanaSinDestinatarios = errors.New("campana_sin_destinatarios")
+	ErrCampanaNoDespachable    = errors.New("campana_no_despachable")
+	ErrPlantillaNoValida       = errors.New("plantilla_no_valida")
+)
+
 // Lealtad
 var (
 	ErrProgramaYaExiste     = errors.New("empresa_ya_tiene_programa_activo")

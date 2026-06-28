@@ -11,6 +11,7 @@ import (
 	contratosAgenda "aira/capacidades/agenda/contratos"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
+	casoCampanias "aira/capacidades/campanias/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
 	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
 	casoReputacion "aira/capacidades/reputacion/casos_uso"
@@ -183,6 +184,12 @@ func main() {
 	cuDesconectarGoogle        := casoIntegraciones.NuevoCasoUsoDesconectarGoogleCalendar(repoIntegracion, aud)
 	cuSincronizarReserva       := casoIntegraciones.NuevoCasoUsoSincronizarReserva(repoIntegracion, sincronizadorCalendar, aud)
 
+	// Campañas
+	repoCampana                := cockroach.NuevoRepositorioCampana(pool)
+	cuCrearCampana             := casoCampanias.NuevoCasoUsoCrearCampana(repoCampana, aud)
+	cuCargarInactivos          := casoCampanias.NuevoCasoUsoCargarInactivos(repoCampana)
+	cuDespacharCampana         := casoCampanias.NuevoCasoUsoDespacharCampana(repoCampana, aud)
+
 	// Plataforma SUPERADMIN
 	cuOnboardearEmpresa        := casoOrg.NuevoCasoUsoOnboardearEmpresa(repoEmpresa, repoUsuario, repoAlcance, publicador, aud)
 	cuListarEmpresasPlataforma := casoOrg.NuevoCasoUsoListarEmpresasPlataforma(repoEmpresa)
@@ -224,6 +231,7 @@ func main() {
 		cuAprobarLiquidacion, cuPagarLiquidacion,
 		cuRegistrarResena, cuActualizarEstadoResena,
 		cuConectarGoogle, cuDesconectarGoogle, cuSincronizarReserva,
+		cuCrearCampana, cuCargarInactivos, cuDespacharCampana,
 		cuOnboardearEmpresa, cuListarEmpresasPlataforma,
 		repoSesion,
 	); err != nil {
