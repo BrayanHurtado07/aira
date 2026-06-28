@@ -16,6 +16,7 @@ DECLARE
     v_id_empresa      UUID;
     v_estado_reserva  STRING;
     v_id_empresa_prod UUID;
+    v_precio_unitario DECIMAL(15,2);
 BEGIN
     SELECT r.estado, r.id_empresa INTO v_estado_reserva, v_id_empresa
     FROM reserva r WHERE r.id_reserva = p_id_reserva;
@@ -32,7 +33,7 @@ BEGIN
         RETURN jsonb_build_object('exito', false, 'error', 'CANTIDAD_DEBE_SER_POSITIVA');
     END IF;
 
-    SELECT id_empresa INTO v_id_empresa_prod
+    SELECT id_empresa, precio_unitario INTO v_id_empresa_prod, v_precio_unitario
     FROM producto WHERE id_producto = p_id_producto AND estado = 'ACTIVO';
 
     IF v_id_empresa_prod IS NULL THEN
@@ -43,8 +44,10 @@ BEGIN
         RETURN jsonb_build_object('exito', false, 'error', 'PRODUCTO_FUERA_DE_EMPRESA');
     END IF;
 
-    INSERT INTO complemento_reserva (id_reserva, id_producto, cantidad)
-    VALUES (p_id_reserva, p_id_producto, p_cantidad)
+    -- Congela el precio del producto al momento de agregarlo (snapshot).
+    -- En conflicto se suma cantidad pero NO se re-precia: el precio acordado queda fijo.
+    INSERT INTO complemento_reserva (id_reserva, id_producto, cantidad, precio_acordado)
+    VALUES (p_id_reserva, p_id_producto, p_cantidad, v_precio_unitario)
     ON CONFLICT (id_reserva, id_producto) DO UPDATE
         SET cantidad = complemento_reserva.cantidad + EXCLUDED.cantidad;
 

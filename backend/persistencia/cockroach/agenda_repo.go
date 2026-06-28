@@ -92,6 +92,39 @@ func (r *RepositorioBarberosCockroach) Guardar(ctx context.Context, b barberos.B
 	return ExtraerCampo(resultado.Datos, "id_barbero"), nil
 }
 
+// BarberoDisponible es un barbero libre para un turno concreto (lectura de agenda).
+type BarberoDisponible struct {
+	ID     string `json:"id"`
+	Nombre string `json:"nombre"`
+}
+
+// BarberosDisponiblesPorSede responde "¿qué barberos están libres en esta sede,
+// a esta fecha/hora, para este servicio?" delegando en la función de dominio
+// barberos_disponibles_por_sede (que respeta disponibilidad, excepciones y solapes).
+func (r *RepositorioBarberosCockroach) BarberosDisponiblesPorSede(
+	ctx context.Context, empresaID, sucursalID, servicioID, fechaHoraInicio string,
+) ([]BarberoDisponible, error) {
+	filas, err := r.pool.Query(ctx,
+		`SELECT id_barbero, nombre
+		 FROM barberos_disponibles_por_sede($1, $2, $3, $4)`,
+		empresaID, sucursalID, servicioID, fechaHoraInicio,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer filas.Close()
+
+	disponibles := []BarberoDisponible{}
+	for filas.Next() {
+		var b BarberoDisponible
+		if err := filas.Scan(&b.ID, &b.Nombre); err != nil {
+			return nil, err
+		}
+		disponibles = append(disponibles, b)
+	}
+	return disponibles, filas.Err()
+}
+
 // ActualizarBarbero actualiza nombre y teléfono de un barbero existente.
 func (r *RepositorioBarberosCockroach) ActualizarBarbero(ctx context.Context, barberoID, nombre, telefono string) error {
 	tel := any(telefono)

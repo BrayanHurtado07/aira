@@ -107,6 +107,25 @@ func (r *RepositorioEmpresaCockroach) ActualizarSlug(ctx context.Context, empres
 	return ExtraerCampo(resultado.Datos, "slug"), nil
 }
 
+func (r *RepositorioEmpresaCockroach) AprovisionarOperacionInicial(
+	ctx context.Context, empresaID, nombreSede, direccion, zonaHoraria, creadoPor string,
+) (string, string, error) {
+	cp := any(creadoPor)
+	if creadoPor == "" {
+		cp = nil
+	}
+	resultado, err := LlamarProc(ctx, r.pool, "empresa_aprovisionar_inicial",
+		empresaID, nombreSede, direccion, zonaHoraria, cp)
+	if err != nil {
+		return "", "", err
+	}
+	if !resultado.Exito {
+		return "", "", fmt.Errorf("%s", resultado.Error)
+	}
+	return ExtraerCampo(resultado.Datos, "id_sucursal"),
+		ExtraerCampo(resultado.Datos, "id_periodo"), nil
+}
+
 func (r *RepositorioEmpresaCockroach) ResolverSlug(ctx context.Context, slug string) (string, error) {
 	resultado, err := LlamarProc(ctx, r.pool, "empresa_resolver_slug", slug)
 	if err != nil {

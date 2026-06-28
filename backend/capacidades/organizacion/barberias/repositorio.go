@@ -19,6 +19,9 @@ type RepositorioEmpresa interface {
 	ObtenerActiva(ctx context.Context, id string) (Empresa, error)
 	Guardar(ctx context.Context, empresa Empresa) (string, error)
 	ActualizarSlug(ctx context.Context, empresaID, slug string) (string, error)
+	// AprovisionarOperacionInicial deja a una empresa recién creada operable:
+	// suscripción ACTIVA + primera sede + primer periodo (atómico). Devuelve sede y periodo.
+	AprovisionarOperacionInicial(ctx context.Context, empresaID, nombreSede, direccion, zonaHoraria, creadoPor string) (sedeID, periodoID string, err error)
 	ResolverSlug(ctx context.Context, slug string) (string, error)
 	ObtenerConfiguracion(ctx context.Context, empresaID string) (ConfiguracionEmpresa, error)
 	GuardarConfiguracion(ctx context.Context, config ConfiguracionEmpresa, actualizadoPor string) error

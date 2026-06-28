@@ -81,6 +81,7 @@ func (s *Servidor) Iniciar(
 	confirmarReserva *casoReservas.CasoUsoConfirmarReserva,
 	cancelarReserva *casoReservas.CasoUsoCancelarReserva,
 	completarReserva *casoReservas.CasoUsoCompletarReserva,
+	marcarNoAsistio *casoReservas.CasoUsoMarcarNoAsistio,
 	// Canal WhatsApp
 	iniciarConversacion *casoCanal.CasoUsoIniciarConversacion,
 	registrarMensaje *casoCanal.CasoUsoRegistrarMensaje,
@@ -105,6 +106,7 @@ func (s *Servidor) Iniciar(
 	// Reservas — complementos y lista de espera
 	agregarComplementoReserva *casoReservas.CasoUsoAgregarComplementoReserva,
 	ingresarListaEspera *casoReservas.CasoUsoIngresarListaEspera,
+	promoverListaEspera *casoReservas.CasoUsoPromoverListaEspera,
 	// Agenda — tarifas
 	crearTarifaEspecial *casoAgenda.CasoUsoCrearTarifaEspecial,
 	// Identidad — refresh
@@ -168,6 +170,7 @@ func (s *Servidor) Iniciar(
 		confirmarReserva:        confirmarReserva,
 		cancelarReserva:         cancelarReserva,
 		completarReserva:        completarReserva,
+		marcarNoAsistio:         marcarNoAsistio,
 		// Canal WhatsApp
 		iniciarConversacion: iniciarConversacion,
 		registrarMensaje:    registrarMensaje,
@@ -192,6 +195,7 @@ func (s *Servidor) Iniciar(
 		// Reservas — complementos y lista de espera
 		agregarComplementoReserva: agregarComplementoReserva,
 		ingresarListaEspera:       ingresarListaEspera,
+		promoverListaEspera:       promoverListaEspera,
 		// Agenda — tarifas
 		crearTarifaEspecial: crearTarifaEspecial,
 		// Identidad — refresh

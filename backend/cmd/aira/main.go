@@ -128,8 +128,10 @@ func main() {
 	cuConfirmarReserva         := casoReservas.NuevoCasoUsoConfirmarReserva(repoReserva, validadorPermiso, publicador, aud)
 	cuCancelarReserva          := casoReservas.NuevoCasoUsoCancelarReserva(repoReserva, gestorDisponibilidad, validadorPermiso, publicador, aud)
 	cuCompletarReserva         := casoReservas.NuevoCasoUsoCompletarReserva(repoReserva, validadorPermiso, publicador, aud)
+	cuMarcarNoAsistio          := casoReservas.NuevoCasoUsoMarcarNoAsistio(repoReserva, validadorPermiso, aud)
 	cuAgregarComplementoReserva := casoReservas.NuevoCasoUsoAgregarComplementoReserva(repoComplementoReserva, publicador, aud)
 	cuIngresarListaEspera      := casoReservas.NuevoCasoUsoIngresarListaEspera(repoListaEspera, publicador, aud)
+	cuPromoverListaEspera      := casoReservas.NuevoCasoUsoPromoverListaEspera(repoListaEspera, aud)
 
 	creadorReserva := contratosReservas.NuevoCreadorReserva(cuRegistrarReserva, cuCancelarReserva)
 
@@ -184,13 +186,13 @@ func main() {
 		cuAsignarServicioBarbero, cuRegistrarExcepcionDisponibilidad,
 		cuRegistrarCliente, cuActualizarCliente, cuActualizarEstadoCliente,
 		cuRegistrarReserva, cuActualizarReserva, cuConfirmarReserva,
-		cuCancelarReserva, cuCompletarReserva,
+		cuCancelarReserva, cuCompletarReserva, cuMarcarNoAsistio,
 		cuIniciarConversacion, cuRegistrarMensaje, cuGestionarSesionChat, cuAtenderChat,
 		cuActivarSuscripcion, cuSuspenderSuscripcion, cuCancelarSuscripcion,
 		cuCrearProgramaLealtad, cuAcumularSello, cuAnularSello, cuAplicarCanje,
 		cuProgramarRecordatorio, cuCancelarRecordatorio, cuCrearPlantilla,
 		cuCrearProducto, cuRegistrarMovimientoInventario,
-		cuAgregarComplementoReserva, cuIngresarListaEspera,
+		cuAgregarComplementoReserva, cuIngresarListaEspera, cuPromoverListaEspera,
 		cuCrearTarifaEspecial, cuRefrescarSesion,
 		cuObtenerMetricasTablero,
 		cuOnboardearEmpresa, cuListarEmpresasPlataforma,

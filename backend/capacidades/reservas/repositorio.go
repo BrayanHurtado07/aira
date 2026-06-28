@@ -20,5 +20,6 @@ type RepositorioReserva interface {
 	Confirmar(ctx context.Context, id, confirmadoPor string) error
 	Cancelar(ctx context.Context, id, canceladoPor string) error
 	Completar(ctx context.Context, id, completadoPor string) error
+	MarcarNoAsistio(ctx context.Context, id, marcadoPor string) error
 	ActualizarReserva(ctx context.Context, reservaID, clienteID, barberoID, servicioID, fechaHoraInicio, origen string) error
 }

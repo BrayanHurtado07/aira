@@ -238,6 +238,28 @@ func (r *RepositorioListaEsperaCockroach) ListarPorEmpresa(
 	return resultado, nil
 }
 
+func (r *RepositorioListaEsperaCockroach) Promover(ctx context.Context, listaEsperaID, marcadoPor string) error {
+	mp := any(marcadoPor)
+	if marcadoPor == "" {
+		mp = nil
+	}
+	resultado, err := LlamarProc(ctx, r.pool, "lista_espera_promover", listaEsperaID, mp)
+	if err != nil {
+		return err
+	}
+	if !resultado.Exito {
+		switch resultado.Error {
+		case "LISTA_ESPERA_NO_EXISTE":
+			return errores.ErrListaEsperaNoExiste
+		case "LISTA_ESPERA_NO_PROMOVIBLE":
+			return errores.ErrListaEsperaNoPromovible
+		default:
+			return fmt.Errorf("%s", resultado.Error)
+		}
+	}
+	return nil
+}
+
 // ── RepositorioComplementoReservaCockroach ────────────────────────────────────
 
 var _ casoReservas.RepositorioComplementoReserva = (*RepositorioComplementoReservaCockroach)(nil)

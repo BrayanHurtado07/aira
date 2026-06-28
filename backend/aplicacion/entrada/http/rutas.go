@@ -71,6 +71,7 @@ type Rutas struct {
 	confirmarReserva       *casoReservas.CasoUsoConfirmarReserva
 	cancelarReserva        *casoReservas.CasoUsoCancelarReserva
 	completarReserva       *casoReservas.CasoUsoCompletarReserva
+	marcarNoAsistio        *casoReservas.CasoUsoMarcarNoAsistio
 
 	// Canal WhatsApp
 	iniciarConversacion *casoCanal.CasoUsoIniciarConversacion
@@ -101,6 +102,7 @@ type Rutas struct {
 	// Reservas — complementos y lista de espera
 	agregarComplementoReserva *casoReservas.CasoUsoAgregarComplementoReserva
 	ingresarListaEspera       *casoReservas.CasoUsoIngresarListaEspera
+	promoverListaEspera       *casoReservas.CasoUsoPromoverListaEspera
 
 	// Agenda — tarifas
 	crearTarifaEspecial *casoAgenda.CasoUsoCrearTarifaEspecial
@@ -190,6 +192,7 @@ func (rt *Rutas) Montar(r chi.Router) {
 	r.Get("/api/publico/empresas/{empresaID}/barberos", rt.manejarBarberosPublico)
 	r.Get("/api/publico/empresas/{empresaID}/sucursales", rt.manejarSucursalesPublico)
 	r.Get("/api/publico/agenda/slots", rt.manejarSlotsPublico)
+	r.Get("/api/publico/disponibilidad/barberos", rt.manejarBarberosDisponiblesPublico)
 	r.Post("/api/publico/reservas", rt.manejarCrearReservaPublica)
 
 	// Autenticadas
@@ -251,6 +254,7 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Post("/api/reservas/{reservaID}/confirmar", rt.manejarConfirmarReserva)
 		r.Post("/api/reservas/{reservaID}/cancelar", rt.manejarCancelarReserva)
 		r.Post("/api/reservas/{reservaID}/completar", rt.manejarCompletarReserva)
+		r.Post("/api/reservas/{reservaID}/no-asistio", rt.manejarMarcarNoAsistio)
 
 		// Canal WhatsApp
 		r.Post("/api/conversaciones", rt.manejarIniciarConversacion)
@@ -290,6 +294,7 @@ func (rt *Rutas) Montar(r chi.Router) {
 
 		// Lista de espera
 		r.Post("/api/lista-espera", rt.manejarIngresarListaEspera)
+		r.Post("/api/lista-espera/{listaEsperaID}/promover", rt.manejarPromoverListaEspera)
 		r.Get("/api/lista-espera", rt.manejarListarListaEspera)
 
 		// Notificaciones
@@ -1333,6 +1338,22 @@ func (rt *Rutas) manejarCompletarReserva(w http.ResponseWriter, r *http.Request)
 	ResponderOK(w, nil)
 }
 
+func (rt *Rutas) manejarMarcarNoAsistio(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ReservaCompletar) {
+		return
+	}
+	if err := rt.marcarNoAsistio.Ejecutar(r.Context(), chi.URLParam(r, "reservaID"), sesion.UsuarioID, sesion.EmpresaID); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, nil)
+}
+
 // ── Canal WhatsApp ────────────────────────────────────────────────────────────
 
 func (rt *Rutas) manejarIniciarConversacion(w http.ResponseWriter, r *http.Request) {
@@ -1925,6 +1946,22 @@ func (rt *Rutas) manejarIngresarListaEspera(w http.ResponseWriter, r *http.Reque
 	ResponderCreado(w, resp)
 }
 
+func (rt *Rutas) manejarPromoverListaEspera(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ReservaActualizar) {
+		return
+	}
+	if err := rt.promoverListaEspera.Ejecutar(r.Context(), chi.URLParam(r, "listaEsperaID"), sesion.UsuarioID, sesion.EmpresaID); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, nil)
+}
+
 func (rt *Rutas) manejarListarListaEspera(w http.ResponseWriter, r *http.Request) {
 	sesion, ok := identidad.SesionDesdeContexto(r.Context())
 	if !ok {
@@ -2001,6 +2038,29 @@ func (rt *Rutas) manejarBarberosPublico(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	lista, err := rt.repoBarberos.ListarActivos(r.Context(), empresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
+}
+
+// manejarBarberosDisponiblesPublico responde "¿qué barberos están libres en esta
+// sede, a esta fecha/hora, para este servicio?" — usado por la wizard de reserva pública.
+func (rt *Rutas) manejarBarberosDisponiblesPublico(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	param := q.Get("empresa_id")
+	if param == "" {
+		ResponderError(w, http.StatusBadRequest, "empresa_requerida")
+		return
+	}
+	empresaID, ok := rt.resolverEmpresaPublica(w, r, param)
+	if !ok {
+		return
+	}
+	lista, err := rt.repoBarberos.BarberosDisponiblesPorSede(
+		r.Context(), empresaID, q.Get("sucursal_id"), q.Get("servicio_id"), q.Get("fecha_hora_inicio"),
+	)
 	if err != nil {
 		ResponderError(w, http.StatusInternalServerError, "error_interno")
 		return

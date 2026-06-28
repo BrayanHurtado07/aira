@@ -107,9 +107,10 @@ CREATE TABLE IF NOT EXISTS reserva_servicio (
 -- complemento_reserva: productos que el cliente pidió agregar a su visita
 -- (ej. agua, cera, tratamiento especial). Genera movimiento de inventario.
 CREATE TABLE IF NOT EXISTS complemento_reserva (
-    id_reserva   UUID          NOT NULL,
-    id_producto  UUID          NOT NULL,
-    cantidad     DECIMAL(10,3) NOT NULL DEFAULT 1,
+    id_reserva      UUID          NOT NULL,
+    id_producto     UUID          NOT NULL,
+    cantidad        DECIMAL(10,3) NOT NULL DEFAULT 1,
+    precio_acordado DECIMAL(15,2) NOT NULL DEFAULT 0,
 
     CONSTRAINT pk_complemento_reserva            PRIMARY KEY (id_reserva, id_producto),
     CONSTRAINT fk_complemento_reserva_reserva    FOREIGN KEY (id_reserva)

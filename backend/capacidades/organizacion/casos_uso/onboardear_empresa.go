@@ -19,7 +19,11 @@ type SolicitudOnboardearEmpresa struct {
 	NombreAdmin   string `json:"nombre_admin"`
 	CorreoAdmin   string `json:"correo_admin"`
 	PasswordAdmin string `json:"password_admin"`
-	CreadoPor     string `json:"-"` // ID del superadmin
+	// Primera sede (opcionales; con valores por defecto operables)
+	NombreSede   string `json:"nombre_sede"`
+	Direccion    string `json:"direccion"`
+	ZonaHoraria  string `json:"zona_horaria"`
+	CreadoPor    string `json:"-"` // ID del superadmin
 }
 
 type RespuestaOnboardearEmpresa struct {
@@ -27,6 +31,8 @@ type RespuestaOnboardearEmpresa struct {
 	Slug        string `json:"slug"`
 	UsuarioID   string `json:"usuario_id"`
 	CorreoAdmin string `json:"correo_admin"`
+	SedeID      string `json:"sede_id"`
+	PeriodoID   string `json:"periodo_id"`
 }
 
 type CasoUsoOnboardearEmpresa struct {
@@ -73,6 +79,25 @@ func (c *CasoUsoOnboardearEmpresa) Ejecutar(
 
 	slug, _ := c.repoEmpresa.ActualizarSlug(ctx, empresaID, generarSlugDesdeNombre(sol.NombreEmpresa))
 
+	// ── 2b. Aprovisionar operación inicial: suscripción + primera sede + periodo ──
+	nombreSede := sol.NombreSede
+	if nombreSede == "" {
+		nombreSede = "Sede Principal"
+	}
+	direccion := sol.Direccion
+	if direccion == "" {
+		direccion = "-"
+	}
+	zonaHoraria := sol.ZonaHoraria
+	if zonaHoraria == "" {
+		zonaHoraria = "America/Lima"
+	}
+	sedeID, periodoID, err := c.repoEmpresa.AprovisionarOperacionInicial(
+		ctx, empresaID, nombreSede, direccion, zonaHoraria, sol.CreadoPor)
+	if err != nil {
+		return RespuestaOnboardearEmpresa{}, err
+	}
+
 	// ── 3. Crear usuario administrador ───────────────────────────────────────
 	hash, err := bcrypt.GenerateFromPassword([]byte(sol.PasswordAdmin), bcrypt.DefaultCost)
 	if err != nil {
@@ -89,7 +114,7 @@ func (c *CasoUsoOnboardearEmpresa) Ejecutar(
 	}
 
 	// ── 4. Asignar rol ADMIN_BARBERIA al nuevo usuario en la empresa ─────────
-	rolID, err := c.repoAlcance.BuscarIDRolPorNombre(ctx, "ADMIN_BARBERIA")
+	rolID, err := c.repoAlcance.BuscarIDRolPorNombre(ctx, "ADMIN")
 	if err != nil || rolID == "" {
 		return RespuestaOnboardearEmpresa{}, errores.ErrOperacionFallida
 	}
@@ -123,5 +148,7 @@ func (c *CasoUsoOnboardearEmpresa) Ejecutar(
 		Slug:        slug,
 		UsuarioID:   usuarioID,
 		CorreoAdmin: sol.CorreoAdmin,
+		SedeID:      sedeID,
+		PeriodoID:   periodoID,
 	}, nil
 }

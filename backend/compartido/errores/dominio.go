@@ -73,6 +73,8 @@ var (
 	ErrClienteYaRegistrado   = errors.New("cliente_ya_registrado")
 	ErrFechaPasada           = errors.New("fecha_debe_ser_futura")
 	ErrSinDisponibilidad     = errors.New("sin_disponibilidad")
+	ErrListaEsperaNoExiste     = errors.New("lista_espera_no_existe")
+	ErrListaEsperaNoPromovible = errors.New("lista_espera_no_promovible")
 )
 
 // Lealtad

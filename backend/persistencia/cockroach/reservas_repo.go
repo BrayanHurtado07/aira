@@ -99,6 +99,17 @@ func (r *RepositorioReservaCockroach) Completar(ctx context.Context, id, complet
 	return nil
 }
 
+func (r *RepositorioReservaCockroach) MarcarNoAsistio(ctx context.Context, id, marcadoPor string) error {
+	resultado, err := LlamarProc(ctx, r.pool, "reserva_marcar_no_asistio", id, marcadoPor)
+	if err != nil {
+		return err
+	}
+	if !resultado.Exito {
+		return mapearErrorReserva(resultado.Error)
+	}
+	return nil
+}
+
 func mapearErrorReserva(codigo string) error {
 	switch codigo {
 	// Estados de reserva
