@@ -160,13 +160,15 @@ func (r *RepositorioSesionChatCockroach) Actualizar(
 
 func (r *RepositorioSesionChatCockroach) ObtenerPorConversacion(ctx context.Context, conversacionID string) (sesion_chat.SesionChat, error) {
 	var sc sesion_chat.SesionChat
+	var contexto []byte
 	err := r.pool.QueryRow(ctx,
-		`SELECT id_sesion_chat, id_conversacion, paso_actual, expira_en
+		`SELECT id_sesion_chat, id_conversacion, paso_actual, contexto_json, expira_en::STRING
 		 FROM sesion_chat WHERE id_conversacion = $1`,
 		conversacionID,
-	).Scan(&sc.ID, &sc.ConversacionID, &sc.PasoActual, &sc.ExpiraEn)
+	).Scan(&sc.ID, &sc.ConversacionID, &sc.PasoActual, &contexto, &sc.ExpiraEn)
 	if err != nil {
 		return sesion_chat.SesionChat{}, errores.ErrConversacionNoExiste
 	}
+	sc.ContextoJSON = contexto
 	return sc, nil
 }

@@ -51,6 +51,9 @@ const (
 	// Campañas
 	CampanaGestionar = "CAMPANA_GESTIONAR"
 
+	// Canal WhatsApp (Aira IA)
+	CanalGestionar = "CANAL_GESTIONAR"
+
 	// Lealtad
 	SelloGestionar         = "SELLO_GESTIONAR"
 	ProgramaLealtadGestionar = "PROGRAMA_LEALTAD_GESTIONAR"

@@ -47,4 +47,24 @@ func (r *RepositorioSesionWhatsAppCockroach) ObtenerConectada(
 	return s, nil
 }
 
+// ResolverEmpresaPorNumeroMeta traduce el phone_number_id que envía Meta en el
+// webhook a la empresa dueña de esa línea de WhatsApp.
+func (r *RepositorioSesionWhatsAppCockroach) ResolverEmpresaPorNumeroMeta(
+	ctx context.Context,
+	idNumeroTelefonoMeta string,
+) (string, error) {
+	var empresaID string
+	err := r.pool.QueryRow(ctx,
+		`SELECT id_empresa
+		 FROM sesion_whatsapp_empresa
+		 WHERE id_numero_telefono_meta = $1 AND estado = 'CONECTADO'
+		 LIMIT 1`,
+		idNumeroTelefonoMeta,
+	).Scan(&empresaID)
+	if err != nil {
+		return "", fmt.Errorf("ninguna empresa conectada para el numero meta %s", idNumeroTelefonoMeta)
+	}
+	return empresaID, nil
+}
+
 var _ sesion_wa.RepositorioSesionWhatsApp = (*RepositorioSesionWhatsAppCockroach)(nil)

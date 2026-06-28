@@ -198,7 +198,16 @@ func main() {
 	if clienteClaude.Disponible() {
 		interpreteAira = aira.NuevoInterpreteClaude(clienteClaude)
 	}
-	cuConversarAira            := casoCanal.NuevoCasoUsoConversarAira(cuIniciarConversacion, cuRegistrarMensaje, cuAtenderChat, interpreteAira)
+	// Flujo de agendamiento conversacional (máquina de estados sede→servicio→fecha→confirmar→reservar).
+	adaptadorAgenda            := &adaptadorAgendaChat{
+		repoSucursal:     repoSucursal,
+		repoServicio:     repoServicio,
+		repoBarbero:      repoBarbero,
+		registrarCliente: cuRegistrarCliente,
+		atenderChat:      cuAtenderChat,
+	}
+	flujoAgendaChat            := casoCanal.NuevoFlujoAgenda(adaptadorAgenda, cuGestionarSesionChat, repoSesionChat)
+	cuConversarAira            := casoCanal.NuevoCasoUsoConversarAira(cuIniciarConversacion, cuRegistrarMensaje, cuAtenderChat, interpreteAira, flujoAgendaChat)
 
 	// Plataforma SUPERADMIN
 	cuOnboardearEmpresa        := casoOrg.NuevoCasoUsoOnboardearEmpresa(repoEmpresa, repoUsuario, repoAlcance, publicador, aud)

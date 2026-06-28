@@ -238,6 +238,7 @@ func (s *Servidor) Iniciar(
 		despacharCampana:       despacharCampana,
 		repoCampana:            repoCockroach.NuevoRepositorioCampana(s.pool),
 		conversarAira:          conversarAira,
+		recibirWebhookWA:       casoCanal.NuevoCasoUsoRecibirWebhookWhatsApp(repoCockroach.NuevoRepositorioSesionWhatsApp(s.pool), conversarAira),
 		// Plataforma SUPERADMIN
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,

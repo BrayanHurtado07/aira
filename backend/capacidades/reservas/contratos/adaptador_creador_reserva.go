@@ -29,7 +29,7 @@ func (a *adaptadorCreadorReserva) RegistrarDesdeChat(
 		BarberoID:       solicitud.BarberoID,
 		ServicioID:      solicitud.ServicioID,
 		FechaHoraInicio: solicitud.FechaHoraInicio,
-		Origen:          "whatsapp",
+		Origen:          "WHATSAPP",
 		CreadoPor:       solicitud.CreadoPor,
 	})
 	if err != nil {

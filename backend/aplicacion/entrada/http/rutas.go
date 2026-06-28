@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 
 	"aira/aplicacion/orquestacion"
@@ -140,7 +141,8 @@ type Rutas struct {
 	repoCampana      *repoCockroach.RepositorioCampanaCockroach
 
 	// Aira IA (cerebro conversacional)
-	conversarAira *casoCanal.CasoUsoConversarAira
+	conversarAira    *casoCanal.CasoUsoConversarAira
+	recibirWebhookWA *casoCanal.CasoUsoRecibirWebhookWhatsApp
 
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
@@ -229,6 +231,8 @@ func (rt *Rutas) Montar(r chi.Router) {
 	r.Post("/api/publico/resenas", rt.manejarRegistrarResenaPublica)
 	r.Get("/api/publico/barberos/{barberoID}/reputacion", rt.manejarReputacionBarberoPublica)
 	r.Post("/api/aira/conversar", rt.manejarConversarAira)
+	r.Get("/api/webhook/whatsapp", rt.manejarVerificacionWebhookWhatsApp)
+	r.Post("/api/webhook/whatsapp", rt.manejarWebhookWhatsApp)
 
 	// Autenticadas
 	r.Group(func(r chi.Router) {
@@ -1418,17 +1422,22 @@ func (rt *Rutas) manejarMarcarNoAsistio(w http.ResponseWriter, r *http.Request) 
 // ── Canal WhatsApp ────────────────────────────────────────────────────────────
 
 func (rt *Rutas) manejarIniciarConversacion(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CanalGestionar) {
+		return
+	}
 	var s casoCanal.SolicitudIniciarConversacion
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
 		return
 	}
-	if sesion, ok := identidad.SesionDesdeContexto(r.Context()); ok {
-		s.CreadoPor = sesion.UsuarioID
-		if s.EmpresaID == "" {
-			s.EmpresaID = sesion.EmpresaID
-		}
-	}
+	// La empresa la fija el contexto operativo, no el cuerpo (evita cruce de inquilinos).
+	s.EmpresaID = sesion.EmpresaID
+	s.CreadoPor = sesion.UsuarioID
 	resp, err := rt.iniciarConversacion.Ejecutar(r.Context(), s)
 	if err != nil {
 		ResponderErrorDominio(w, err)
@@ -1438,6 +1447,14 @@ func (rt *Rutas) manejarIniciarConversacion(w http.ResponseWriter, r *http.Reque
 }
 
 func (rt *Rutas) manejarRegistrarMensaje(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CanalGestionar) {
+		return
+	}
 	var s casoCanal.SolicitudRegistrarMensaje
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
@@ -1452,6 +1469,14 @@ func (rt *Rutas) manejarRegistrarMensaje(w http.ResponseWriter, r *http.Request)
 }
 
 func (rt *Rutas) manejarIniciarSesionChat(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CanalGestionar) {
+		return
+	}
 	var s casoCanal.SolicitudIniciarSesionChat
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
@@ -1466,6 +1491,14 @@ func (rt *Rutas) manejarIniciarSesionChat(w http.ResponseWriter, r *http.Request
 }
 
 func (rt *Rutas) manejarActualizarSesionChat(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CanalGestionar) {
+		return
+	}
 	var s casoCanal.SolicitudActualizarSesionChat
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
@@ -2223,6 +2256,63 @@ func (rt *Rutas) manejarConversarAira(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ResponderOK(w, resp)
+}
+
+// manejarVerificacionWebhookWhatsApp responde el handshake GET que Meta hace al
+// registrar la URL del webhook: devuelve hub.challenge si el verify_token coincide.
+func (rt *Rutas) manejarVerificacionWebhookWhatsApp(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	tokenEsperado := os.Getenv("WHATSAPP_VERIFY_TOKEN")
+	if q.Get("hub.mode") == "subscribe" && tokenEsperado != "" && q.Get("hub.verify_token") == tokenEsperado {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(q.Get("hub.challenge")))
+		return
+	}
+	w.WriteHeader(http.StatusForbidden)
+}
+
+// manejarWebhookWhatsApp recibe los mensajes entrantes de Meta. Desempaqueta el
+// envoltorio de transporte y deja que Aira IA conduzca cada conversación. Siempre
+// responde 200 rápido (Meta reintenta el envío si no recibe 200 a tiempo).
+func (rt *Rutas) manejarWebhookWhatsApp(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Entry []struct {
+			Changes []struct {
+				Value struct {
+					Metadata struct {
+						PhoneNumberID string `json:"phone_number_id"`
+					} `json:"metadata"`
+					Messages []struct {
+						From string `json:"from"`
+						Type string `json:"type"`
+						Text struct {
+							Body string `json:"body"`
+						} `json:"text"`
+					} `json:"messages"`
+				} `json:"value"`
+			} `json:"changes"`
+		} `json:"entry"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		w.WriteHeader(http.StatusOK) // payload corrupto: no pedir reintento a Meta
+		return
+	}
+	for _, entrada := range payload.Entry {
+		for _, cambio := range entrada.Changes {
+			numeroMeta := cambio.Value.Metadata.PhoneNumberID
+			for _, msg := range cambio.Value.Messages {
+				if msg.Type != "text" || msg.Text.Body == "" {
+					continue
+				}
+				_, _ = rt.recibirWebhookWA.Ejecutar(r.Context(), casoCanal.MensajeEntranteWA{
+					NumeroTelefonoMeta: numeroMeta,
+					NumeroCliente:      msg.From,
+					Texto:              msg.Text.Body,
+				})
+			}
+		}
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (rt *Rutas) manejarListarResenas(w http.ResponseWriter, r *http.Request) {

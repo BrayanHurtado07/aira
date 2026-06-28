@@ -30,6 +30,7 @@ type CasoUsoConversarAira struct {
 	registrarMensaje    *CasoUsoRegistrarMensaje
 	atenderChat         *CasoUsoAtenderChat
 	interprete          aira.InterpreteIA
+	flujoAgenda         *FlujoAgenda
 }
 
 func NuevoCasoUsoConversarAira(
@@ -37,12 +38,14 @@ func NuevoCasoUsoConversarAira(
 	registrar *CasoUsoRegistrarMensaje,
 	atender *CasoUsoAtenderChat,
 	interprete aira.InterpreteIA,
+	flujoAgenda *FlujoAgenda,
 ) *CasoUsoConversarAira {
 	return &CasoUsoConversarAira{
 		iniciarConversacion: iniciar,
 		registrarMensaje:    registrar,
 		atenderChat:         atender,
 		interprete:          interprete,
+		flujoAgenda:         flujoAgenda,
 	}
 }
 
@@ -72,8 +75,14 @@ func (c *CasoUsoConversarAira) Ejecutar(ctx context.Context, s SolicitudConversa
 		return RespuestaConversarAira{}, err
 	}
 
-	// 4. Actuar según la intención y construir la respuesta.
-	respuesta := c.responder(ctx, s.EmpresaID, intencion)
+	// 4. Si hay una reserva en curso, o el cliente quiere agendar, lo lleva el
+	//    flujo de agendamiento (máquina de estados). Si no, respuesta simple.
+	var respuesta string
+	if c.flujoAgenda.PasoActivo(ctx, conv.ConversacionID) != "" || intencion.Tipo == aira.IntencionAgendar {
+		respuesta = c.flujoAgenda.Manejar(ctx, conv.ConversacionID, s.EmpresaID, s.NumeroCliente, s.Texto)
+	} else {
+		respuesta = c.responder(ctx, s.EmpresaID, intencion)
+	}
 
 	// 5. Registrar la respuesta saliente.
 	_, _ = c.registrarMensaje.Ejecutar(ctx, SolicitudRegistrarMensaje{
