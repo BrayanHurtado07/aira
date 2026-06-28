@@ -11,6 +11,7 @@ import (
 	contratosAgenda "aira/capacidades/agenda/contratos"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
+	casoComisiones "aira/capacidades/comisiones/casos_uso"
 	"aira/plataforma/correo"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	contratosGobierno "aira/capacidades/gobierno_acceso/contratos"
@@ -158,6 +159,14 @@ func main() {
 
 	cuObtenerMetricasTablero := casoTablero.NuevoCasoUsoObtenerMetricasTablero(repoTablero)
 
+	// Comisiones
+	repoComision               := cockroach.NuevoRepositorioComision(pool)
+	cuCrearEsquemaComision     := casoComisiones.NuevoCasoUsoCrearEsquemaComision(repoComision, aud)
+	cuGenerarComision          := casoComisiones.NuevoCasoUsoGenerarComision(repoComision, aud)
+	cuCalcularLiquidacion      := casoComisiones.NuevoCasoUsoCalcularLiquidacion(repoComision, aud)
+	cuAprobarLiquidacion       := casoComisiones.NuevoCasoUsoAprobarLiquidacion(repoComision, aud)
+	cuPagarLiquidacion         := casoComisiones.NuevoCasoUsoPagarLiquidacion(repoComision, aud)
+
 	// Plataforma SUPERADMIN
 	cuOnboardearEmpresa        := casoOrg.NuevoCasoUsoOnboardearEmpresa(repoEmpresa, repoUsuario, repoAlcance, publicador, aud)
 	cuListarEmpresasPlataforma := casoOrg.NuevoCasoUsoListarEmpresasPlataforma(repoEmpresa)
@@ -195,6 +204,8 @@ func main() {
 		cuAgregarComplementoReserva, cuIngresarListaEspera, cuPromoverListaEspera,
 		cuCrearTarifaEspecial, cuRefrescarSesion,
 		cuObtenerMetricasTablero,
+		cuCrearEsquemaComision, cuGenerarComision, cuCalcularLiquidacion,
+		cuAprobarLiquidacion, cuPagarLiquidacion,
 		cuOnboardearEmpresa, cuListarEmpresasPlataforma,
 		repoSesion,
 	); err != nil {

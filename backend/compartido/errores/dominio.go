@@ -77,6 +77,16 @@ var (
 	ErrListaEsperaNoPromovible = errors.New("lista_espera_no_promovible")
 )
 
+// Comisiones
+var (
+	ErrReservaNoCompletada      = errors.New("reserva_no_completada")
+	ErrComisionYaGenerada       = errors.New("comision_ya_generada")
+	ErrEsquemaComisionNoActivo  = errors.New("esquema_comision_no_activo")
+	ErrLiquidacionNoExiste      = errors.New("liquidacion_no_existe")
+	ErrLiquidacionNoCalculada   = errors.New("liquidacion_no_calculada")
+	ErrLiquidacionNoAprobada    = errors.New("liquidacion_no_aprobada")
+)
+
 // Lealtad
 var (
 	ErrProgramaYaExiste     = errors.New("empresa_ya_tiene_programa_activo")

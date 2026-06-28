@@ -13,6 +13,7 @@ import (
 	"aira/aplicacion/orquestacion"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
+	casoComisiones "aira/capacidades/comisiones/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	casoIdentidad "aira/capacidades/identidad/casos_uso"
 	"aira/capacidades/identidad/sesiones"
@@ -113,6 +114,11 @@ func (s *Servidor) Iniciar(
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion,
 	// Tablero
 	obtenerMetricasTablero *casoTablero.CasoUsoObtenerMetricasTablero,
+	crearEsquemaComision *casoComisiones.CasoUsoCrearEsquemaComision,
+	generarComision *casoComisiones.CasoUsoGenerarComision,
+	calcularLiquidacion *casoComisiones.CasoUsoCalcularLiquidacion,
+	aprobarLiquidacion *casoComisiones.CasoUsoAprobarLiquidacion,
+	pagarLiquidacion *casoComisiones.CasoUsoPagarLiquidacion,
 	// Plataforma SUPERADMIN
 	onboardearEmpresa *casoOrg.CasoUsoOnboardearEmpresa,
 	listarEmpresasPlataforma *casoOrg.CasoUsoListarEmpresasPlataforma,
@@ -202,6 +208,12 @@ func (s *Servidor) Iniciar(
 		refrescarSesion: refrescarSesion,
 		// Tablero
 		obtenerMetricasTablero: obtenerMetricasTablero,
+		crearEsquemaComision:   crearEsquemaComision,
+		generarComision:        generarComision,
+		calcularLiquidacion:    calcularLiquidacion,
+		aprobarLiquidacion:     aprobarLiquidacion,
+		pagarLiquidacion:       pagarLiquidacion,
+		repoComision:           repoCockroach.NuevoRepositorioComision(s.pool),
 		// Plataforma SUPERADMIN
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,

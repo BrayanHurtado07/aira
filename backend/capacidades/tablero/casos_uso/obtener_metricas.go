@@ -21,6 +21,7 @@ type SolicitudObtenerMetricas struct {
 	FechaInicio string
 	FechaFin    string
 	SucursalID  string
+	Rol         string // rol del solicitante: define qué métricas puede ver
 }
 
 func (c *CasoUsoObtenerMetricasTablero) Ejecutar(
@@ -29,12 +30,26 @@ func (c *CasoUsoObtenerMetricasTablero) Ejecutar(
 ) (tablero.MetricasTablero, error) {
 	inicio, fin := resolverPeriodo(s.FechaInicio, s.FechaFin)
 
-	return c.repositorio.ObtenerMetricas(ctx, tablero.SolicitudMetricasTablero{
+	metricas, err := c.repositorio.ObtenerMetricas(ctx, tablero.SolicitudMetricasTablero{
 		EmpresaID:   s.EmpresaID,
 		FechaInicio: inicio,
 		FechaFin:    fin,
 		SucursalID:  s.SucursalID,
 	})
+	if err != nil {
+		return tablero.MetricasTablero{}, err
+	}
+
+	// Política: el BARBERO ve operación, no finanzas. Se redactan los datos
+	// financieros y el desglose por barbero (que expone ingresos de otros).
+	if s.Rol == "BARBERO" {
+		metricas.Ingresos = tablero.ResumenIngresos{}
+		metricas.ComisionesPendientes = 0
+		metricas.Barberos = nil
+		metricas.InventarioAlertas = nil
+	}
+
+	return metricas, nil
 }
 
 // resolverPeriodo devuelve el rango validado o el mes actual si está vacío.

@@ -39,6 +39,9 @@ const (
 	// Monetización
 	SuscripcionGestionar = "SUSCRIPCION_GESTIONAR"
 
+	// Comisiones
+	ComisionGestionar = "COMISION_GESTIONAR"
+
 	// Lealtad
 	SelloGestionar         = "SELLO_GESTIONAR"
 	ProgramaLealtadGestionar = "PROGRAMA_LEALTAD_GESTIONAR"

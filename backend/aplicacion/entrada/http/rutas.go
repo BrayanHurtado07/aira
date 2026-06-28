@@ -8,6 +8,7 @@ import (
 	"aira/aplicacion/orquestacion"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
+	casoComisiones "aira/capacidades/comisiones/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	"aira/capacidades/gobierno_acceso/permisos"
 	casoIdentidad "aira/capacidades/identidad/casos_uso"
@@ -109,6 +110,14 @@ type Rutas struct {
 
 	// Tablero
 	obtenerMetricasTablero *casoTablero.CasoUsoObtenerMetricasTablero
+
+	// Comisiones
+	crearEsquemaComision *casoComisiones.CasoUsoCrearEsquemaComision
+	generarComision      *casoComisiones.CasoUsoGenerarComision
+	calcularLiquidacion  *casoComisiones.CasoUsoCalcularLiquidacion
+	aprobarLiquidacion   *casoComisiones.CasoUsoAprobarLiquidacion
+	pagarLiquidacion     *casoComisiones.CasoUsoPagarLiquidacion
+	repoComision         *repoCockroach.RepositorioComisionCockroach
 
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
@@ -315,6 +324,15 @@ func (rt *Rutas) Montar(r chi.Router) {
 
 		// Tablero
 		r.Get("/api/tablero/metricas", rt.manejarObtenerMetricasTablero)
+
+		// Comisiones
+		r.Post("/api/comisiones/esquemas", rt.manejarCrearEsquemaComision)
+		r.Post("/api/comisiones/generar", rt.manejarGenerarComision)
+		r.Get("/api/comisiones", rt.manejarListarComisiones)
+		r.Post("/api/liquidaciones/calcular", rt.manejarCalcularLiquidacion)
+		r.Post("/api/liquidaciones/{liquidacionID}/aprobar", rt.manejarAprobarLiquidacion)
+		r.Post("/api/liquidaciones/{liquidacionID}/pagar", rt.manejarPagarLiquidacion)
+		r.Get("/api/liquidaciones", rt.manejarListarLiquidaciones)
 	})
 }
 
@@ -1962,6 +1980,147 @@ func (rt *Rutas) manejarPromoverListaEspera(w http.ResponseWriter, r *http.Reque
 	ResponderOK(w, nil)
 }
 
+// ── Comisiones ────────────────────────────────────────────────────────────────
+
+func (rt *Rutas) manejarCrearEsquemaComision(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ComisionGestionar) {
+		return
+	}
+	var s casoComisiones.SolicitudCrearEsquema
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	s.EmpresaID = sesion.EmpresaID
+	s.CreadoPor = sesion.UsuarioID
+	id, err := rt.crearEsquemaComision.Ejecutar(r.Context(), s)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderCreado(w, map[string]string{"id_esquema": id})
+}
+
+func (rt *Rutas) manejarGenerarComision(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ComisionGestionar) {
+		return
+	}
+	var s struct {
+		ReservaID string `json:"reserva_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	id, err := rt.generarComision.Ejecutar(r.Context(), s.ReservaID, sesion.UsuarioID, sesion.EmpresaID)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderCreado(w, map[string]string{"id_comision": id})
+}
+
+func (rt *Rutas) manejarListarComisiones(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ComisionGestionar) {
+		return
+	}
+	q := r.URL.Query()
+	lista, err := rt.repoComision.ListarComisiones(r.Context(), sesion.EmpresaID, q.Get("barbero_id"), q.Get("desde"), q.Get("hasta"))
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
+}
+
+func (rt *Rutas) manejarCalcularLiquidacion(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ComisionGestionar) {
+		return
+	}
+	var s casoComisiones.SolicitudCalcularLiquidacion
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	s.EmpresaID = sesion.EmpresaID
+	s.CalculadoPor = sesion.UsuarioID
+	id, err := rt.calcularLiquidacion.Ejecutar(r.Context(), s)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderCreado(w, map[string]string{"id_liquidacion": id})
+}
+
+func (rt *Rutas) manejarAprobarLiquidacion(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ComisionGestionar) {
+		return
+	}
+	if err := rt.aprobarLiquidacion.Ejecutar(r.Context(), chi.URLParam(r, "liquidacionID"), sesion.UsuarioID, sesion.EmpresaID); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, nil)
+}
+
+func (rt *Rutas) manejarPagarLiquidacion(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ComisionGestionar) {
+		return
+	}
+	if err := rt.pagarLiquidacion.Ejecutar(r.Context(), chi.URLParam(r, "liquidacionID"), sesion.UsuarioID, sesion.EmpresaID); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, nil)
+}
+
+func (rt *Rutas) manejarListarLiquidaciones(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ComisionGestionar) {
+		return
+	}
+	lista, err := rt.repoComision.ListarLiquidaciones(r.Context(), sesion.EmpresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
+}
+
 func (rt *Rutas) manejarListarListaEspera(w http.ResponseWriter, r *http.Request) {
 	sesion, ok := identidad.SesionDesdeContexto(r.Context())
 	if !ok {
@@ -2165,12 +2324,15 @@ func (rt *Rutas) manejarObtenerMetricasTablero(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	nombreRol, _ := rt.repoAlcance.ObtenerNombreRol(r.Context(), sesion.UsuarioID, sesion.EmpresaID)
+
 	q := r.URL.Query()
 	resp, err := rt.obtenerMetricasTablero.Ejecutar(r.Context(), casoTablero.SolicitudObtenerMetricas{
 		EmpresaID:   sesion.EmpresaID,
 		FechaInicio: q.Get("inicio"),
 		FechaFin:    q.Get("fin"),
 		SucursalID:  q.Get("sucursal_id"),
+		Rol:         nombreRol,
 	})
 	if err != nil {
 		ResponderErrorDominio(w, err)
