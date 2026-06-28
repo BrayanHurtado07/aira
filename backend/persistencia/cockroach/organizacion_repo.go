@@ -213,7 +213,18 @@ func (r *RepositorioSucursalCockroach) Guardar(ctx context.Context, sucursal sed
 		return "", err
 	}
 	if !resultado.Exito {
-		return "", fmt.Errorf("%s", resultado.Error)
+		switch resultado.Error {
+		case "EMPRESA_NO_ACTIVA":
+			return "", errores.ErrEmpresaNoActiva
+		case "EMPRESA_NO_EXISTE":
+			return "", errores.ErrEmpresaNoExiste
+		case "EMPRESA_SIN_SUSCRIPCION_ACTIVA":
+			return "", errores.ErrEmpresaSinSuscripcion
+		case "LIMITE_PLAN_EXCEDIDO":
+			return "", errores.ErrLimitePlanExcedido
+		default:
+			return "", fmt.Errorf("%s", resultado.Error)
+		}
 	}
 	return ExtraerCampo(resultado.Datos, "id_sucursal"), nil
 }

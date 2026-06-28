@@ -10,12 +10,13 @@ import (
 
 func NuevaConexion(ctx context.Context) (*pgxpool.Pool, error) {
 	dsn := fmt.Sprintf(
-		"host=%s port=%s dbname=%s user=%s password=%s sslmode=require",
+		"host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
 		env("DB_HOST", "localhost"),
 		env("DB_PORT", "26257"),
 		env("DB_NAME", "aira"),
 		env("DB_USER", "root"),
 		env("DB_PASSWORD", ""),
+		env("DB_SSLMODE", "require"),
 	)
 
 	pool, err := pgxpool.New(ctx, dsn)

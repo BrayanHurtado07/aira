@@ -79,6 +79,11 @@ BEGIN
         RETURN jsonb_build_object('exito', false, 'error', 'EMPRESA_NO_ACTIVA');
     END IF;
 
+    -- Compuerta de monetización: sin suscripción ACTIVA no se puede reservar.
+    IF NOT suscripcion_activa(p_id_empresa) THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'EMPRESA_SIN_SUSCRIPCION_ACTIVA');
+    END IF;
+
     -- Validar sucursal pertenece a empresa y está activa
     IF NOT EXISTS (
         SELECT 1 FROM sucursal

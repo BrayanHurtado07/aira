@@ -445,15 +445,22 @@ func (rt *Rutas) manejarCambiarPassword(w http.ResponseWriter, r *http.Request) 
 // ── Organización ─────────────────────────────────────────────────────────────
 
 func (rt *Rutas) manejarCrearEmpresa(w http.ResponseWriter, r *http.Request) {
-	// Operación de plataforma — no requiere permiso por empresa (aún no existe empresa)
+	// Operación de plataforma — solo SUPERADMIN puede crear empresas (evita escalada de privilegios).
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_requerida")
+		return
+	}
+	if !rt.exigirSuperAdmin(w, r, sesion) {
+		return
+	}
+
 	var s casoOrg.SolicitudCrearEmpresa
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
 		return
 	}
-	if sesion, ok := identidad.SesionDesdeContexto(r.Context()); ok {
-		s.CreadoPor = sesion.UsuarioID
-	}
+	s.CreadoPor = sesion.UsuarioID
 	resp, err := rt.crearEmpresa.Ejecutar(r.Context(), s)
 	if err != nil {
 		ResponderErrorDominio(w, err)
@@ -1453,6 +1460,9 @@ func (rt *Rutas) manejarListarSuscripciones(w http.ResponseWriter, r *http.Reque
 		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
 		return
 	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.SuscripcionGestionar) {
+		return
+	}
 	lista, err := rt.repoSuscripcion.ListarPorEmpresa(r.Context(), sesion.EmpresaID)
 	if err != nil {
 		ResponderError(w, http.StatusInternalServerError, "error_interno")
@@ -1462,6 +1472,14 @@ func (rt *Rutas) manejarListarSuscripciones(w http.ResponseWriter, r *http.Reque
 }
 
 func (rt *Rutas) manejarListarPlanes(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.SuscripcionGestionar) {
+		return
+	}
 	lista, err := rt.repoPlan.ListarActivos(r.Context())
 	if err != nil {
 		ResponderError(w, http.StatusInternalServerError, "error_interno")
@@ -1823,7 +1841,18 @@ func (rt *Rutas) manejarRegistrarMovimientoInventario(w http.ResponseWriter, r *
 }
 
 func (rt *Rutas) manejarListarStockSucursal(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
 	sucursalID := chi.URLParam(r, "sucursalID")
+	// Control técnico: la sucursal debe pertenecer a la empresa de la sesión (evita fuga cross-tenant).
+	sucursal, err := rt.repoSucursales.ObtenerActiva(r.Context(), sucursalID)
+	if err != nil || sucursal.EmpresaID != sesion.EmpresaID {
+		ResponderError(w, http.StatusForbidden, "sucursal_fuera_de_contexto")
+		return
+	}
 	lista, err := rt.repoMovimientoInventario.ListarStockPorSucursal(r.Context(), sucursalID)
 	if err != nil {
 		ResponderError(w, http.StatusInternalServerError, "error_interno")
@@ -1838,6 +1867,9 @@ func (rt *Rutas) manejarAgregarComplementoReserva(w http.ResponseWriter, r *http
 	sesion, ok := identidad.SesionDesdeContexto(r.Context())
 	if !ok {
 		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ReservaActualizar) {
 		return
 	}
 	var s casoReservas.SolicitudAgregarComplementoReserva
@@ -1871,6 +1903,9 @@ func (rt *Rutas) manejarIngresarListaEspera(w http.ResponseWriter, r *http.Reque
 	sesion, ok := identidad.SesionDesdeContexto(r.Context())
 	if !ok {
 		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ReservaActualizar) {
 		return
 	}
 	var s casoReservas.SolicitudIngresarListaEspera
@@ -2015,8 +2050,9 @@ func (rt *Rutas) manejarCrearReservaPublica(w http.ResponseWriter, r *http.Reque
 		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
 		return
 	}
-	if solicitud.EmpresaID == "" || solicitud.BarberoID == "" || solicitud.ServicioID == "" ||
-		solicitud.FechaHoraInicio == "" || solicitud.ClienteNombre == "" || solicitud.ClienteTelefono == "" {
+	if solicitud.EmpresaID == "" || solicitud.SucursalID == "" || solicitud.BarberoID == "" ||
+		solicitud.ServicioID == "" || solicitud.FechaHoraInicio == "" ||
+		solicitud.ClienteNombre == "" || solicitud.ClienteTelefono == "" {
 		ResponderError(w, http.StatusBadRequest, "campos_requeridos")
 		return
 	}
@@ -2034,7 +2070,7 @@ func (rt *Rutas) manejarCrearReservaPublica(w http.ResponseWriter, r *http.Reque
 		Nombre:            solicitud.ClienteNombre,
 		Telefono:          solicitud.ClienteTelefono,
 		CorreoElectronico: solicitud.ClienteCorreo,
-		CreadoPor:         "web_publica",
+		CreadoPor:         "", // reserva pública: sin usuario del sistema (creado_por = NULL)
 	})
 	if err != nil {
 		ResponderErrorDominio(w, err)
@@ -2049,8 +2085,8 @@ func (rt *Rutas) manejarCrearReservaPublica(w http.ResponseWriter, r *http.Reque
 		BarberoID:       solicitud.BarberoID,
 		ServicioID:      solicitud.ServicioID,
 		FechaHoraInicio: solicitud.FechaHoraInicio,
-		Origen:          "web_publica",
-		CreadoPor:       "web_publica",
+		Origen:          "WEB", // CHECK chk_reserva_origen: WHATSAPP|WEB|MANUAL
+		CreadoPor:       "",     // reserva pública: creado_por = NULL (sin usuario del sistema)
 	})
 	if err != nil {
 		ResponderErrorDominio(w, err)

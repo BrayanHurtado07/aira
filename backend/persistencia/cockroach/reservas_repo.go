@@ -115,6 +115,8 @@ func mapearErrorReserva(codigo string) error {
 	// Validaciones del dominio en reserva_crear
 	case "EMPRESA_NO_ACTIVA":
 		return errores.ErrEmpresaNoActiva
+	case "EMPRESA_SIN_SUSCRIPCION_ACTIVA":
+		return errores.ErrEmpresaSinSuscripcion
 	case "SUCURSAL_NO_VALIDA":
 		return errores.ErrSucursalNoActiva
 	case "CLIENTE_NO_VALIDO":

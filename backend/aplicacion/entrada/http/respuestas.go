@@ -74,8 +74,13 @@ func traducirError(err error) (int, string) {
 		errores.ErrConfiguracionNoEncontrada:
 		return http.StatusNotFound, err.Error()
 
+	// Monetización — 402 Pago requerido (empresa sin suscripción activa)
+	case errores.ErrEmpresaSinSuscripcion:
+		return http.StatusPaymentRequired, err.Error()
+
 	// Conflictos de negocio — 409
-	case errores.ErrReservaNoConfirmable,
+	case errores.ErrLimitePlanExcedido,
+		errores.ErrReservaNoConfirmable,
 		errores.ErrReservaYaCerrada,
 		errores.ErrReservaNoCompletable,
 		errores.ErrCorreoYaRegistrado,

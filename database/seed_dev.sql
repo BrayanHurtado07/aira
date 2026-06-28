@@ -104,3 +104,19 @@ ON CONFLICT DO NOTHING;
 INSERT INTO configuracion_empresa (id_empresa, requiere_confirmacion_manual)
 VALUES ('b24091f6-de99-452e-8201-24322da78052', false)
 ON CONFLICT (id_empresa) DO NOTHING;
+
+-- 14. FIX rol_permiso: 21_roles_sistema.sql corre ANTES que este seed, así que SUPERADMIN y
+-- BARBERO no alcanzaban a ver los permisos base (1-12, aún inexistentes). Aquí ya existen los 27,
+-- por lo que re-asignamos de forma idempotente. (ADMIN ya se asigna correctamente en el paso 7.)
+INSERT INTO rol_permiso (id_rol, id_permiso)
+SELECT '00000001-0001-4001-8001-000000000001', id_permiso FROM permiso
+ON CONFLICT DO NOTHING;
+
+INSERT INTO rol_permiso (id_rol, id_permiso)
+SELECT '00000001-0001-4001-8001-000000000002', id_permiso
+FROM permiso
+WHERE codigo IN (
+  'RESERVA_CONFIRMAR', 'RESERVA_CANCELAR', 'RESERVA_COMPLETAR',
+  'DISPONIBILIDAD_CREAR', 'EXCEPCION_DISPONIBILIDAD_REGISTRAR'
+)
+ON CONFLICT DO NOTHING;

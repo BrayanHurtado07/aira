@@ -59,6 +59,18 @@ BEGIN
         RETURN jsonb_build_object('exito', false, 'error', 'EMPRESA_NO_ACTIVA');
     END IF;
 
+    -- Compuerta de monetización: requiere suscripción ACTIVA.
+    IF NOT suscripcion_activa(p_id_empresa) THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'EMPRESA_SIN_SUSCRIPCION_ACTIVA');
+    END IF;
+
+    -- Compuerta de plan: no superar el tope de sucursales del plan (NULL = sin tope).
+    IF limite_plan(p_id_empresa, 'MAX_SUCURSALES') IS NOT NULL
+       AND (SELECT count(*) FROM sucursal WHERE id_empresa = p_id_empresa AND estado = 'ACTIVO')
+           >= limite_plan(p_id_empresa, 'MAX_SUCURSALES') THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'LIMITE_PLAN_EXCEDIDO');
+    END IF;
+
     INSERT INTO sucursal (id_empresa, nombre, direccion, zona_horaria, telefono, estado, creado_por)
     VALUES (p_id_empresa, p_nombre, p_direccion, p_zona_horaria, p_telefono, 'ACTIVO', p_creado_por)
     RETURNING id_sucursal INTO v_id_sucursal;

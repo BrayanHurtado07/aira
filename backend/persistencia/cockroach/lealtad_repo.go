@@ -132,12 +132,15 @@ func (r *RepositorioSelloCockroach) ListarTarjetas(ctx context.Context, empresaI
 	filas, err := r.pool.Query(ctx,
 		`SELECT tl.id_tarjeta, tl.id_cliente,
 		        COALESCE(c.nombre, ''), COALESCE(c.telefono, ''),
-		        COALESCE(tl.sellos_activos, 0),
-		        COALESCE(tl.total_canjes, 0)
+		        (SELECT count(*) FROM sello s
+		           WHERE s.id_tarjeta_lealtad = tl.id_tarjeta AND s.estado = 'VALIDO'),
+		        (SELECT count(*) FROM canje_recompensa cr
+		           WHERE cr.id_tarjeta_lealtad = tl.id_tarjeta AND cr.estado = 'APLICADO')
 		 FROM tarjeta_lealtad tl
+		 JOIN programa_lealtad pl ON pl.id_programa = tl.id_programa
 		 LEFT JOIN cliente c ON c.id_cliente = tl.id_cliente
-		 WHERE tl.id_empresa = $1
-		 ORDER BY tl.sellos_activos DESC`,
+		 WHERE pl.id_empresa = $1
+		 ORDER BY 5 DESC`,
 		empresaID,
 	)
 	if err != nil {
@@ -169,8 +172,10 @@ func (r *RepositorioSelloCockroach) ObtenerTarjetaPorCliente(ctx context.Context
 	err := r.pool.QueryRow(ctx,
 		`SELECT tl.id_tarjeta, tl.id_cliente,
 		        COALESCE(c.nombre, ''), COALESCE(c.telefono, ''),
-		        COALESCE(tl.sellos_activos, 0),
-		        COALESCE(tl.total_canjes, 0)
+		        (SELECT count(*) FROM sello s
+		           WHERE s.id_tarjeta_lealtad = tl.id_tarjeta AND s.estado = 'VALIDO'),
+		        (SELECT count(*) FROM canje_recompensa cr
+		           WHERE cr.id_tarjeta_lealtad = tl.id_tarjeta AND cr.estado = 'APLICADO')
 		 FROM tarjeta_lealtad tl
 		 LEFT JOIN cliente c ON c.id_cliente = tl.id_cliente
 		 WHERE tl.id_cliente = $1
@@ -186,10 +191,11 @@ func (r *RepositorioSelloCockroach) ObtenerTarjetaPorCliente(ctx context.Context
 // ListarSellosActivos devuelve los sellos activos de un cliente, más reciente primero.
 func (r *RepositorioSelloCockroach) ListarSellosActivos(ctx context.Context, clienteID string) ([]SelloResumen, error) {
 	filas, err := r.pool.Query(ctx,
-		`SELECT id_sello, id_cliente, COALESCE(id_reserva, ''), creado_en::text
-		 FROM sello
-		 WHERE id_cliente = $1 AND estado = 'ACTIVO'
-		 ORDER BY creado_en DESC`,
+		`SELECT s.id_sello, tl.id_cliente, s.id_reserva::text, s.acumulado_en::text
+		 FROM sello s
+		 JOIN tarjeta_lealtad tl ON tl.id_tarjeta = s.id_tarjeta_lealtad
+		 WHERE tl.id_cliente = $1 AND s.estado = 'VALIDO'
+		 ORDER BY s.acumulado_en DESC`,
 		clienteID,
 	)
 	if err != nil {

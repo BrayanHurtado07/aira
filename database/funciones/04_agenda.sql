@@ -25,6 +25,18 @@ BEGIN
         RETURN jsonb_build_object('exito', false, 'error', 'EMPRESA_NO_ACTIVA');
     END IF;
 
+    -- Compuerta de monetización: requiere suscripción ACTIVA.
+    IF NOT suscripcion_activa(p_id_empresa) THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'EMPRESA_SIN_SUSCRIPCION_ACTIVA');
+    END IF;
+
+    -- Compuerta de plan: no superar el tope de barberos del plan (NULL = sin tope).
+    IF limite_plan(p_id_empresa, 'MAX_BARBEROS') IS NOT NULL
+       AND (SELECT count(*) FROM barbero WHERE id_empresa = p_id_empresa AND estado = 'ACTIVO')
+           >= limite_plan(p_id_empresa, 'MAX_BARBEROS') THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'LIMITE_PLAN_EXCEDIDO');
+    END IF;
+
     IF p_id_usuario IS NOT NULL THEN
         IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = p_id_usuario AND estado = 'ACTIVO') THEN
             RETURN jsonb_build_object('exito', false, 'error', 'USUARIO_NO_ACTIVO');
