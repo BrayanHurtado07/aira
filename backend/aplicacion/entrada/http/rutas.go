@@ -139,6 +139,9 @@ type Rutas struct {
 	despacharCampana *casoCampanias.CasoUsoDespacharCampana
 	repoCampana      *repoCockroach.RepositorioCampanaCockroach
 
+	// Aira IA (cerebro conversacional)
+	conversarAira *casoCanal.CasoUsoConversarAira
+
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
 
@@ -225,6 +228,7 @@ func (rt *Rutas) Montar(r chi.Router) {
 	r.Post("/api/publico/reservas", rt.manejarCrearReservaPublica)
 	r.Post("/api/publico/resenas", rt.manejarRegistrarResenaPublica)
 	r.Get("/api/publico/barberos/{barberoID}/reputacion", rt.manejarReputacionBarberoPublica)
+	r.Post("/api/aira/conversar", rt.manejarConversarAira)
 
 	// Autenticadas
 	r.Group(func(r chi.Router) {
@@ -2187,6 +2191,38 @@ func (rt *Rutas) manejarReputacionBarberoPublica(w http.ResponseWriter, r *http.
 		return
 	}
 	ResponderOK(w, rep)
+}
+
+// manejarConversarAira simula un mensaje entrante de WhatsApp para el bot Aira IA.
+// En producción el webhook de Meta invocará el mismo caso de uso.
+func (rt *Rutas) manejarConversarAira(w http.ResponseWriter, r *http.Request) {
+	var s struct {
+		EmpresaID     string `json:"empresa_id"`
+		NumeroCliente string `json:"numero_cliente"`
+		Texto         string `json:"texto"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	if s.EmpresaID == "" || s.NumeroCliente == "" || s.Texto == "" {
+		ResponderError(w, http.StatusBadRequest, "campos_requeridos")
+		return
+	}
+	empresaID, ok := rt.resolverEmpresaPublica(w, r, s.EmpresaID)
+	if !ok {
+		return
+	}
+	resp, err := rt.conversarAira.Ejecutar(r.Context(), casoCanal.SolicitudConversarAira{
+		EmpresaID:     empresaID,
+		NumeroCliente: s.NumeroCliente,
+		Texto:         s.Texto,
+	})
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, resp)
 }
 
 func (rt *Rutas) manejarListarResenas(w http.ResponseWriter, r *http.Request) {

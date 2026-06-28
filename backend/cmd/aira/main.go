@@ -33,8 +33,10 @@ import (
 	casoTablero "aira/capacidades/tablero/casos_uso"
 	"aira/compartido/eventos"
 	"aira/persistencia/cockroach"
+	"aira/capacidades/canal_whatsapp/aira"
 	"aira/plataforma/gobierno/auditoria"
 	"aira/plataforma/google"
+	"aira/plataforma/ia/claude"
 )
 
 func main() {
@@ -190,6 +192,14 @@ func main() {
 	cuCargarInactivos          := casoCampanias.NuevoCasoUsoCargarInactivos(repoCampana)
 	cuDespacharCampana         := casoCampanias.NuevoCasoUsoDespacharCampana(repoCampana, aud)
 
+	// Aira IA — cerebro conversacional (Claude real si hay ANTHROPIC_API_KEY; si no, reglas)
+	clienteClaude              := claude.NuevoClienteClaude()
+	var interpreteAira aira.InterpreteIA = aira.NuevoInterpreteReglas()
+	if clienteClaude.Disponible() {
+		interpreteAira = aira.NuevoInterpreteClaude(clienteClaude)
+	}
+	cuConversarAira            := casoCanal.NuevoCasoUsoConversarAira(cuIniciarConversacion, cuRegistrarMensaje, cuAtenderChat, interpreteAira)
+
 	// Plataforma SUPERADMIN
 	cuOnboardearEmpresa        := casoOrg.NuevoCasoUsoOnboardearEmpresa(repoEmpresa, repoUsuario, repoAlcance, publicador, aud)
 	cuListarEmpresasPlataforma := casoOrg.NuevoCasoUsoListarEmpresasPlataforma(repoEmpresa)
@@ -232,6 +242,7 @@ func main() {
 		cuRegistrarResena, cuActualizarEstadoResena,
 		cuConectarGoogle, cuDesconectarGoogle, cuSincronizarReserva,
 		cuCrearCampana, cuCargarInactivos, cuDespacharCampana,
+		cuConversarAira,
 		cuOnboardearEmpresa, cuListarEmpresasPlataforma,
 		repoSesion,
 	); err != nil {

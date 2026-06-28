@@ -130,6 +130,7 @@ func (s *Servidor) Iniciar(
 	crearCampana *casoCampanias.CasoUsoCrearCampana,
 	cargarInactivos *casoCampanias.CasoUsoCargarInactivos,
 	despacharCampana *casoCampanias.CasoUsoDespacharCampana,
+	conversarAira *casoCanal.CasoUsoConversarAira,
 	// Plataforma SUPERADMIN
 	onboardearEmpresa *casoOrg.CasoUsoOnboardearEmpresa,
 	listarEmpresasPlataforma *casoOrg.CasoUsoListarEmpresasPlataforma,
@@ -236,6 +237,7 @@ func (s *Servidor) Iniciar(
 		cargarInactivos:        cargarInactivos,
 		despacharCampana:       despacharCampana,
 		repoCampana:            repoCockroach.NuevoRepositorioCampana(s.pool),
+		conversarAira:          conversarAira,
 		// Plataforma SUPERADMIN
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,

@@ -54,7 +54,7 @@ func (r *RepositorioConversacionCockroach) Iniciar(ctx context.Context, empresaI
 func (r *RepositorioConversacionCockroach) ObtenerActiva(ctx context.Context, id string) (conversaciones.Conversacion, error) {
 	var c conversaciones.Conversacion
 	err := r.pool.QueryRow(ctx,
-		`SELECT id_conversacion, id_empresa, numero_cliente, estado
+		`SELECT id_conversacion, id_empresa, numero_cliente_wa, estado
 		 FROM conversacion WHERE id_conversacion = $1 AND estado = 'ACTIVA'`,
 		id,
 	).Scan(&c.ID, &c.EmpresaID, &c.NumeroCliente, &c.Estado)
