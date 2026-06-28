@@ -64,6 +64,40 @@ func (r *RepositorioConversacionCockroach) ObtenerActiva(ctx context.Context, id
 	return c, nil
 }
 
+// ConversacionResumen es la vista de lista de la bandeja de WhatsApp (forma JSON
+// que consume el frontend).
+type ConversacionResumen struct {
+	ID            string `json:"id"`
+	EmpresaID     string `json:"empresa_id"`
+	NumeroCliente string `json:"numero_cliente"`
+	Estado        string `json:"estado"`
+	CreadoEn      string `json:"creado_en"`
+}
+
+// ListarPorEmpresa devuelve las conversaciones de una empresa, más recientes primero.
+func (r *RepositorioConversacionCockroach) ListarPorEmpresa(ctx context.Context, empresaID string) ([]ConversacionResumen, error) {
+	filas, err := r.pool.Query(ctx,
+		`SELECT id_conversacion, id_empresa, numero_cliente_wa, estado, creado_en::STRING
+		 FROM conversacion WHERE id_empresa = $1
+		 ORDER BY COALESCE(actualizado_en, creado_en) DESC`,
+		empresaID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer filas.Close()
+
+	lista := []ConversacionResumen{}
+	for filas.Next() {
+		var c ConversacionResumen
+		if err := filas.Scan(&c.ID, &c.EmpresaID, &c.NumeroCliente, &c.Estado, &c.CreadoEn); err != nil {
+			return nil, err
+		}
+		lista = append(lista, c)
+	}
+	return lista, filas.Err()
+}
+
 // EmpresaDeConversacion devuelve la empresa dueña de una conversación. Sirve para
 // validar pertenencia de inquilino antes de operar sobre ella.
 func (r *RepositorioConversacionCockroach) EmpresaDeConversacion(ctx context.Context, conversacionID string) (string, error) {
@@ -107,6 +141,41 @@ func (r *RepositorioMensajeCockroach) Guardar(ctx context.Context, s casos_uso.S
 		return "", fmt.Errorf("%s", resultado.Error)
 	}
 	return ExtraerCampo(resultado.Datos, "id_mensaje"), nil
+}
+
+// MensajeResumen es la vista de lista del hilo de una conversación (forma JSON
+// que consume el frontend).
+type MensajeResumen struct {
+	ID             string `json:"id"`
+	ConversacionID string `json:"conversacion_id"`
+	Contenido      string `json:"contenido"`
+	Tipo           string `json:"tipo"`
+	Direccion      string `json:"direccion"`
+	CreadoEn       string `json:"creado_en"`
+}
+
+// ListarPorConversacion devuelve los mensajes de una conversación en orden cronológico.
+func (r *RepositorioMensajeCockroach) ListarPorConversacion(ctx context.Context, conversacionID string) ([]MensajeResumen, error) {
+	filas, err := r.pool.Query(ctx,
+		`SELECT id_mensaje, id_conversacion, contenido, tipo, direccion, enviado_en::STRING
+		 FROM mensaje WHERE id_conversacion = $1
+		 ORDER BY enviado_en ASC`,
+		conversacionID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer filas.Close()
+
+	lista := []MensajeResumen{}
+	for filas.Next() {
+		var m MensajeResumen
+		if err := filas.Scan(&m.ID, &m.ConversacionID, &m.Contenido, &m.Tipo, &m.Direccion, &m.CreadoEn); err != nil {
+			return nil, err
+		}
+		lista = append(lista, m)
+	}
+	return lista, filas.Err()
 }
 
 // RepositorioSesionChatCockroach

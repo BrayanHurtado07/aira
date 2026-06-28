@@ -12,25 +12,25 @@ import (
 
 	"aira/aplicacion/orquestacion"
 	casoAgenda "aira/capacidades/agenda/casos_uso"
-	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoCampanias "aira/capacidades/campanias/casos_uso"
+	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
-	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
-	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	casoIdentidad "aira/capacidades/identidad/casos_uso"
 	"aira/capacidades/identidad/sesiones"
+	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
 	casoInventario "aira/capacidades/inventario/casos_uso"
 	casoLealtad "aira/capacidades/lealtad/casos_uso"
 	casoMonetizacion "aira/capacidades/monetizacion/casos_uso"
 	casoNotificaciones "aira/capacidades/notificaciones/casos_uso"
 	casoOrg "aira/capacidades/organizacion/casos_uso"
+	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoReservas "aira/capacidades/reservas/casos_uso"
 	casoTablero "aira/capacidades/tablero/casos_uso"
+	repoCockroach "aira/persistencia/cockroach"
 	"aira/plataforma/gobierno/auditoria"
 	pagosPlataforma "aira/plataforma/pagos"
 	"aira/plataforma/whatsapp"
-	repoCockroach "aira/persistencia/cockroach"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -171,13 +171,13 @@ func (s *Servidor) Iniciar(
 		asignarAlcance: asignarAlcance,
 		revocarAlcance: revocarAlcance,
 		// Agenda
-		registrarBarbero:         registrarBarbero,
-		actualizarBarbero:        actualizarBarbero,
-		actualizarEstadoBarbero:  actualizarEstadoBarbero,
-		desasignarServicio:       desasignarServicio,
-		crearServicio:            crearServicio,
-		actualizarServicio:       actualizarServicio,
-		actualizarEstadoServicio: actualizarEstadoServicio,
+		registrarBarbero:                 registrarBarbero,
+		actualizarBarbero:                actualizarBarbero,
+		actualizarEstadoBarbero:          actualizarEstadoBarbero,
+		desasignarServicio:               desasignarServicio,
+		crearServicio:                    crearServicio,
+		actualizarServicio:               actualizarServicio,
+		actualizarEstadoServicio:         actualizarEstadoServicio,
 		registrarDisponibilidad:          registrarDisponibilidad,
 		asignarServicioBarbero:           asignarServicioBarbero,
 		registrarExcepcionDisponibilidad: registrarExcepcionDisponibilidad,
@@ -239,13 +239,14 @@ func (s *Servidor) Iniciar(
 		cargarInactivos:        cargarInactivos,
 		despacharCampana:       despacharCampana,
 		repoCampana:            repoCockroach.NuevoRepositorioCampana(s.pool),
-		conversarAira: conversarAira,
+		conversarAira:          conversarAira,
 		recibirWebhookWA: casoCanal.NuevoCasoUsoRecibirWebhookWhatsApp(
 			repoCockroach.NuevoRepositorioSesionWhatsApp(s.pool),
 			conversarAira,
 			whatsapp.NuevoDespachadorChatMeta(repoCockroach.NuevoRepositorioSesionWhatsApp(s.pool), os.Getenv("WA_CIFRADO_CLAVE")),
 		),
 		repoConversacionWA: repoCockroach.NuevoRepositorioConversacion(s.pool),
+		repoMensajeWA:      repoCockroach.NuevoRepositorioMensaje(s.pool),
 		repoSesionChatWA:   repoCockroach.NuevoRepositorioSesionChat(s.pool),
 		cobrarSuscripcion: casoMonetizacion.NuevoCasoUsoCobrarSuscripcion(
 			repoCockroach.NuevoRepositorioPago(s.pool),
@@ -256,27 +257,27 @@ func (s *Servidor) Iniciar(
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,
 		// Repositorios de listado
-		repoEmpresa:        repoCockroach.NuevoRepositorioEmpresa(s.pool),
-		repoBarberos:       repoCockroach.NuevoRepositorioBarbero(s.pool),
-		repoServicios:      repoCockroach.NuevoRepositorioServicio(s.pool),
-		repoReservas:       repoCockroach.NuevoRepositorioReserva(s.pool),
-		repoClientes:       repoCockroach.NuevoRepositorioCliente(s.pool),
-		repoSucursales:     repoCockroach.NuevoRepositorioSucursal(s.pool),
-		repoPeriodo:        repoCockroach.NuevoRepositorioPeriodo(s.pool),
+		repoEmpresa:                 repoCockroach.NuevoRepositorioEmpresa(s.pool),
+		repoBarberos:                repoCockroach.NuevoRepositorioBarbero(s.pool),
+		repoServicios:               repoCockroach.NuevoRepositorioServicio(s.pool),
+		repoReservas:                repoCockroach.NuevoRepositorioReserva(s.pool),
+		repoClientes:                repoCockroach.NuevoRepositorioCliente(s.pool),
+		repoSucursales:              repoCockroach.NuevoRepositorioSucursal(s.pool),
+		repoPeriodo:                 repoCockroach.NuevoRepositorioPeriodo(s.pool),
 		repoDisponibilidad:          repoCockroach.NuevoRepositorioDisponibilidad(s.pool),
 		repoExcepcionDisponibilidad: repoCockroach.NuevoRepositorioExcepcionDisponibilidad(s.pool),
-		repoTarifas:              repoCockroach.NuevoRepositorioTarifaEspecial(s.pool),
-		repoProductos:            repoCockroach.NuevoRepositorioProducto(s.pool),
-		repoMovimientoInventario: repoCockroach.NuevoRepositorioMovimientoInventario(s.pool),
-		repoListaEspera:          repoCockroach.NuevoRepositorioListaEspera(s.pool),
-		repoComplementoReserva:  repoCockroach.NuevoRepositorioComplementoReserva(s.pool),
-		repoPlantillas:          repoCockroach.NuevoRepositorioPlantilla(s.pool),
-		repoSello:          repoCockroach.NuevoRepositorioSello(s.pool),
-		repoRecordatorio:   repoCockroach.NuevoRepositorioRecordatorio(s.pool),
-		repoAlcance:        repoAlcanceSrv,
-		repoSuscripcion:    repoCockroach.NuevoRepositorioSuscripcion(s.pool),
-		repoPlan:           repoCockroach.NuevoRepositorioPlan(s.pool),
-		repoIdentidad:      repoCockroach.NuevoRepositorioUsuario(s.pool),
+		repoTarifas:                 repoCockroach.NuevoRepositorioTarifaEspecial(s.pool),
+		repoProductos:               repoCockroach.NuevoRepositorioProducto(s.pool),
+		repoMovimientoInventario:    repoCockroach.NuevoRepositorioMovimientoInventario(s.pool),
+		repoListaEspera:             repoCockroach.NuevoRepositorioListaEspera(s.pool),
+		repoComplementoReserva:      repoCockroach.NuevoRepositorioComplementoReserva(s.pool),
+		repoPlantillas:              repoCockroach.NuevoRepositorioPlantilla(s.pool),
+		repoSello:                   repoCockroach.NuevoRepositorioSello(s.pool),
+		repoRecordatorio:            repoCockroach.NuevoRepositorioRecordatorio(s.pool),
+		repoAlcance:                 repoAlcanceSrv,
+		repoSuscripcion:             repoCockroach.NuevoRepositorioSuscripcion(s.pool),
+		repoPlan:                    repoCockroach.NuevoRepositorioPlan(s.pool),
+		repoIdentidad:               repoCockroach.NuevoRepositorioUsuario(s.pool),
 		// Seguridad
 		guardia:    guardia,
 		middleware: mw,

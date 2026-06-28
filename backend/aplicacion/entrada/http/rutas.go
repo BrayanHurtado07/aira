@@ -145,6 +145,7 @@ type Rutas struct {
 	conversarAira      *casoCanal.CasoUsoConversarAira
 	recibirWebhookWA   *casoCanal.CasoUsoRecibirWebhookWhatsApp
 	repoConversacionWA *repoCockroach.RepositorioConversacionCockroach
+	repoMensajeWA      *repoCockroach.RepositorioMensajeCockroach
 	repoSesionChatWA   *repoCockroach.RepositorioSesionChatCockroach
 
 	// Identidad — refresh
@@ -299,7 +300,9 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Post("/api/reservas/{reservaID}/no-asistio", rt.manejarMarcarNoAsistio)
 
 		// Canal WhatsApp
+		r.Get("/api/conversaciones", rt.manejarListarConversaciones)
 		r.Post("/api/conversaciones", rt.manejarIniciarConversacion)
+		r.Get("/api/mensajes", rt.manejarListarMensajes)
 		r.Post("/api/mensajes", rt.manejarRegistrarMensaje)
 		r.Post("/api/sesiones-chat", rt.manejarIniciarSesionChat)
 		r.Patch("/api/sesiones-chat/{sesionChatID}", rt.manejarActualizarSesionChat)
@@ -2290,6 +2293,50 @@ func (rt *Rutas) manejarConversarAira(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ResponderOK(w, resp)
+}
+
+// manejarListarConversaciones devuelve la bandeja de WhatsApp de la empresa.
+func (rt *Rutas) manejarListarConversaciones(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CanalGestionar) {
+		return
+	}
+	lista, err := rt.repoConversacionWA.ListarPorEmpresa(r.Context(), sesion.EmpresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
+}
+
+// manejarListarMensajes devuelve el hilo de una conversación (con control de inquilino).
+func (rt *Rutas) manejarListarMensajes(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.CanalGestionar) {
+		return
+	}
+	conversacionID := r.URL.Query().Get("conversacion_id")
+	if conversacionID == "" {
+		ResponderError(w, http.StatusBadRequest, "conversacion_id_requerido")
+		return
+	}
+	if !rt.exigirConversacionDelTenant(w, r, conversacionID, sesion.EmpresaID) {
+		return
+	}
+	lista, err := rt.repoMensajeWA.ListarPorConversacion(r.Context(), conversacionID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
 }
 
 // exigirConversacionDelTenant verifica que la conversación pertenezca a la empresa
