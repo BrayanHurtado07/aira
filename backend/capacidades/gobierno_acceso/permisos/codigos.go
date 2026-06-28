@@ -42,6 +42,9 @@ const (
 	// Comisiones
 	ComisionGestionar = "COMISION_GESTIONAR"
 
+	// Reputación
+	ReputacionGestionar = "REPUTACION_GESTIONAR"
+
 	// Lealtad
 	SelloGestionar         = "SELLO_GESTIONAR"
 	ProgramaLealtadGestionar = "PROGRAMA_LEALTAD_GESTIONAR"

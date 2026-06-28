@@ -14,6 +14,7 @@ import (
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
+	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	casoIdentidad "aira/capacidades/identidad/casos_uso"
 	"aira/capacidades/identidad/sesiones"
@@ -119,6 +120,8 @@ func (s *Servidor) Iniciar(
 	calcularLiquidacion *casoComisiones.CasoUsoCalcularLiquidacion,
 	aprobarLiquidacion *casoComisiones.CasoUsoAprobarLiquidacion,
 	pagarLiquidacion *casoComisiones.CasoUsoPagarLiquidacion,
+	registrarResena *casoReputacion.CasoUsoRegistrarResena,
+	actualizarEstadoResena *casoReputacion.CasoUsoActualizarEstadoResena,
 	// Plataforma SUPERADMIN
 	onboardearEmpresa *casoOrg.CasoUsoOnboardearEmpresa,
 	listarEmpresasPlataforma *casoOrg.CasoUsoListarEmpresasPlataforma,
@@ -214,6 +217,9 @@ func (s *Servidor) Iniciar(
 		aprobarLiquidacion:     aprobarLiquidacion,
 		pagarLiquidacion:       pagarLiquidacion,
 		repoComision:           repoCockroach.NuevoRepositorioComision(s.pool),
+		registrarResena:        registrarResena,
+		actualizarEstadoResena: actualizarEstadoResena,
+		repoReputacion:         repoCockroach.NuevoRepositorioReputacion(s.pool),
 		// Plataforma SUPERADMIN
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,

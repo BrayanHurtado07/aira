@@ -87,6 +87,15 @@ var (
 	ErrLiquidacionNoAprobada    = errors.New("liquidacion_no_aprobada")
 )
 
+// Reputación
+var (
+	ErrResenaNoExiste         = errors.New("resena_no_existe")
+	ErrResenaYaExiste         = errors.New("resena_ya_existe")
+	ErrPuntajeFueraDeRango    = errors.New("puntaje_fuera_de_rango")
+	ErrCalificacionYaRegistrada = errors.New("calificacion_ya_registrada")
+	ErrEstadoResenaInvalido   = errors.New("estado_resena_invalido")
+)
+
 // Lealtad
 var (
 	ErrProgramaYaExiste     = errors.New("empresa_ya_tiene_programa_activo")

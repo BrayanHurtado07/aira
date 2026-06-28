@@ -73,7 +73,8 @@ func traducirError(err error) (int, string) {
 		errores.ErrConversacionNoExiste,
 		errores.ErrConfiguracionNoEncontrada,
 		errores.ErrListaEsperaNoExiste,
-		errores.ErrLiquidacionNoExiste:
+		errores.ErrLiquidacionNoExiste,
+		errores.ErrResenaNoExiste:
 		return http.StatusNotFound, err.Error()
 
 	// Monetización — 402 Pago requerido (empresa sin suscripción activa)
@@ -88,6 +89,10 @@ func traducirError(err error) (int, string) {
 		errores.ErrEsquemaComisionNoActivo,
 		errores.ErrLiquidacionNoCalculada,
 		errores.ErrLiquidacionNoAprobada,
+		errores.ErrResenaYaExiste,
+		errores.ErrPuntajeFueraDeRango,
+		errores.ErrCalificacionYaRegistrada,
+		errores.ErrEstadoResenaInvalido,
 		errores.ErrReservaNoConfirmable,
 		errores.ErrReservaYaCerrada,
 		errores.ErrReservaNoCompletable,

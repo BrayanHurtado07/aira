@@ -9,6 +9,7 @@ import (
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
+	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	"aira/capacidades/gobierno_acceso/permisos"
 	casoIdentidad "aira/capacidades/identidad/casos_uso"
@@ -119,6 +120,11 @@ type Rutas struct {
 	pagarLiquidacion     *casoComisiones.CasoUsoPagarLiquidacion
 	repoComision         *repoCockroach.RepositorioComisionCockroach
 
+	// Reputación
+	registrarResena         *casoReputacion.CasoUsoRegistrarResena
+	actualizarEstadoResena  *casoReputacion.CasoUsoActualizarEstadoResena
+	repoReputacion          *repoCockroach.RepositorioReputacionCockroach
+
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
 
@@ -203,6 +209,8 @@ func (rt *Rutas) Montar(r chi.Router) {
 	r.Get("/api/publico/agenda/slots", rt.manejarSlotsPublico)
 	r.Get("/api/publico/disponibilidad/barberos", rt.manejarBarberosDisponiblesPublico)
 	r.Post("/api/publico/reservas", rt.manejarCrearReservaPublica)
+	r.Post("/api/publico/resenas", rt.manejarRegistrarResenaPublica)
+	r.Get("/api/publico/barberos/{barberoID}/reputacion", rt.manejarReputacionBarberoPublica)
 
 	// Autenticadas
 	r.Group(func(r chi.Router) {
@@ -333,6 +341,11 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Post("/api/liquidaciones/{liquidacionID}/aprobar", rt.manejarAprobarLiquidacion)
 		r.Post("/api/liquidaciones/{liquidacionID}/pagar", rt.manejarPagarLiquidacion)
 		r.Get("/api/liquidaciones", rt.manejarListarLiquidaciones)
+
+		// Reputación (moderación)
+		r.Get("/api/resenas", rt.manejarListarResenas)
+		r.Post("/api/resenas/{resenaID}/publicar", rt.manejarPublicarResena)
+		r.Post("/api/resenas/{resenaID}/moderar", rt.manejarModerarResena)
 	})
 }
 
@@ -2119,6 +2132,76 @@ func (rt *Rutas) manejarListarLiquidaciones(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	ResponderOK(w, lista)
+}
+
+// ── Reputación ────────────────────────────────────────────────────────────────
+
+func (rt *Rutas) manejarRegistrarResenaPublica(w http.ResponseWriter, r *http.Request) {
+	var s casoReputacion.SolicitudRegistrarResena
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	if s.ReservaID == "" {
+		ResponderError(w, http.StatusBadRequest, "campos_requeridos")
+		return
+	}
+	id, err := rt.registrarResena.Ejecutar(r.Context(), s)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderCreado(w, map[string]string{"id_resena": id})
+}
+
+func (rt *Rutas) manejarReputacionBarberoPublica(w http.ResponseWriter, r *http.Request) {
+	rep, err := rt.repoReputacion.PromedioBarbero(r.Context(), chi.URLParam(r, "barberoID"))
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, rep)
+}
+
+func (rt *Rutas) manejarListarResenas(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ReputacionGestionar) {
+		return
+	}
+	lista, err := rt.repoReputacion.ListarResenas(r.Context(), sesion.EmpresaID, r.URL.Query().Get("estado"))
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, lista)
+}
+
+func (rt *Rutas) manejarPublicarResena(w http.ResponseWriter, r *http.Request) {
+	rt.cambiarEstadoResena(w, r, "PUBLICADA")
+}
+
+func (rt *Rutas) manejarModerarResena(w http.ResponseWriter, r *http.Request) {
+	rt.cambiarEstadoResena(w, r, "MODERADA")
+}
+
+func (rt *Rutas) cambiarEstadoResena(w http.ResponseWriter, r *http.Request, estado string) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.ReputacionGestionar) {
+		return
+	}
+	if err := rt.actualizarEstadoResena.Ejecutar(r.Context(), chi.URLParam(r, "resenaID"), estado, sesion.UsuarioID, sesion.EmpresaID); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, nil)
 }
 
 func (rt *Rutas) manejarListarListaEspera(w http.ResponseWriter, r *http.Request) {

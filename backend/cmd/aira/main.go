@@ -12,6 +12,7 @@ import (
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
+	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	"aira/plataforma/correo"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	contratosGobierno "aira/capacidades/gobierno_acceso/contratos"
@@ -167,6 +168,11 @@ func main() {
 	cuAprobarLiquidacion       := casoComisiones.NuevoCasoUsoAprobarLiquidacion(repoComision, aud)
 	cuPagarLiquidacion         := casoComisiones.NuevoCasoUsoPagarLiquidacion(repoComision, aud)
 
+	// Reputación
+	repoReputacion             := cockroach.NuevoRepositorioReputacion(pool)
+	cuRegistrarResena          := casoReputacion.NuevoCasoUsoRegistrarResena(repoReputacion)
+	cuActualizarEstadoResena   := casoReputacion.NuevoCasoUsoActualizarEstadoResena(repoReputacion, aud)
+
 	// Plataforma SUPERADMIN
 	cuOnboardearEmpresa        := casoOrg.NuevoCasoUsoOnboardearEmpresa(repoEmpresa, repoUsuario, repoAlcance, publicador, aud)
 	cuListarEmpresasPlataforma := casoOrg.NuevoCasoUsoListarEmpresasPlataforma(repoEmpresa)
@@ -206,6 +212,7 @@ func main() {
 		cuObtenerMetricasTablero,
 		cuCrearEsquemaComision, cuGenerarComision, cuCalcularLiquidacion,
 		cuAprobarLiquidacion, cuPagarLiquidacion,
+		cuRegistrarResena, cuActualizarEstadoResena,
 		cuOnboardearEmpresa, cuListarEmpresasPlataforma,
 		repoSesion,
 	); err != nil {
