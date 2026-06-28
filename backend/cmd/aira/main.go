@@ -12,6 +12,7 @@ import (
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
+	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
 	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	"aira/plataforma/correo"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
@@ -32,6 +33,7 @@ import (
 	"aira/compartido/eventos"
 	"aira/persistencia/cockroach"
 	"aira/plataforma/gobierno/auditoria"
+	"aira/plataforma/google"
 )
 
 func main() {
@@ -173,6 +175,14 @@ func main() {
 	cuRegistrarResena          := casoReputacion.NuevoCasoUsoRegistrarResena(repoReputacion)
 	cuActualizarEstadoResena   := casoReputacion.NuevoCasoUsoActualizarEstadoResena(repoReputacion, aud)
 
+	// Integraciones (Google Calendar) — sincronizador real si hay credenciales; en dev, log.
+	repoIntegracion            := cockroach.NuevoRepositorioIntegracion(pool)
+	sincronizadorCalendar      := google.NuevoSincronizadorLog()
+	claveCifrado               := os.Getenv("WA_CIFRADO_CLAVE")
+	cuConectarGoogle           := casoIntegraciones.NuevoCasoUsoConectarGoogleCalendar(repoIntegracion, claveCifrado, aud)
+	cuDesconectarGoogle        := casoIntegraciones.NuevoCasoUsoDesconectarGoogleCalendar(repoIntegracion, aud)
+	cuSincronizarReserva       := casoIntegraciones.NuevoCasoUsoSincronizarReserva(repoIntegracion, sincronizadorCalendar, aud)
+
 	// Plataforma SUPERADMIN
 	cuOnboardearEmpresa        := casoOrg.NuevoCasoUsoOnboardearEmpresa(repoEmpresa, repoUsuario, repoAlcance, publicador, aud)
 	cuListarEmpresasPlataforma := casoOrg.NuevoCasoUsoListarEmpresasPlataforma(repoEmpresa)
@@ -213,6 +223,7 @@ func main() {
 		cuCrearEsquemaComision, cuGenerarComision, cuCalcularLiquidacion,
 		cuAprobarLiquidacion, cuPagarLiquidacion,
 		cuRegistrarResena, cuActualizarEstadoResena,
+		cuConectarGoogle, cuDesconectarGoogle, cuSincronizarReserva,
 		cuOnboardearEmpresa, cuListarEmpresasPlataforma,
 		repoSesion,
 	); err != nil {

@@ -93,6 +93,8 @@ func traducirError(err error) (int, string) {
 		errores.ErrPuntajeFueraDeRango,
 		errores.ErrCalificacionYaRegistrada,
 		errores.ErrEstadoResenaInvalido,
+		errores.ErrTokenGoogleNoActivo,
+		errores.ErrEventoCalendarYaExiste,
 		errores.ErrReservaNoConfirmable,
 		errores.ErrReservaYaCerrada,
 		errores.ErrReservaNoCompletable,

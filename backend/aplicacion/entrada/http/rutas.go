@@ -9,6 +9,7 @@ import (
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
+	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
 	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	"aira/capacidades/gobierno_acceso/permisos"
@@ -124,6 +125,12 @@ type Rutas struct {
 	registrarResena         *casoReputacion.CasoUsoRegistrarResena
 	actualizarEstadoResena  *casoReputacion.CasoUsoActualizarEstadoResena
 	repoReputacion          *repoCockroach.RepositorioReputacionCockroach
+
+	// Integraciones (Google Calendar)
+	conectarGoogle      *casoIntegraciones.CasoUsoConectarGoogleCalendar
+	desconectarGoogle   *casoIntegraciones.CasoUsoDesconectarGoogleCalendar
+	sincronizarReserva  *casoIntegraciones.CasoUsoSincronizarReserva
+	repoIntegracion     *repoCockroach.RepositorioIntegracionCockroach
 
 	// Identidad — refresh
 	refrescarSesion *casoIdentidad.CasoUsoRefrescarSesion
@@ -346,6 +353,12 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Get("/api/resenas", rt.manejarListarResenas)
 		r.Post("/api/resenas/{resenaID}/publicar", rt.manejarPublicarResena)
 		r.Post("/api/resenas/{resenaID}/moderar", rt.manejarModerarResena)
+
+		// Integraciones (Google Calendar)
+		r.Post("/api/integraciones/google/conectar", rt.manejarConectarGoogle)
+		r.Get("/api/integraciones/google/estado", rt.manejarEstadoGoogle)
+		r.Post("/api/integraciones/google/desconectar", rt.manejarDesconectarGoogle)
+		r.Post("/api/reservas/{reservaID}/sincronizar-calendar", rt.manejarSincronizarReservaCalendar)
 	})
 }
 
@@ -2202,6 +2215,81 @@ func (rt *Rutas) cambiarEstadoResena(w http.ResponseWriter, r *http.Request, est
 		return
 	}
 	ResponderOK(w, nil)
+}
+
+// ── Integraciones (Google Calendar) ──────────────────────────────────────────
+
+func (rt *Rutas) manejarConectarGoogle(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.IntegracionGestionar) {
+		return
+	}
+	var s casoIntegraciones.SolicitudConectarGoogle
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		ResponderError(w, http.StatusBadRequest, "solicitud_invalida")
+		return
+	}
+	s.EmpresaID = sesion.EmpresaID
+	s.ConectadoPor = sesion.UsuarioID
+	if err := rt.conectarGoogle.Ejecutar(r.Context(), s); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, nil)
+}
+
+func (rt *Rutas) manejarEstadoGoogle(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.IntegracionGestionar) {
+		return
+	}
+	estado, err := rt.repoIntegracion.ObtenerEstadoGoogle(r.Context(), sesion.EmpresaID)
+	if err != nil {
+		ResponderError(w, http.StatusInternalServerError, "error_interno")
+		return
+	}
+	ResponderOK(w, estado)
+}
+
+func (rt *Rutas) manejarDesconectarGoogle(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.IntegracionGestionar) {
+		return
+	}
+	if err := rt.desconectarGoogle.Ejecutar(r.Context(), sesion.EmpresaID, sesion.UsuarioID); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, nil)
+}
+
+func (rt *Rutas) manejarSincronizarReservaCalendar(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.IntegracionGestionar) {
+		return
+	}
+	id, err := rt.sincronizarReserva.Ejecutar(r.Context(), chi.URLParam(r, "reservaID"), sesion.EmpresaID, sesion.UsuarioID)
+	if err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderCreado(w, map[string]string{"id_evento_calendar": id})
 }
 
 func (rt *Rutas) manejarListarListaEspera(w http.ResponseWriter, r *http.Request) {

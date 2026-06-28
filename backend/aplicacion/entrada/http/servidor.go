@@ -14,6 +14,7 @@ import (
 	casoAgenda "aira/capacidades/agenda/casos_uso"
 	casoCanal "aira/capacidades/canal_whatsapp/casos_uso"
 	casoComisiones "aira/capacidades/comisiones/casos_uso"
+	casoIntegraciones "aira/capacidades/integraciones/casos_uso"
 	casoReputacion "aira/capacidades/reputacion/casos_uso"
 	casoGobierno "aira/capacidades/gobierno_acceso/casos_uso"
 	casoIdentidad "aira/capacidades/identidad/casos_uso"
@@ -122,6 +123,9 @@ func (s *Servidor) Iniciar(
 	pagarLiquidacion *casoComisiones.CasoUsoPagarLiquidacion,
 	registrarResena *casoReputacion.CasoUsoRegistrarResena,
 	actualizarEstadoResena *casoReputacion.CasoUsoActualizarEstadoResena,
+	conectarGoogle *casoIntegraciones.CasoUsoConectarGoogleCalendar,
+	desconectarGoogle *casoIntegraciones.CasoUsoDesconectarGoogleCalendar,
+	sincronizarReserva *casoIntegraciones.CasoUsoSincronizarReserva,
 	// Plataforma SUPERADMIN
 	onboardearEmpresa *casoOrg.CasoUsoOnboardearEmpresa,
 	listarEmpresasPlataforma *casoOrg.CasoUsoListarEmpresasPlataforma,
@@ -220,6 +224,10 @@ func (s *Servidor) Iniciar(
 		registrarResena:        registrarResena,
 		actualizarEstadoResena: actualizarEstadoResena,
 		repoReputacion:         repoCockroach.NuevoRepositorioReputacion(s.pool),
+		conectarGoogle:         conectarGoogle,
+		desconectarGoogle:      desconectarGoogle,
+		sincronizarReserva:     sincronizarReserva,
+		repoIntegracion:        repoCockroach.NuevoRepositorioIntegracion(s.pool),
 		// Plataforma SUPERADMIN
 		onboardearEmpresa:        onboardearEmpresa,
 		listarEmpresasPlataforma: listarEmpresasPlataforma,

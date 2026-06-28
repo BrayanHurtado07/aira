@@ -45,6 +45,9 @@ const (
 	// Reputación
 	ReputacionGestionar = "REPUTACION_GESTIONAR"
 
+	// Integraciones
+	IntegracionGestionar = "INTEGRACION_GESTIONAR"
+
 	// Lealtad
 	SelloGestionar         = "SELLO_GESTIONAR"
 	ProgramaLealtadGestionar = "PROGRAMA_LEALTAD_GESTIONAR"

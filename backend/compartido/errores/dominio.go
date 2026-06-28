@@ -96,6 +96,12 @@ var (
 	ErrEstadoResenaInvalido   = errors.New("estado_resena_invalido")
 )
 
+// Integraciones
+var (
+	ErrTokenGoogleNoActivo    = errors.New("token_google_calendar_no_activo")
+	ErrEventoCalendarYaExiste = errors.New("evento_calendar_ya_existe")
+)
+
 // Lealtad
 var (
 	ErrProgramaYaExiste     = errors.New("empresa_ya_tiene_programa_activo")
