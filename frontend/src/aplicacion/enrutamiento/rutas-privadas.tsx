@@ -15,6 +15,9 @@ import { rutasCanalWhatsApp } from '@/capacidades/canal-whatsapp/rutas';
 import { rutasMonetizacion } from '@/capacidades/monetizacion/rutas';
 import { rutasLealtad } from '@/capacidades/lealtad/rutas';
 import { rutasNotificaciones } from '@/capacidades/notificaciones/rutas';
+import { rutasReputacion } from '@/capacidades/reputacion/rutas';
+import { rutasComisiones } from '@/capacidades/comisiones/rutas';
+import { rutasCampanias } from '@/capacidades/campanias/rutas';
 
 const PaginaInventario = lazy(() =>
   import('@/capacidades/inventario/paginas/PaginaInventario').then((m) => ({ default: m.PaginaInventario })),
@@ -76,6 +79,11 @@ export const rutasPrivadas: RouteObject[] = [
 
       // Lealtad: admin + cliente
       ...rutasLealtad,
+
+      // Reputación, comisiones, campañas: solo admin (el backend enforcea permisos)
+      ...rutasReputacion,
+      ...rutasComisiones,
+      ...rutasCampanias,
 
       // Inventario: solo admin
       {

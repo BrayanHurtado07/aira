@@ -172,7 +172,7 @@ export function PaginaPeriodos() {
             placeholder="Ej: Mayo 2026"
             className="campo-input"
           />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
             <Campo
               etiqueta="Fecha de inicio"
               requerido

@@ -23,6 +23,7 @@
   --color-advertencia:    #D97706;
   --color-error:          #DC2626;
   --color-info:           #2563EB;
+  --color-whatsapp:       #22C55E;  /* verde de marca WhatsApp (canal) */
 
   /* Semánticos — fondos suaves (badges) */
   --color-exito-suave:       #ECFDF5;
@@ -30,6 +31,15 @@
   --color-error-suave:       #FEF2F2;
   --color-info-suave:        #EFF6FF;
   --color-neutral-suave:     #F7FAFC;
+
+  /* Insignias de estado — fondos/bordes translúcidos (adaptan a claro/oscuro) */
+  --insignia-exito-bg:       rgba(5, 150, 105, 0.10);
+  --insignia-exito-borde:    rgba(5, 150, 105, 0.22);
+  --insignia-error-bg:       rgba(239, 68, 68, 0.10);
+  --insignia-error-borde:    rgba(239, 68, 68, 0.22);
+  --insignia-neutral-bg:     rgba(107, 114, 128, 0.10);
+  --insignia-neutral-borde:  rgba(107, 114, 128, 0.22);
+  --insignia-advertencia-bg: rgba(217, 119, 6, 0.10);
 
   /* Barbería interior */
   --color-acento-suave:   rgba(204, 28, 46, 0.08);
@@ -120,6 +130,15 @@
   --landing-borde-oscuro: rgba(248, 245, 240, 0.10);
   --landing-max-ancho:    1200px;
   --landing-seccion:      8rem;
+
+  /* Texto y semánticos sobre superficies oscuras (login, landing) */
+  --landing-blanco-70: rgba(248, 245, 240, 0.70);
+  --landing-blanco-45: rgba(248, 245, 240, 0.45);
+  --landing-blanco-30: rgba(248, 245, 240, 0.30);
+  --landing-blanco-18: rgba(248, 245, 240, 0.18);
+  --error-sobre-oscuro:       #EF4444;
+  --error-sobre-oscuro-suave: rgba(239, 68, 68, 0.10);
+  --error-sobre-oscuro-borde: rgba(239, 68, 68, 0.22);
 }
 
 /* ===== MODO OSCURO — Serbio Barbería Dark ===== */

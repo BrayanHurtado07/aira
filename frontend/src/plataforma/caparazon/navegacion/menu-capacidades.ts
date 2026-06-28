@@ -3,7 +3,7 @@ import {
   LayoutDashboard, CalendarCheck, Users, ListOrdered,
   Scissors, Wrench, Tag, MessageCircle, Bell, FileText,
   Award, Package, Building2, Shield, CreditCard, CalendarDays,
-  UserCog,
+  UserCog, Star, DollarSign, Send,
 } from 'lucide-react';
 import type { Rol } from '@/plataforma/identidad/roles';
 import { ROL } from '@/plataforma/identidad/roles';
@@ -71,11 +71,17 @@ export const MENU_CAPACIDADES: ItemMenu[] = [
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
   { etiqueta: 'Plantillas',     ruta: '/plantillas',             Icono: FileText,        grupo: 'comunicacion',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
+  { etiqueta: 'Campañas',       ruta: '/campanias',              Icono: Send,            grupo: 'comunicacion',
+    rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
 
   // ── Negocio ────────────────────────────────────────────────────────────────
   { etiqueta: 'Lealtad',        ruta: '/lealtad',                Icono: Award,           grupo: 'negocio',     dataTour: 'nav-lealtad',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA, ROL.CLIENTE] },
   { etiqueta: 'Inventario',     ruta: '/inventario',             Icono: Package,         grupo: 'negocio',
+    rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
+  { etiqueta: 'Comisiones',     ruta: '/comisiones',             Icono: DollarSign,      grupo: 'negocio',
+    rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
+  { etiqueta: 'Reputación',     ruta: '/reputacion',             Icono: Star,            grupo: 'negocio',
     rolesPermitidos: [ROL.SUPERADMIN, ROL.ADMIN_BARBERIA] },
 
   // ── Sistema ────────────────────────────────────────────────────────────────

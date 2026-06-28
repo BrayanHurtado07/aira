@@ -151,7 +151,7 @@ function PanelTarifasSucursal({
             onSubmit={manejarEnviar}
             style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)', marginBottom: 'var(--espacio-lg)' }}
           >
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
               {/* Servicio */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                 <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>

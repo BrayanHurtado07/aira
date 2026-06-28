@@ -3,10 +3,35 @@ import { ErrorHTTP, ErrorNoAutorizado, ErrorSinConexion } from './errores';
 
 const BASE_URL = '/api';
 
+// intentarRefrescar usa el refresh token guardado para renovar el acceso. Devuelve
+// true si renovó la sesión (entonces la solicitud original se reintenta una vez).
+async function intentarRefrescar(): Promise<boolean> {
+  const sesion = usarAlmacenSesion.getState().sesion;
+  if (!sesion?.refreshToken) return false;
+  try {
+    const resp = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: sesion.refreshToken }),
+    });
+    if (!resp.ok) return false;
+    const cuerpo = await resp.json().catch(() => ({}));
+    const datos = cuerpo?.datos ?? cuerpo;
+    if (!datos?.token) return false;
+    usarAlmacenSesion
+      .getState()
+      .actualizarToken(datos.token, datos.refresh_token ?? sesion.refreshToken, datos.sesion_id ?? sesion.sesionId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function ejecutarSolicitud<T>(
   metodo: string,
   ruta: string,
   cuerpo?: unknown,
+  reintentar = true,
 ): Promise<T> {
   const sesion = usarAlmacenSesion.getState().sesion;
 
@@ -29,6 +54,10 @@ async function ejecutarSolicitud<T>(
   }
 
   if (respuesta.status === 401) {
+    // Token vencido: intenta renovar una sola vez y reintenta la solicitud.
+    if (reintentar && (await intentarRefrescar())) {
+      return ejecutarSolicitud<T>(metodo, ruta, cuerpo, false);
+    }
     usarAlmacenSesion.getState().limpiarSesion();
     throw new ErrorNoAutorizado();
   }

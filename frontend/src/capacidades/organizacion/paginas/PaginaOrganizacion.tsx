@@ -285,7 +285,7 @@ function PestanaPeriodos() {
             placeholder="Ej: Mayo 2026"
             className="campo-input"
           />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
             <div className="campo-grupo">
               <label className="campo-etiqueta">
                 Fecha de inicio <span className="campo-requerido">*</span>

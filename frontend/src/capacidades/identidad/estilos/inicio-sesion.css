@@ -1,0 +1,238 @@
+/* ===== Página de inicio de sesión — Aira ===== */
+/* Pantalla siempre oscura (marca). Usa tokens --landing-* (independientes del tema). */
+
+.login {
+  min-height: 100vh;
+  display: flex;
+  background-color: var(--landing-negro);
+  color: var(--landing-blanco);
+}
+
+/* ── Panel izquierdo: marca (solo desktop) ── */
+.login__marca {
+  flex: 0 0 44%;
+  background-color: var(--landing-negro-2);
+  border-right: 1px solid var(--landing-borde-oscuro);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--espacio-2xl) 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.login__glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.login__glow--rojo {
+  top: -10%; left: -10%; width: 65%; height: 65%;
+  background: radial-gradient(circle, rgba(204, 28, 46, 0.09) 0%, transparent 70%);
+}
+.login__glow--azul {
+  bottom: -5%; right: -5%; width: 45%; height: 45%;
+  background: radial-gradient(circle, rgba(27, 58, 140, 0.07) 0%, transparent 70%);
+}
+
+.login__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2.75rem;
+  position: relative;
+}
+.login__logo-icono {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radio-lg);
+  background: var(--landing-rojo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.login__logo-texto {
+  font-size: var(--tamano-xl);
+  font-weight: 900;
+  color: var(--landing-blanco);
+  letter-spacing: -0.03em;
+  font-family: var(--fuente-display);
+}
+.login__logo-texto span { color: var(--landing-rojo); }
+
+.login__titulo {
+  font-size: var(--tamano-3xl);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--espacio-md);
+  font-family: var(--fuente-display);
+  position: relative;
+}
+.login__titulo span { color: var(--landing-rojo); }
+
+.login__tricolor {
+  display: flex;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.login__tricolor span { flex: 1; }
+.login__tricolor span:nth-child(1) { background: var(--landing-rojo); }
+.login__tricolor span:nth-child(2) { background: var(--landing-azul); }
+.login__tricolor span:nth-child(3) { background: var(--landing-blanco); }
+.login__tricolor--marca {
+  width: 3.5rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.login__sub {
+  font-size: var(--tamano-sm);
+  color: var(--landing-blanco-45);
+  line-height: 1.65;
+  margin-bottom: var(--espacio-xl);
+  position: relative;
+}
+
+.login__ventajas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+}
+.login__ventaja {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.login__ventaja-check {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radio-sm);
+  background-color: var(--color-acento-suave);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--landing-rojo);
+}
+.login__ventaja span {
+  font-size: var(--tamano-sm);
+  color: var(--landing-blanco-70);
+}
+
+.login__pie {
+  margin-top: auto;
+  padding-top: var(--espacio-2xl);
+  font-size: var(--tamano-xs);
+  color: var(--landing-blanco-18);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  position: relative;
+}
+
+/* ── Panel derecho: formulario ── */
+.login__panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espacio-xl);
+}
+.login__form { width: 100%; max-width: 420px; }
+
+.login__logo-movil { display: none; }
+
+.login__bienvenida {
+  font-size: var(--tamano-xl);
+  font-weight: 700;
+  color: var(--landing-blanco);
+  margin-bottom: 0.375rem;
+  font-family: var(--fuente-display);
+  letter-spacing: -0.02em;
+}
+.login__bienvenida-sub {
+  font-size: var(--tamano-sm);
+  color: var(--landing-blanco-45);
+  margin-bottom: var(--espacio-xl);
+}
+
+.login__card {
+  background-color: var(--landing-negro-2);
+  border-radius: var(--radio-xl);
+  border: 1px solid var(--landing-borde-oscuro);
+  overflow: hidden;
+  box-shadow: var(--sombra-xl);
+}
+.login__card-cuerpo { padding: var(--espacio-xl); }
+
+.login__campos {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.login__error {
+  font-size: var(--tamano-sm);
+  color: var(--error-sobre-oscuro);
+  background-color: var(--error-sobre-oscuro-suave);
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radio-md);
+  margin: 0;
+  border: 1px solid var(--error-sobre-oscuro-borde);
+}
+
+.login__boton {
+  width: 100%;
+  padding: 0.875rem;
+  background-color: var(--landing-rojo);
+  color: #fff;
+  border: none;
+  border-radius: var(--radio-lg);
+  font-size: var(--tamano-sm);
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  font-family: var(--fuente-acento);
+  transition: background-color var(--transicion);
+}
+.login__boton:hover:not(:disabled) { background-color: var(--landing-rojo-hover); }
+.login__boton:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.login__olvido {
+  background: none;
+  border: none;
+  color: var(--landing-blanco-30);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-align: center;
+  padding-top: 0.25rem;
+  transition: color var(--transicion);
+}
+.login__olvido:hover { color: var(--landing-blanco-70); }
+
+.login__pie-form {
+  margin-top: 1.25rem;
+  font-size: var(--tamano-xs);
+  color: var(--landing-blanco-18);
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Responsividad: en móvil se oculta el panel de marca y se muestra el logo compacto ── */
+@media (max-width: 860px) {
+  .login__marca { display: none; }
+  .login__logo-movil {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: var(--espacio-lg);
+  }
+}
+@media (max-width: 480px) {
+  .login__panel { padding: var(--espacio-md); }
+  .login__card-cuerpo { padding: var(--espacio-lg); }
+}

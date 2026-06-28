@@ -211,7 +211,7 @@ func (r *RepositorioPlantillaCockroach) ListarPorEmpresa(
 	empresaID string,
 ) ([]plantillas.PlantillaMensaje, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id_plantilla_mensaje, id_empresa, nombre, canal,
+		`SELECT id_plantilla, id_empresa, nombre, canal,
 		        contenido_plantilla, estado
 		 FROM plantilla_mensaje
 		 WHERE id_empresa = $1 AND estado != 'ELIMINADO'

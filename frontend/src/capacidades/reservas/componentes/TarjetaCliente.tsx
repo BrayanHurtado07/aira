@@ -36,7 +36,7 @@ export function TarjetaCliente({ cliente }: PropsTarjetaCliente) {
             width: '2.5rem',
             height: '2.5rem',
             borderRadius: '50%',
-            backgroundColor: 'rgba(5,150,105,0.1)',
+            backgroundColor: 'var(--insignia-exito-bg)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

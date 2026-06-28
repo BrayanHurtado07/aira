@@ -32,17 +32,19 @@ export function Campo({ etiqueta, error, ayuda, requerido, id, children, style, 
         <input
           {...props}
           id={idCampo}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${idCampo}-error` : ayuda ? `${idCampo}-ayuda` : undefined}
           className={['campo-input', error ? 'campo-input--error' : '', className].filter(Boolean).join(' ')}
         />
       )}
 
       {error && (
-        <span className="campo-error-inline">
+        <span id={`${idCampo}-error`} className="campo-error-inline" role="alert">
           {error}
         </span>
       )}
       {ayuda && !error && (
-        <span style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-texto-suave)' }}>
+        <span id={`${idCampo}-ayuda`} style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-texto-suave)' }}>
           {ayuda}
         </span>
       )}

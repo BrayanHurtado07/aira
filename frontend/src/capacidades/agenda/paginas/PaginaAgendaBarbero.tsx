@@ -144,7 +144,7 @@ function PanelExcepciones({ barberoId, barberoNombre }: { barberoId: string; bar
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)' }}>
       <SeccionTarjeta titulo={`Bloquear día a ${barberoNombre}`} icono={<Ban size={14} />} maxAncho={520}>
         <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
                 Fecha <span style={{ color: 'var(--color-error)' }}>*</span>
@@ -347,7 +347,7 @@ export function PaginaAgendaBarbero() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
               <Campo
                 etiqueta="Hora de inicio"
                 type="time"

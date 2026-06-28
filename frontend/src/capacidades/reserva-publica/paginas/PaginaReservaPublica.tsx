@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { CheckCircle, Scissors } from 'lucide-react'
 
@@ -33,6 +33,7 @@ export function PaginaReservaPublica() {
   const [barberos, setBarberos] = useState<Barbero[]>([])
   const [_sucursales, setSucursales] = useState<Sucursal[]>([])
   const [cargando, setCargando] = useState(true)
+  const [errorCarga, setErrorCarga] = useState(false)
 
   const [seleccion, setSeleccion] = useState<SeleccionReserva>({
     empresaID: empresaID ?? '',
@@ -45,9 +46,10 @@ export function PaginaReservaPublica() {
 
   const [cliente, setCliente] = useState<DatosCliente>({ nombre: '', telefono: '', correo: '' })
 
-  useEffect(() => {
+  const cargarDatos = useCallback(() => {
     if (!empresaID) return
     setCargando(true)
+    setErrorCarga(false)
     Promise.all([
       obtenerServiciosPublicos(empresaID),
       obtenerBarberosPublicos(empresaID),
@@ -61,15 +63,35 @@ export function PaginaReservaPublica() {
           setSeleccion((s) => ({ ...s, sucursalID: sedes[0].id }))
         }
       })
-      .catch(console.error)
+      .catch(() => setErrorCarga(true))
       .finally(() => setCargando(false))
   }, [empresaID])
+
+  useEffect(() => {
+    cargarDatos()
+  }, [cargarDatos])
 
   if (!empresaID) {
     return (
       <div className="reserva-publica">
         <div className="reserva-publica__contenido" style={{ textAlign: 'center', paddingTop: '4rem' }}>
           <p style={{ color: 'var(--color-error)' }}>Enlace de reserva inválido.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (errorCarga) {
+    return (
+      <div className="reserva-publica">
+        <Cabecera />
+        <div className="reserva-publica__contenido" style={{ textAlign: 'center', paddingTop: '4rem' }}>
+          <p style={{ color: 'var(--color-error)', marginBottom: 'var(--espacio-md)' }}>
+            No pudimos cargar la información de la barbería. Revisa tu conexión e inténtalo de nuevo.
+          </p>
+          <button type="button" className="reserva-btn reserva-btn--primario" onClick={cargarDatos}>
+            Reintentar
+          </button>
         </div>
       </div>
     )

@@ -60,6 +60,7 @@ export function Boton({
     <motion.button
       {...(props as React.ComponentProps<typeof motion.button>)}
       disabled={estaDeshabilitado}
+      aria-busy={cargando || undefined}
       onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
       className={`btn-aira${className ? ` ${className}` : ''}`}
       style={{

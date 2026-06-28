@@ -181,7 +181,7 @@ function PanelOrigen({ datos, cargando }: { datos: MetricasTablero['origen_reser
   const total = datos ? datos.whatsapp + datos.web + datos.manual : 0;
   const filas = datos
     ? [
-        { etiqueta: 'WhatsApp', valor: datos.whatsapp, color: '#22C55E' },
+        { etiqueta: 'WhatsApp', valor: datos.whatsapp, color: 'var(--color-whatsapp)' },
         { etiqueta: 'Web',      valor: datos.web,       color: 'var(--color-info)' },
         { etiqueta: 'Manual',   valor: datos.manual,    color: 'var(--color-advertencia)' },
       ]
@@ -361,7 +361,7 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
                         <span
                           className="tablero-barbero-avatar"
                           style={{
-                            background: idx === 0 ? 'rgba(204,28,46,0.12)' : 'var(--color-acento-suave)',
+                            background: idx === 0 ? 'var(--color-primario-suave)' : 'var(--color-acento-suave)',
                             color: idx === 0 ? 'var(--color-primario)' : 'var(--color-texto-suave)',
                           }}
                         >
@@ -416,7 +416,7 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                           padding: '0.15rem 0.5rem', borderRadius: '99px',
-                          background: 'rgba(204,28,46,0.08)', color: 'var(--color-primario)',
+                          background: 'var(--color-primario-suave)', color: 'var(--color-primario)',
                           fontWeight: 600, fontSize: '0.75rem',
                         }}>
                           {formatearMoneda(b.comision_pendiente)}
@@ -452,7 +452,7 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
                   <td style={{ paddingTop: '0.75rem' }} />
                   <td style={{ textAlign: 'right', paddingTop: '0.75rem' }}>
                     {ordenados.some((b) => b.comision_pendiente > 0) ? (
-                      <span style={{ padding: '0.15rem 0.5rem', borderRadius: '99px', background: 'rgba(204,28,46,0.08)', color: 'var(--color-primario)', fontWeight: 700, fontSize: '0.75rem' }}>
+                      <span style={{ padding: '0.15rem 0.5rem', borderRadius: '99px', background: 'var(--color-primario-suave)', color: 'var(--color-primario)', fontWeight: 700, fontSize: '0.75rem' }}>
                         {formatearMoneda(ordenados.reduce((s, b) => s + b.comision_pendiente, 0))}
                       </span>
                     ) : '—'}

@@ -20,20 +20,20 @@ type SelloResumen struct {
 }
 
 type TarjetaResumen struct {
-	TarjetaID     string
-	ClienteID     string
-	NombreCliente string
-	Telefono      string
-	SellosActivos int
-	TotalCanjes   int
+	TarjetaID     string `json:"tarjeta_id"`
+	ClienteID     string `json:"cliente_id"`
+	NombreCliente string `json:"nombre_cliente"`
+	Telefono      string `json:"telefono"`
+	SellosActivos int    `json:"sellos_activos"`
+	TotalCanjes   int    `json:"total_canjes"`
 }
 
 type ProgramaInfo struct {
-	ID                    string
-	Nombre                string
-	SellosParaRecompensa  int
-	DescripcionRecompensa string
-	Estado                string
+	ID                    string `json:"id"`
+	Nombre                string `json:"nombre"`
+	SellosParaRecompensa  int    `json:"sellos_para_recompensa"`
+	DescripcionRecompensa string `json:"descripcion_recompensa"`
+	Estado                string `json:"estado"`
 }
 
 // ── Repositorio ────────────────────────────────────────────────────────────────

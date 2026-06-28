@@ -123,7 +123,7 @@ function ModalNuevoProducto({ abierto, alCerrar }: { abierto: boolean; alCerrar:
       }
     >
       <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
           <Campo
             etiqueta="Nombre"
             requerido
@@ -210,7 +210,7 @@ function PanelProductos() {
       clave: 'precio_unitario',
       etiqueta: 'Precio unitario',
       render: (p: Producto) => (
-        <span style={{ fontWeight: 500 }}>S/ {p.precio_unitario.toFixed(2)}</span>
+        <span style={{ fontWeight: 500 }}>S/ {(p.precio_unitario ?? 0).toFixed(2)}</span>
       ),
     },
     {
@@ -395,7 +395,7 @@ function PanelMovimiento() {
       maxAncho={600}
     >
       <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
           {/* Producto */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
             <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>

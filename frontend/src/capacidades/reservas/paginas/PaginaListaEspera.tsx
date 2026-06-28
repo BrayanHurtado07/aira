@@ -278,7 +278,7 @@ export function PaginaListaEspera() {
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
               padding: '0.25rem 0.75rem', borderRadius: '99px',
-              backgroundColor: 'rgba(217,119,6,0.08)',
+              backgroundColor: 'var(--insignia-advertencia-bg)',
               fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-advertencia)',
             }}>
               <Users size={12} />

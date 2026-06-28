@@ -282,7 +282,7 @@ function PestanaActivar() {
         </div>
 
         {/* Fechas con SelectorFecha */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--espacio-md)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
           <div className="campo-grupo">
             <label className="campo-etiqueta">
               Inicio <span className="campo-requerido">*</span>

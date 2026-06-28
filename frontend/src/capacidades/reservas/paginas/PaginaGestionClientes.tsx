@@ -33,9 +33,9 @@ function iniciales(nombre: string): string {
 type EstadoCliente = 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO';
 
 const CFG_ESTADO: Record<EstadoCliente, { etiqueta: string; color: string; fondo: string; borde: string }> = {
-  ACTIVO:   { etiqueta: 'Activo',    color: 'var(--color-exito)',        fondo: 'rgba(5,150,105,0.12)',   borde: 'rgba(5,150,105,0.2)' },
-  INACTIVO: { etiqueta: 'Inactivo',  color: 'var(--color-texto-suave)',  fondo: 'rgba(107,114,128,0.12)', borde: 'rgba(107,114,128,0.2)' },
-  BLOQUEADO:{ etiqueta: 'Bloqueado', color: 'var(--color-error)',        fondo: 'rgba(239,68,68,0.10)',   borde: 'rgba(239,68,68,0.2)' },
+  ACTIVO:   { etiqueta: 'Activo',    color: 'var(--color-exito)',        fondo: 'var(--insignia-exito-bg)',   borde: 'var(--insignia-exito-borde)' },
+  INACTIVO: { etiqueta: 'Inactivo',  color: 'var(--color-texto-suave)',  fondo: 'var(--insignia-neutral-bg)', borde: 'var(--insignia-neutral-borde)' },
+  BLOQUEADO:{ etiqueta: 'Bloqueado', color: 'var(--color-error)',        fondo: 'var(--insignia-error-bg)',   borde: 'var(--insignia-error-borde)' },
 };
 
 // ── Selector de estado con dropdown propio ────────────────────────────────────
@@ -384,7 +384,7 @@ export function PaginaGestionClientes() {
         descripcion="Administra los clientes de la barbería"
         indicador={
           clientes.length > 0 ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.25rem 0.75rem', borderRadius: '99px', backgroundColor: 'rgba(5,150,105,0.08)', fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-exito)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.25rem 0.75rem', borderRadius: '99px', backgroundColor: 'var(--insignia-exito-bg)', fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-exito)' }}>
               <Users size={12} />
               {clientes.length} {clientes.length === 1 ? 'cliente' : 'clientes'}
             </div>

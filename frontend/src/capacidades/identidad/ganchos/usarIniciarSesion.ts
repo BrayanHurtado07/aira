@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usarAlmacenSesion } from '@/plataforma/identidad/almacen-sesion';
 import { mensajeDeError } from '@/plataforma/gobierno/errores/errores-dominio';
 import { ErrorHTTP } from '@/integraciones/http/errores';
+import { rutaInicialPorRol } from '@/plataforma/identidad/roles';
 import { iniciarSesion } from '../servicios/servicio-identidad';
 import type { SolicitudIniciarSesion } from '../contratos/tipos';
 
@@ -15,6 +16,7 @@ export function usarIniciarSesion() {
     onSuccess: (data) => {
       guardarSesion({
         token: data.token,
+        refreshToken: data.refresh_token,
         sesionId: data.sesion_id,
         usuarioId: data.usuario_id,
         nombre: data.nombre,
@@ -24,10 +26,7 @@ export function usarIniciarSesion() {
         expiraEn: data.expira_en,
         nombreRol: data.nombre_rol,
       });
-      if (data.refresh_token) {
-        localStorage.setItem('aira_refresh_token', data.refresh_token);
-      }
-      navegar('/tablero');
+      navegar(rutaInicialPorRol(data.nombre_rol));
     },
   });
 

@@ -8,10 +8,10 @@ const (
 )
 
 type PlantillaMensaje struct {
-	ID                string
-	EmpresaID         string
-	Nombre            string
-	Canal             string
-	ContenidoPlantilla string
-	Estado            EstadoPlantilla
+	ID                 string          `json:"id"`
+	EmpresaID          string          `json:"empresa_id"`
+	Nombre             string          `json:"nombre"`
+	Canal              string          `json:"canal"`
+	ContenidoPlantilla string          `json:"contenido_plantilla"`
+	Estado             EstadoPlantilla `json:"estado"`
 }

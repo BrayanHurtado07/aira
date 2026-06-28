@@ -254,7 +254,7 @@ function PestanaResumen() {
               render: (t) => (
                 <div className="lealtad-tabla-cliente">
                   <div className="buscador-avatar buscador-avatar--sm">
-                    {t.nombre_cliente.charAt(0).toUpperCase() || '?'}
+                    {(t.nombre_cliente ?? '').charAt(0).toUpperCase() || '?'}
                   </div>
                   <div className="lealtad-tabla-cliente-info">
                     <span className="lealtad-tabla-cliente-nombre">{t.nombre_cliente || '—'}</span>
