@@ -19,6 +19,12 @@ interface PropiedadesSelector {
   cargando?: boolean;
 }
 
+// Radix prohíbe <Select.Item value="">. Mapeamos internamente el string vacío a
+// un sentinel para que una opción "Cualquiera"/"Todos" (valor: '') no rompa la app.
+const VALOR_VACIO = '__valor_vacio__';
+const haciaRadix = (v: string) => (v === '' ? VALOR_VACIO : v);
+const desdeRadix = (v: string) => (v === VALOR_VACIO ? '' : v);
+
 export function Selector({
   valor,
   alCambiar,
@@ -30,11 +36,14 @@ export function Selector({
   cargando = false,
 }: PropiedadesSelector) {
   const estaDeshabilitado = deshabilitado || cargando;
+  const hayOpcionVacia = opciones.some((op) => op.valor === '');
+  // valor='' con una opción explícita vacía → mostrar esa opción; si no, placeholder.
+  const valorRadix = valor === '' ? (hayOpcionVacia ? VALOR_VACIO : undefined) : valor;
 
   return (
     <RadixSelect.Root
-      value={valor || undefined}
-      onValueChange={alCambiar}
+      value={valorRadix}
+      onValueChange={(v) => alCambiar(desdeRadix(v))}
       disabled={estaDeshabilitado}
     >
       <RadixSelect.Trigger
@@ -66,7 +75,7 @@ export function Selector({
             {opciones.map((op) => (
               <RadixSelect.Item
                 key={op.valor}
-                value={op.valor}
+                value={haciaRadix(op.valor)}
                 disabled={op.deshabilitada}
                 className="selector-opcion"
               >

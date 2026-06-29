@@ -6,6 +6,7 @@ import { GuardiaCapacidad } from '@/plataforma/activacion/GuardiaCapacidad';
 import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina';
 import { Pestanas } from '@/compartido/interfaz/primitivas/Pestanas';
 import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta';
+import { Avatar } from '@/compartido/interfaz/primitivas/Avatar';
 import { TablaDatos } from '@/compartido/interfaz/primitivas/TablaDatos';
 import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta';
 import { DialogoConfirmacion } from '@/compartido/interfaz/primitivas/DialogoConfirmacion';
@@ -253,9 +254,7 @@ function PestanaResumen() {
               etiqueta: 'Cliente',
               render: (t) => (
                 <div className="lealtad-tabla-cliente">
-                  <div className="buscador-avatar buscador-avatar--sm">
-                    {(t.nombre_cliente ?? '').charAt(0).toUpperCase() || '?'}
-                  </div>
+                  <Avatar nombre={t.nombre_cliente} tamano="sm" />
                   <div className="lealtad-tabla-cliente-info">
                     <span className="lealtad-tabla-cliente-nombre">{t.nombre_cliente || '—'}</span>
                     {t.telefono && (

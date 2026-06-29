@@ -1,297 +1,86 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  Scissors, Plus, Pencil, Power, PowerOff, Clock, Save,
-} from 'lucide-react'
+import { Scissors, Plus, Pencil, Power, PowerOff, Clock } from 'lucide-react'
 
-import {
-  obtenerServicios,
-  crearServicio,
-  actualizarServicio,
-  cambiarEstadoServicio,
-} from '@/capacidades/agenda/servicios/servicio-agenda'
+import { obtenerServicios, cambiarEstadoServicio } from '@/capacidades/agenda/servicios/servicio-agenda'
 
-import { EncabezadoPagina }    from '@/compartido/interfaz/primitivas/EncabezadoPagina'
-import { SeccionTarjeta }      from '@/compartido/interfaz/primitivas/SeccionTarjeta'
-import { TablaDatos }          from '@/compartido/interfaz/primitivas/TablaDatos'
-import type { ColumnaTabla }   from '@/compartido/interfaz/primitivas/TablaDatos'
-import { MenuAcciones }        from '@/compartido/interfaz/primitivas/MenuAcciones'
+import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina'
+import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta'
+import { TablaDatos } from '@/compartido/interfaz/primitivas/TablaDatos'
+import type { ColumnaTabla } from '@/compartido/interfaz/primitivas/TablaDatos'
 import { DialogoConfirmacion } from '@/compartido/interfaz/primitivas/DialogoConfirmacion'
-import { Boton }               from '@/compartido/interfaz/primitivas/Boton'
-import { Campo }               from '@/compartido/interfaz/primitivas/Campo'
-import { CampoMoneda }         from '@/compartido/interfaz/primitivas/CampoMoneda'
-import { SelectorDuracion }    from '@/compartido/interfaz/primitivas/SelectorDuracion'
-import { BannerAlerta }        from '@/compartido/interfaz/primitivas/BannerAlerta'
-import { Modal }               from '@/compartido/interfaz/primitivas/Modal'
-import { Insignia }            from '@/compartido/interfaz/retroalimentacion/Insignia'
+import { Boton } from '@/compartido/interfaz/primitivas/Boton'
+import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta'
+import { CeldaEntidad } from '@/compartido/interfaz/primitivas/CeldaEntidad'
+import { Insignia } from '@/compartido/interfaz/retroalimentacion/Insignia'
+import { ModalServicio } from '@/capacidades/agenda/componentes/ModalServicio'
 
-import type {
-  Servicio,
-  SolicitudCrearServicio,
-  SolicitudActualizarServicio,
-} from '@/capacidades/agenda/contratos/tipos'
+import type { Servicio } from '@/capacidades/agenda/contratos/tipos'
 
-// ── Estado inicial del formulario ─────────────────────────────────────────────
-
-const FORM_VACIO = { nombre: '', duracion_minutos: '30', precio: '' }
-
-// ── ModalEditarServicio ───────────────────────────────────────────────────────
-
-interface PropsModalEditar {
-  servicio: Servicio | null
-  alCerrar: () => void
-}
-
-function ModalEditarServicio({ servicio, alCerrar }: PropsModalEditar) {
-  const clienteConsulta = useQueryClient()
-  const [form, setForm] = useState({
-    nombre:           servicio?.nombre ?? '',
-    duracion_minutos: String(servicio?.duracion_minutos ?? 30),
-    precio:           String(servicio?.precio ?? ''),
-  })
-  const [errores, setErrores] = useState<Record<string, string>>({})
-
-  React.useEffect(() => {
-    if (!servicio) return
-    setForm({
-      nombre:           servicio.nombre,
-      duracion_minutos: String(servicio.duracion_minutos),
-      precio:           String(servicio.precio),
-    })
-    setErrores({})
-  }, [servicio?.id])
-
-  const mutacion = useMutation({
-    mutationFn: (solicitud: SolicitudActualizarServicio) =>
-      actualizarServicio(servicio!.id, solicitud),
-    onSuccess: () => {
-      clienteConsulta.invalidateQueries({ queryKey: ['servicios'] })
-      toast.success('Servicio actualizado')
-      alCerrar()
-    },
-    onError: () => toast.error('No se pudo actualizar el servicio'),
-  })
-
-  const cambiar = (campo: keyof typeof form) => (valor: string) => {
-    setForm((p) => ({ ...p, [campo]: valor }))
-    setErrores((p) => ({ ...p, [campo]: '' }))
+function duracionLegible(min: number): string {
+  if (min >= 60) {
+    const h = Math.floor(min / 60)
+    const m = min % 60
+    return `${h} hr${m > 0 ? ` ${m} min` : ''}`
   }
-
-  const manejarEnvio = (e: React.FormEvent) => {
-    e.preventDefault()
-    const duracion = parseInt(form.duracion_minutos) || 0
-    const precio   = parseFloat(form.precio) || 0
-    const nuevos: Record<string, string> = {}
-    if (!form.nombre.trim())  nuevos.nombre           = 'Ingresa el nombre del servicio'
-    if (duracion <= 0)        nuevos.duracion_minutos = 'La duración debe ser mayor a 0 min'
-    if (precio < 0)           nuevos.precio           = 'El precio no puede ser negativo'
-    if (Object.keys(nuevos).length > 0) { setErrores(nuevos); return }
-
-    mutacion.mutate({
-      nombre:           form.nombre.trim(),
-      duracion_minutos: duracion,
-      precio,
-    })
-  }
-
-  return (
-    <Modal
-      abierto={servicio !== null}
-      alCerrar={alCerrar}
-      titulo="Editar servicio"
-      descripcion="Actualiza el nombre, duración y precio del servicio."
-      ancho="sm"
-    >
-      <form
-        onSubmit={manejarEnvio}
-        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}
-      >
-        <Campo
-          etiqueta="Nombre del servicio"
-          requerido
-          error={errores.nombre}
-          value={form.nombre}
-          onChange={(e) => cambiar('nombre')(e.target.value)}
-          placeholder="Ej: Corte clásico"
-          className="campo-input"
-          autoFocus
-        />
-
-        {/* Duración */}
-        <div className="campo-grupo">
-          <label className="campo-etiqueta">
-            Duración <span style={{ color: 'var(--color-error)' }}>*</span>
-          </label>
-          <SelectorDuracion
-            valor={form.duracion_minutos}
-            alCambiar={cambiar('duracion_minutos')}
-            error={!!errores.duracion_minutos}
-          />
-          {errores.duracion_minutos && (
-            <span className="campo-error-inline">{errores.duracion_minutos}</span>
-          )}
-        </div>
-
-        {/* Precio */}
-        <div className="campo-grupo">
-          <label className="campo-etiqueta">Precio</label>
-          <CampoMoneda
-            valor={form.precio}
-            alCambiar={cambiar('precio')}
-            simbolo="S/"
-            error={!!errores.precio}
-          />
-          {errores.precio && (
-            <span className="campo-error-inline">{errores.precio}</span>
-          )}
-        </div>
-
-        {mutacion.isError && (
-          <BannerAlerta
-            variante="error"
-            mensaje="No se pudo actualizar el servicio. Inténtalo de nuevo."
-          />
-        )}
-
-        <div style={{ display: 'flex', gap: 'var(--espacio-sm)', justifyContent: 'flex-end', paddingTop: '0.25rem' }}>
-          <Boton type="button" variante="secundario" onClick={alCerrar}>
-            Cancelar
-          </Boton>
-          <Boton
-            type="submit"
-            variante="primario"
-            cargando={mutacion.isPending}
-            icono={<Save size={14} />}
-          >
-            Guardar cambios
-          </Boton>
-        </div>
-      </form>
-    </Modal>
-  )
+  return `${min} min`
 }
-
-// ── PaginaGestionServicios ────────────────────────────────────────────────────
 
 export function PaginaGestionServicios() {
   const clienteConsulta = useQueryClient()
 
-  const [formulario, setFormulario] = useState(FORM_VACIO)
-  const [errores, setErrores]       = useState<Record<string, string>>({})
-  const [servicioEditando, setServicioEditando]   = useState<Servicio | null>(null)
-  const [servicioToggle, setServicioToggle]       = useState<Servicio | null>(null)
-  const [toggleando, setToggleando]               = useState(false)
+  const [modalNuevo, setModalNuevo] = useState(false)
+  const [servicioEditando, setServicioEditando] = useState<Servicio | null>(null)
+  const [confirmarDesactivar, setConfirmarDesactivar] = useState<Servicio | null>(null)
 
-  const { data: servicios = [], isLoading } = useQuery({
+  const { data: servicios = [], isLoading, error } = useQuery({
     queryKey: ['servicios'],
     queryFn: () => obtenerServicios(),
   })
 
-  // ── Crear ──────────────────────────────────────────────────────────────────
-
-  const mutCrear = useMutation({
-    mutationFn: crearServicio,
-    onSuccess: (servicio) => {
-      clienteConsulta.invalidateQueries({ queryKey: ['servicios'] })
-      setFormulario(FORM_VACIO)
-      toast.success('Servicio creado', { description: servicio.nombre })
-    },
-    onError: () => toast.error('No se pudo crear el servicio'),
-  })
-
-  // ── Cambiar estado ─────────────────────────────────────────────────────────
-
   const mutEstado = useMutation({
-    mutationFn: ({ id, estado }: { id: string; estado: 'ACTIVO' | 'INACTIVO' }) =>
-      cambiarEstadoServicio(id, estado),
-    onSuccess: () => {
+    mutationFn: ({ id, estado }: { id: string; estado: 'ACTIVO' | 'INACTIVO' }) => cambiarEstadoServicio(id, estado),
+    onSuccess: (_, { estado }) => {
       clienteConsulta.invalidateQueries({ queryKey: ['servicios'] })
-      const nuevoEstado = servicioToggle?.estado === 'ACTIVO' ? 'desactivado' : 'activado'
-      toast.success(`Servicio ${nuevoEstado}`)
-      setServicioToggle(null)
+      toast.success(estado === 'ACTIVO' ? 'Servicio activado' : 'Servicio desactivado')
+      setConfirmarDesactivar(null)
     },
     onError: () => toast.error('No se pudo cambiar el estado'),
   })
 
-  const ejecutarToggle = async () => {
-    if (!servicioToggle) return
-    setToggleando(true)
-    try {
-      const nuevoEstado = servicioToggle.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO'
-      await mutEstado.mutateAsync({ id: servicioToggle.id, estado: nuevoEstado })
-    } finally {
-      setToggleando(false)
-    }
-  }
+  const totalActivos = servicios.filter((s) => s.estado === 'ACTIVO').length
 
-  // ── Formulario de creación ─────────────────────────────────────────────────
-
-  const cambiar = (campo: keyof typeof FORM_VACIO) => (valor: string) => {
-    setFormulario((p) => ({ ...p, [campo]: valor }))
-    setErrores((p) => ({ ...p, [campo]: '' }))
-  }
-
-  const manejarCrear = (e: React.FormEvent) => {
-    e.preventDefault()
-    const duracion = parseInt(formulario.duracion_minutos) || 0
-    const precio   = parseFloat(formulario.precio) || 0
-
-    const nuevos: Record<string, string> = {}
-    if (!formulario.nombre.trim()) nuevos.nombre           = 'Ingresa el nombre del servicio'
-    if (duracion <= 0)             nuevos.duracion_minutos = 'La duración debe ser mayor a 0 min'
-    if (precio < 0)                nuevos.precio           = 'El precio no puede ser negativo'
-    if (Object.keys(nuevos).length > 0) { setErrores(nuevos); return }
-
-    const solicitud: SolicitudCrearServicio = {
-      nombre: formulario.nombre.trim(),
-      duracion_minutos: duracion,
-      precio,
-    }
-    mutCrear.mutate(solicitud)
-  }
-
-  // ── Columnas ───────────────────────────────────────────────────────────────
+  const ctaNuevo = (
+    <Boton variante="primario" icono={<Plus size={14} />} onClick={() => setModalNuevo(true)}>
+      Nuevo servicio
+    </Boton>
+  )
 
   const columnas: ColumnaTabla<Servicio>[] = [
     {
-      clave:    'nombre',
+      clave: 'nombre',
       etiqueta: 'Servicio',
-      render: (s) => (
-        <div className="tabla-celda-identidad">
-          <div className="tabla-datos-avatar tabla-datos-avatar--icono">
-            <Scissors size={13} />
-          </div>
-          <div>
-            <p className="tabla-celda-nombre">{s.nombre}</p>
-          </div>
-        </div>
-      ),
+      render: (s) => <CeldaEntidad icono={<Scissors size={14} />} nombre={s.nombre} />,
     },
     {
-      clave:    'duracion_minutos',
+      clave: 'duracion_minutos',
       etiqueta: 'Duración',
       render: (s) => (
         <span className="servicio-duracion-badge">
           <Clock size={12} />
-          {s.duracion_minutos >= 60
-            ? `${Math.floor(s.duracion_minutos / 60)} hr${s.duracion_minutos % 60 > 0 ? ` ${s.duracion_minutos % 60} min` : ''}`
-            : `${s.duracion_minutos} min`}
+          {duracionLegible(s.duracion_minutos)}
         </span>
       ),
     },
     {
-      clave:    'precio',
+      clave: 'precio',
       etiqueta: 'Precio',
-      render: (s) => (
-        <span style={{ fontFamily: 'var(--fuente-acento)', fontWeight: 600, fontSize: 'var(--tamano-sm)' }}>
-          S/ {s.precio.toFixed(2)}
-        </span>
-      ),
+      render: (s) => <span className="servicio-precio">S/ {(s.precio ?? 0).toFixed(2)}</span>,
     },
     {
-      clave:    'estado',
+      clave: 'estado',
       etiqueta: 'Estado',
       render: (s) => (
         <Insignia variante={s.estado === 'ACTIVO' ? 'exito' : 'neutral'}>
@@ -301,11 +90,40 @@ export function PaginaGestionServicios() {
     },
   ]
 
-  // ── Contadores ─────────────────────────────────────────────────────────────
-
-  const totalActivos = servicios.filter((s) => s.estado === 'ACTIVO').length
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const acciones = (s: Servicio) => (
+    <div className="reserva-acciones-fila">
+      <button
+        className="reserva-accion-btn reserva-accion-btn--editar"
+        onClick={() => setServicioEditando(s)}
+        data-tooltip="Editar servicio"
+        type="button"
+        aria-label={`Editar ${s.nombre}`}
+      >
+        <Pencil size={13} />
+      </button>
+      {s.estado === 'ACTIVO' ? (
+        <button
+          className="reserva-accion-btn reserva-accion-btn--no-asistio"
+          onClick={() => setConfirmarDesactivar(s)}
+          data-tooltip="Desactivar"
+          type="button"
+          aria-label={`Desactivar ${s.nombre}`}
+        >
+          <PowerOff size={13} />
+        </button>
+      ) : (
+        <button
+          className="reserva-accion-btn reserva-accion-btn--confirmar"
+          onClick={() => mutEstado.mutate({ id: s.id, estado: 'ACTIVO' })}
+          data-tooltip="Activar"
+          type="button"
+          aria-label={`Activar ${s.nombre}`}
+        >
+          <Power size={13} />
+        </button>
+      )}
+    </div>
+  )
 
   return (
     <motion.div
@@ -314,151 +132,54 @@ export function PaginaGestionServicios() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Encabezado */}
       <EncabezadoPagina
         titulo="Servicios"
         descripcion="Administra los servicios ofrecidos por la barbería"
-        indicador={`${totalActivos} activos`}
+        indicador={!isLoading ? `${totalActivos} ${totalActivos === 1 ? 'activo' : 'activos'}` : undefined}
+        acciones={ctaNuevo}
       />
 
-      {/* Formulario de creación */}
-      <SeccionTarjeta
-        titulo="Nuevo servicio"
-        icono={<Plus size={14} />}
-        maxAncho={520}
-      >
-        <form
-          onSubmit={manejarCrear}
-          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}
-        >
-          {/* Nombre */}
-          <Campo
-            etiqueta="Nombre del servicio"
-            requerido
-            error={errores.nombre}
-            value={formulario.nombre}
-            onChange={(e) => cambiar('nombre')(e.target.value)}
-            placeholder="Ej: Corte clásico, Barba completa, Degradado..."
-            className="campo-input"
-          />
+      {!isLoading && error && (
+        <BannerAlerta variante="error" titulo="Error al cargar servicios" mensaje="Recarga la página." />
+      )}
 
-          {/* Duración */}
-          <div className="campo-grupo">
-            <label className="campo-etiqueta">
-              Duración <span style={{ color: 'var(--color-error)' }}>*</span>
-            </label>
-            <SelectorDuracion
-              valor={formulario.duracion_minutos}
-              alCambiar={cambiar('duracion_minutos')}
-              error={!!errores.duracion_minutos}
-            />
-            {errores.duracion_minutos && (
-              <span className="campo-error-inline">{errores.duracion_minutos}</span>
-            )}
-          </div>
-
-          {/* Precio */}
-          <div className="campo-grupo" style={{ maxWidth: '200px' }}>
-            <label className="campo-etiqueta">Precio</label>
-            <CampoMoneda
-              valor={formulario.precio}
-              alCambiar={cambiar('precio')}
-              simbolo="S/"
-              error={!!errores.precio}
-              placeholder="0.00"
-            />
-            {errores.precio && (
-              <span className="campo-error-inline">{errores.precio}</span>
-            )}
-          </div>
-
-          <div>
-            <Boton
-              type="submit"
-              variante="primario"
-              icono={<Scissors size={14} />}
-              cargando={mutCrear.isPending}
-            >
-              Crear servicio
-            </Boton>
-          </div>
-        </form>
-      </SeccionTarjeta>
-
-      {/* Tabla */}
-      <SeccionTarjeta
-        titulo="Servicios registrados"
-        descripcion="Gestiona, edita y activa/desactiva cada servicio"
-        icono={<Scissors size={14} />}
-        sinPaddingCuerpo
-      >
+      <SeccionTarjeta sinPaddingCuerpo>
         <TablaDatos<Servicio>
           columnas={columnas}
           filas={servicios}
           obtenerClave={(s) => s.id}
           cargando={isLoading}
           filasCargando={4}
+          tarjetaMovil
           vacioIcono={<Scissors size={24} />}
           vacioTitulo="Sin servicios"
-          vacioMensaje="Crea el primer servicio de la barbería usando el formulario de arriba."
-          acciones={(servicio) => (
-            <MenuAcciones
-              acciones={[
-                {
-                  id:       'editar',
-                  etiqueta: 'Editar',
-                  icono:    <Pencil size={14} />,
-                },
-                {
-                  id:           'activar',
-                  etiqueta:     'Activar',
-                  icono:        <Power size={14} />,
-                  separador:    true,
-                  deshabilitada: servicio.estado === 'ACTIVO',
-                },
-                {
-                  id:           'desactivar',
-                  etiqueta:     'Desactivar',
-                  icono:        <PowerOff size={14} />,
-                  variante:     'advertencia',
-                  deshabilitada: servicio.estado === 'INACTIVO',
-                },
-              ]}
-              onAccion={(id) => {
-                if (id === 'editar')     { setServicioEditando(servicio); return }
-                if (id === 'activar' || id === 'desactivar') {
-                  setServicioToggle(servicio)
-                }
-              }}
-            />
-          )}
+          vacioMensaje="Crea el primer servicio de la barbería."
+          vacioAccion={ctaNuevo}
+          onClickFila={(s) => setServicioEditando(s)}
+          acciones={acciones}
         />
       </SeccionTarjeta>
 
+      {/* Modal crear */}
+      <ModalServicio abierto={modalNuevo} alCerrar={() => setModalNuevo(false)} />
+
       {/* Modal editar */}
-      <ModalEditarServicio
+      <ModalServicio
+        abierto={servicioEditando !== null}
         servicio={servicioEditando}
         alCerrar={() => setServicioEditando(null)}
       />
 
-      {/* Confirmación de toggle estado */}
+      {/* Confirmar desactivar */}
       <DialogoConfirmacion
-        abierto={servicioToggle !== null}
-        titulo={
-          servicioToggle?.estado === 'ACTIVO'
-            ? `¿Desactivar "${servicioToggle?.nombre}"?`
-            : `¿Activar "${servicioToggle?.nombre}"?`
-        }
-        descripcion={
-          servicioToggle?.estado === 'ACTIVO'
-            ? 'El servicio dejará de estar disponible para nuevas reservas.'
-            : 'El servicio volverá a estar disponible para reservas.'
-        }
-        textoConfirmar={servicioToggle?.estado === 'ACTIVO' ? 'Sí, desactivar' : 'Sí, activar'}
-        variante={servicioToggle?.estado === 'ACTIVO' ? 'advertencia' : 'normal'}
-        cargando={toggleando}
-        alConfirmar={ejecutarToggle}
-        alCancelar={() => setServicioToggle(null)}
+        abierto={confirmarDesactivar !== null}
+        titulo={`¿Desactivar "${confirmarDesactivar?.nombre ?? ''}"?`}
+        descripcion="El servicio dejará de estar disponible para nuevas reservas. Puedes reactivarlo cuando quieras."
+        variante="advertencia"
+        textoConfirmar="Sí, desactivar"
+        cargando={mutEstado.isPending}
+        alConfirmar={() => confirmarDesactivar && mutEstado.mutate({ id: confirmarDesactivar.id, estado: 'INACTIVO' })}
+        alCancelar={() => setConfirmarDesactivar(null)}
       />
     </motion.div>
   )

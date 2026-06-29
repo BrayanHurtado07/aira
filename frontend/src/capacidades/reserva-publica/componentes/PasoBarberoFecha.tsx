@@ -78,7 +78,7 @@ export function PasoBarberoFecha({
 
       <div className="barberos-grid">
         {barberos.map((b) => {
-          const inicial = b.nombre.charAt(0).toUpperCase()
+          const inicial = (b.nombre ?? '').charAt(0).toUpperCase() || '?'
           return (
             <button
               key={b.id}

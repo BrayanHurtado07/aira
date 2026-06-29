@@ -23,7 +23,7 @@ type SolicitudRegistrarBarbero struct {
 }
 
 type RespuestaRegistrarBarbero struct {
-	BarberoID string
+	BarberoID string `json:"barbero_id"`
 }
 
 type CasoUsoRegistrarBarbero struct {

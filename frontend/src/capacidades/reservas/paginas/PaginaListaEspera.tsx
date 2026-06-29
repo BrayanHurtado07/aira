@@ -1,40 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { Clock, Plus, Users } from 'lucide-react'
+import { Clock, Plus, BellRing } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { mensajeDeError } from '@/plataforma/gobierno/errores/errores-dominio'
 import { Boton } from '@/compartido/interfaz/primitivas/Boton'
 import { Campo } from '@/compartido/interfaz/primitivas/Campo'
-import { Selector } from '@/compartido/interfaz/primitivas/Selector'
 import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina'
 import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta'
 import { TablaDatos } from '@/compartido/interfaz/primitivas/TablaDatos'
 import { Modal } from '@/compartido/interfaz/primitivas/Modal'
-import { Insignia } from '@/compartido/interfaz/retroalimentacion/Insignia'
+import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta'
+import { CeldaCliente } from '@/compartido/interfaz/primitivas/CeldaCliente'
+import { SelectorFecha } from '@/compartido/interfaz/primitivas/SelectorFecha'
+import { Vacio } from '@/compartido/interfaz/retroalimentacion/Vacio'
 import { BuscadorCliente } from '@/capacidades/reservas/componentes/BuscadorCliente'
+import { SelectorSede } from '@/capacidades/organizacion/componentes/SelectorSede'
+import { SelectorServicio } from '@/capacidades/agenda/componentes/SelectorServicio'
+import { SelectorBarbero } from '@/capacidades/agenda/componentes/SelectorBarbero'
 import { usarClientes } from '@/capacidades/reservas/ganchos/usarClientes'
-import { usarBarberos } from '@/capacidades/agenda/ganchos/usarBarberos'
-import { usarSedes } from '@/capacidades/organizacion/ganchos/usarSedes'
 import { obtenerServicios } from '@/capacidades/agenda/servicios/servicio-agenda'
-import { usarListaEspera, usarIngresarListaEspera } from '../ganchos/usarListaEspera'
-import type { EntradaListaEspera, EstadoListaEspera } from '../contratos/tipos'
+import { usarListaEspera, usarIngresarListaEspera, usarPromoverListaEspera } from '../ganchos/usarListaEspera'
+import type { EntradaListaEspera } from '../contratos/tipos'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function varianteEstado(estado: EstadoListaEspera): 'advertencia' | 'info' | 'exito' | 'error' {
-  if (estado === 'ESPERANDO') return 'advertencia'
-  if (estado === 'NOTIFICADO') return 'info'
-  if (estado === 'ATENDIDO') return 'exito'
-  return 'error'
-}
-
-const ETIQUETAS_ESTADO: Record<EstadoListaEspera, string> = {
-  ESPERANDO: 'Esperando',
-  NOTIFICADO: 'Notificado',
-  ATENDIDO: 'Atendido',
-  CANCELADO: 'Cancelado',
-}
+// Nota: el backend solo lista entradas en estado ESPERANDO, por eso no se muestra
+// una columna de estado (sería siempre "Esperando"). Al notificar, la entrada sale.
 
 function formatearFecha(fechaHora: string): string {
   if (!fechaHora) return '—'
@@ -63,10 +54,6 @@ interface PropsModalIngresar {
 
 function ModalIngresarListaEspera({ abierto, alCerrar }: PropsModalIngresar) {
   const mutacionIngresar = usarIngresarListaEspera()
-  const { sedes, cargando: cargandoSedes } = usarSedes()
-  const { barberos, cargando: cargandoBarberos } = usarBarberos()
-  const consultaServicios = useQuery({ queryKey: ['servicios'], queryFn: obtenerServicios })
-  const servicios = consultaServicios.data ?? []
 
   const [form, setForm] = useState(FORM_VACIO)
   const [errores, setErrores] = useState<Record<string, string>>({})
@@ -109,15 +96,6 @@ function ModalIngresarListaEspera({ abierto, alCerrar }: PropsModalIngresar) {
     )
   }
 
-  const opcionesSedes = sedes.map((s) => ({ valor: s.id, etiqueta: s.nombre }))
-  const opcionesServicios = servicios
-    .filter((s) => s.estado === 'ACTIVO')
-    .map((s) => ({ valor: s.id, etiqueta: `${s.nombre} — ${s.duracion_minutos} min` }))
-  const opcionesBarberos = [
-    { valor: '', etiqueta: 'Cualquier barbero disponible' },
-    ...barberos.filter((b) => b.estado === 'ACTIVO').map((b) => ({ valor: b.id, etiqueta: b.nombre })),
-  ]
-
   return (
     <Modal
       abierto={abierto}
@@ -152,48 +130,38 @@ function ModalIngresarListaEspera({ abierto, alCerrar }: PropsModalIngresar) {
 
         {/* Sede */}
         <Campo etiqueta="Sede" requerido error={errores.sucursal_id}>
-          <Selector
-            valor={form.sucursal_id}
-            alCambiar={(v) => cambiar('sucursal_id', v)}
-            opciones={opcionesSedes}
-            placeholder="Selecciona una sede"
-            cargando={cargandoSedes}
-            error={!!errores.sucursal_id}
-          />
+          <SelectorSede valor={form.sucursal_id} alCambiar={(v) => cambiar('sucursal_id', v)} error={!!errores.sucursal_id} />
         </Campo>
 
-        {/* Servicio */}
+        {/* Servicio (al cambiarlo se resetea el barbero: la lista depende del servicio) */}
         <Campo etiqueta="Servicio" requerido error={errores.servicio_id}>
-          <Selector
+          <SelectorServicio
             valor={form.servicio_id}
-            alCambiar={(v) => cambiar('servicio_id', v)}
-            opciones={opcionesServicios}
-            placeholder="Selecciona un servicio"
-            cargando={consultaServicios.isLoading}
+            alCambiar={(v) => { setForm((p) => ({ ...p, servicio_id: v, barbero_id: '' })); setErrores((p) => ({ ...p, servicio_id: '' })) }}
             error={!!errores.servicio_id}
           />
         </Campo>
 
-        {/* Barbero (opcional) */}
+        {/* Barbero (opcional) — solo los que saben hacer el servicio elegido */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
           <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
             Barbero <span style={{ fontWeight: 400, color: 'var(--color-texto-suave)' }}>(Opcional)</span>
           </label>
-          <Selector
+          <SelectorBarbero
             valor={form.barbero_id}
             alCambiar={(v) => cambiar('barbero_id', v)}
-            opciones={opcionesBarberos}
-            cargando={cargandoBarberos}
+            servicioId={form.servicio_id || undefined}
+            incluirCualquiera
           />
         </div>
 
-        {/* Fecha y hora deseada */}
+        {/* Fecha y hora deseada — picker propio, no permite fechas pasadas */}
         <Campo etiqueta="Fecha y hora deseada" requerido error={errores.fecha_hora_deseada}>
-          <input
-            type="datetime-local"
-            className={`campo-input${errores.fecha_hora_deseada ? ' campo-input--error' : ''}`}
-            value={form.fecha_hora_deseada}
-            onChange={(e) => cambiar('fecha_hora_deseada', e.target.value)}
+          <SelectorFecha
+            valor={form.fecha_hora_deseada}
+            alCambiar={(v) => cambiar('fecha_hora_deseada', v)}
+            error={!!errores.fecha_hora_deseada}
+            minDate={new Date()}
           />
         </Campo>
 
@@ -206,33 +174,43 @@ function ModalIngresarListaEspera({ abierto, alCerrar }: PropsModalIngresar) {
 // ── Página ────────────────────────────────────────────────────────────────────
 
 export function PaginaListaEspera() {
-  const { listaEspera, cargando } = usarListaEspera()
+  const { listaEspera, cargando, error } = usarListaEspera()
   const { clientes } = usarClientes()
   const consultaServicios = useQuery({ queryKey: ['servicios'], queryFn: obtenerServicios })
   const servicios = consultaServicios.data ?? []
+  const promover = usarPromoverListaEspera()
 
   const [modalAbierto, setModalAbierto] = useState(false)
 
-  const nombreCliente = (clienteId: string) =>
-    clientes.find((c) => c.id === clienteId)?.nombre ?? clienteId.slice(0, 8) + '…'
+  const mapaClientes = useMemo(() => Object.fromEntries(clientes.map((c) => [c.id, c])), [clientes])
 
   const nombreServicio = (servicioId: string) =>
     servicios.find((s) => s.id === servicioId)?.nombre ?? servicioId.slice(0, 8) + '…'
 
   const esperando = listaEspera.filter((e) => e.estado === 'ESPERANDO').length
 
+  const notificar = (e: EntradaListaEspera) => {
+    promover.mutate(e.id, {
+      onSuccess: () => toast.success('Cliente notificado', { description: mapaClientes[e.cliente_id]?.nombre }),
+      onError: (err) => toast.error(mensajeDeError(err)),
+    })
+  }
+
+  const accionNotificar = (e: EntradaListaEspera) =>
+    e.estado === 'ESPERANDO' ? (
+      <Boton variante="secundario" tamano="sm" icono={<BellRing size={13} />} cargando={promover.isPending} onClick={() => notificar(e)}>
+        Notificar
+      </Boton>
+    ) : null
+
   const columnas = [
     {
       clave: 'cliente_id',
       etiqueta: 'Cliente',
-      render: (e: EntradaListaEspera) => (
-        <div className="tabla-celda-identidad">
-          <div className="tabla-celda-avatar">
-            {nombreCliente(e.cliente_id).split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()}
-          </div>
-          <p className="tabla-celda-nombre">{nombreCliente(e.cliente_id)}</p>
-        </div>
-      ),
+      render: (e: EntradaListaEspera) => {
+        const cl = mapaClientes[e.cliente_id]
+        return <CeldaCliente nombre={cl?.nombre} telefono={cl?.telefono} />
+      },
     },
     {
       clave: 'servicio_id',
@@ -252,50 +230,35 @@ export function PaginaListaEspera() {
         </span>
       ),
     },
-    {
-      clave: 'estado',
-      etiqueta: 'Estado',
-      render: (e: EntradaListaEspera) => (
-        <Insignia variante={varianteEstado(e.estado)}>
-          {ETIQUETAS_ESTADO[e.estado]}
-        </Insignia>
-      ),
-    },
   ]
+
+  const ctaAgregar = (
+    <Boton variante="primario" icono={<Plus size={14} />} onClick={() => setModalAbierto(true)}>
+      Agregar a lista
+    </Boton>
+  )
 
   return (
     <motion.div
+      className="pagina-contenido"
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      style={{ display: 'flex', flexDirection: 'column' }}
     >
       <EncabezadoPagina
         titulo="Lista de espera"
         descripcion="Clientes en espera cuando no hay disponibilidad inmediata"
-        indicador={
-          esperando > 0 ? (
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.25rem 0.75rem', borderRadius: '99px',
-              backgroundColor: 'var(--insignia-advertencia-bg)',
-              fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-advertencia)',
-            }}>
-              <Users size={12} />
-              {esperando} esperando
-            </div>
-          ) : undefined
-        }
-        acciones={
-          <Boton variante="primario" icono={<Plus size={14} />} onClick={() => setModalAbierto(true)}>
-            Agregar a lista
-          </Boton>
-        }
-        style={{ padding: 'var(--espacio-lg)', borderBottom: '1px solid var(--color-borde)', backgroundColor: 'var(--color-superficie)' }}
+        indicador={!cargando && esperando > 0 ? `${esperando} esperando` : undefined}
+        acciones={ctaAgregar}
       />
 
-      <div style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)' }}>
-        <SeccionTarjeta titulo="Clientes en espera" sinPaddingCuerpo>
+      {!cargando && error && (
+        <BannerAlerta variante="error" titulo="Error al cargar la lista" mensaje={mensajeDeError(error)} />
+      )}
+
+      <SeccionTarjeta titulo="Clientes en espera" sinPaddingCuerpo>
+        {/* Desktop: tabla */}
+        <div className="lista-espera-tabla-wrap">
           <TablaDatos<EntradaListaEspera>
             columnas={columnas}
             filas={listaEspera}
@@ -304,9 +267,35 @@ export function PaginaListaEspera() {
             vacioIcono={<Clock size={28} />}
             vacioTitulo="Lista de espera vacía"
             vacioMensaje="No hay clientes en lista de espera en este momento."
+            vacioAccion={ctaAgregar}
+            acciones={(e) => accionNotificar(e)}
           />
-        </SeccionTarjeta>
-      </div>
+        </div>
+
+        {/* Móvil: tarjetas */}
+        <div className="lista-espera-tarjetas">
+          {cargando ? (
+            [0, 1, 2].map((i) => <div key={i} className="cliente-tarjeta-skel" />)
+          ) : listaEspera.length === 0 ? (
+            <Vacio icono={<Clock size={28} />} titulo="Lista de espera vacía" mensaje="No hay clientes en lista de espera en este momento." accion={ctaAgregar} />
+          ) : (
+            listaEspera.map((e) => {
+              const cl = mapaClientes[e.cliente_id]
+              return (
+                <div key={e.id} className="cliente-tarjeta">
+                  <div className="cliente-tarjeta-cabecera">
+                    <CeldaCliente nombre={cl?.nombre} telefono={cl?.telefono} />
+                  </div>
+                  <div style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>
+                    {nombreServicio(e.servicio_id)} · {formatearFecha(e.fecha_hora_deseada)}
+                  </div>
+                  {accionNotificar(e)}
+                </div>
+              )
+            })
+          )}
+        </div>
+      </SeccionTarjeta>
 
       <ModalIngresarListaEspera abierto={modalAbierto} alCerrar={() => setModalAbierto(false)} />
     </motion.div>

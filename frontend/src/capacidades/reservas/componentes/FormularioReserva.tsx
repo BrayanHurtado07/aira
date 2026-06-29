@@ -13,6 +13,10 @@ interface PropsFormularioReserva {
   onSubmit: (solicitud: SolicitudRegistrarReserva) => void
   enviando: boolean
   error?: string | null
+  /** Valores de arranque (modo edición). Si se omite, el formulario nace vacío. */
+  valoresIniciales?: Partial<EstadoFormulario>
+  /** Texto del botón de envío (default "Registrar reserva"). */
+  textoEnviar?: string
 }
 
 interface EstadoFormulario {
@@ -39,8 +43,8 @@ const ESTADO_INICIAL: EstadoFormulario = {
   origen: 'MANUAL',
 }
 
-export function FormularioReserva({ onSubmit, enviando, error }: PropsFormularioReserva) {
-  const [formulario, setFormulario] = useState<EstadoFormulario>(ESTADO_INICIAL)
+export function FormularioReserva({ onSubmit, enviando, error, valoresIniciales, textoEnviar = 'Registrar reserva' }: PropsFormularioReserva) {
+  const [formulario, setFormulario] = useState<EstadoFormulario>(() => ({ ...ESTADO_INICIAL, ...valoresIniciales }))
   const [errores, setErrores] = useState<Record<string, string>>({})
 
   const { barberos, cargando: cargandoBarberos } = usarBarberos()
@@ -192,7 +196,7 @@ export function FormularioReserva({ onSubmit, enviando, error }: PropsFormulario
         cargando={enviando}
         style={{ marginTop: '0.25rem' }}
       >
-        Registrar reserva
+        {textoEnviar}
       </Boton>
     </form>
   )

@@ -1,15 +1,37 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { UserPlus, Scissors, Clock, Check, Plus, X, CalendarDays, Phone, Pencil, Save, ChevronLeft } from 'lucide-react'
+import {
+  UserPlus,
+  Scissors,
+  Check,
+  Plus,
+  X,
+  Phone,
+  Save,
+  Power,
+  PowerOff,
+  Pencil,
+  CalendarDays,
+} from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { usarBarberos } from '@/capacidades/agenda/ganchos/usarBarberos'
-import { usarDisponibilidadBarbero } from '@/capacidades/agenda/ganchos/usarDisponibilidadBarbero'
 import { Boton } from '@/compartido/interfaz/primitivas/Boton'
 import { Campo } from '@/compartido/interfaz/primitivas/Campo'
 import { SelectorTelefono } from '@/compartido/interfaz/primitivas/SelectorTelefono'
-import { EsqueletoFormulario } from '@/compartido/interfaz/retroalimentacion/Esqueleto'
-import { Vacio } from '@/compartido/interfaz/retroalimentacion/Vacio'
+import { Avatar } from '@/compartido/interfaz/primitivas/Avatar'
+import { CeldaCliente } from '@/compartido/interfaz/primitivas/CeldaCliente'
+import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta'
+import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina'
+import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta'
+import { TablaDatos } from '@/compartido/interfaz/primitivas/TablaDatos'
+import type { ColumnaTabla } from '@/compartido/interfaz/primitivas/TablaDatos'
+import { Modal } from '@/compartido/interfaz/primitivas/Modal'
+import { MenuAcciones } from '@/compartido/interfaz/primitivas/MenuAcciones'
+import { DialogoConfirmacion } from '@/compartido/interfaz/primitivas/DialogoConfirmacion'
+import { Insignia, insigniaPorEstado } from '@/compartido/interfaz/retroalimentacion/Insignia'
+import { ModalBarbero } from '@/capacidades/agenda/componentes/ModalBarbero'
+import { GrillaDiasSemana } from '@/capacidades/agenda/componentes/GrillaDiasSemana'
 import {
   obtenerServicios,
   obtenerServiciosBarbero,
@@ -18,150 +40,9 @@ import {
   actualizarBarbero,
   cambiarEstadoBarbero,
 } from '@/capacidades/agenda/servicios/servicio-agenda'
-import type { Barbero, Servicio, SolicitudRegistrarDisponibilidad } from '@/capacidades/agenda/contratos/tipos'
+import type { Barbero, Servicio } from '@/capacidades/agenda/contratos/tipos'
 
-// ── Constantes ──────────────────────────────────────────────────────────────
-
-const DIAS_SEMANA = [
-  { valor: 1, abrev: 'Lun', etiqueta: 'Lunes' },
-  { valor: 2, abrev: 'Mar', etiqueta: 'Martes' },
-  { valor: 3, abrev: 'Mié', etiqueta: 'Miércoles' },
-  { valor: 4, abrev: 'Jue', etiqueta: 'Jueves' },
-  { valor: 5, abrev: 'Vie', etiqueta: 'Viernes' },
-  { valor: 6, abrev: 'Sáb', etiqueta: 'Sábado' },
-  { valor: 0, abrev: 'Dom', etiqueta: 'Domingo' },
-]
-
-function iniciales(nombre: string): string {
-  return nombre
-    .split(' ')
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-// ── Fila de barbero en sidebar ───────────────────────────────────────────────
-
-function FilaBarbero({
-  barbero,
-  seleccionado,
-  onClick,
-}: {
-  barbero: Barbero
-  seleccionado: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={['barbero-fila', seleccionado ? 'barbero-fila--seleccionado' : ''].filter(Boolean).join(' ')}
-    >
-      <div className="barbero-fila-avatar">
-        {iniciales(barbero.nombre) || <Scissors size={14} />}
-      </div>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <p className="barbero-fila-nombre">{barbero.nombre}</p>
-        {(barbero.telefono || barbero.especialidad) && (
-          <p className="barbero-fila-sub">{barbero.telefono || barbero.especialidad}</p>
-        )}
-      </div>
-      <span
-        className={`barbero-fila-dot ${barbero.estado === 'ACTIVO' ? 'barbero-fila-dot--activo' : 'barbero-fila-dot--inactivo'}`}
-      />
-    </button>
-  )
-}
-
-// ── Formulario de nuevo barbero ──────────────────────────────────────────────
-
-function FormularioNuevoBarbero({ onGuardar }: { onGuardar: () => void }) {
-  const { registrar, registrando } = usarBarberos()
-  const [nombre, setNombre] = useState('')
-  const [telefono, setTelefono] = useState('')
-  const [errores, setErrores] = useState<Record<string, string>>({})
-
-  const manejarEnvio = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!nombre.trim()) {
-      setErrores({ nombre: 'Ingresa el nombre completo' })
-      return
-    }
-    try {
-      await registrar({ nombre: nombre.trim(), telefono: telefono || undefined })
-      toast.success('Barbero registrado', { description: nombre.trim() })
-      setNombre('')
-      setTelefono('')
-      onGuardar()
-    } catch {
-      toast.error('No se pudo registrar el barbero')
-    }
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className="barbero-panel-contenido"
-    >
-      <div className="barbero-panel-seccion-header">
-        <div className="barbero-panel-icono" style={{ backgroundColor: 'var(--color-acento-suave)', color: 'var(--color-primario)' }}>
-          <UserPlus size={16} />
-        </div>
-        <div>
-          <h2 className="barbero-panel-titulo">Nuevo barbero</h2>
-          <p className="barbero-panel-subtitulo">Completa los datos y guarda</p>
-        </div>
-      </div>
-
-      <form
-        onSubmit={manejarEnvio}
-        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)', maxWidth: '420px', marginTop: 'var(--espacio-xl)' }}
-      >
-        <Campo
-          etiqueta="Nombre completo"
-          requerido
-          error={errores.nombre}
-          value={nombre}
-          onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })) }}
-          placeholder="Ej: Carlos Ramírez"
-          className="campo-input"
-        />
-
-        <div>
-          <label
-            style={{
-              display: 'block',
-              fontSize: 'var(--tamano-sm)',
-              fontWeight: 500,
-              color: 'var(--color-texto)',
-              marginBottom: '0.375rem',
-            }}
-          >
-            Teléfono
-            <span style={{ marginLeft: '0.375rem', fontSize: 'var(--tamano-xs)', color: 'var(--color-texto-suave)', fontWeight: 400 }}>
-              Opcional
-            </span>
-          </label>
-          <SelectorTelefono
-            valor={telefono}
-            alCambiar={setTelefono}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: 'var(--espacio-sm)', marginTop: '0.25rem' }}>
-          <Boton type="submit" variante="primario" cargando={registrando} icono={<UserPlus size={14} />}>
-            Registrar barbero
-          </Boton>
-        </div>
-      </form>
-    </motion.div>
-  )
-}
-
-// ── Sección: servicios asignados ────────────────────────────────────────────
+// ── Sección: servicios — dos grupos: asignados / sin asignar ──────────────────
 
 function SeccionServicios({ barbero }: { barbero: Barbero }) {
   const clienteConsulta = useQueryClient()
@@ -214,11 +95,43 @@ function SeccionServicios({ barbero }: { barbero: Barbero }) {
   }
 
   const cargando = cargandoTodos || cargandoAsignados
+  const asignados = todosServicios.filter((s) => idsAsignados.has(s.id))
+  const sinAsignar = todosServicios.filter((s) => !idsAsignados.has(s.id))
+
+  const renderChip = (s: Servicio, esAsignado: boolean) => {
+    const enProceso = pendiente === s.id
+    return (
+      <button
+        key={s.id}
+        type="button"
+        onClick={() => toggleServicio(s)}
+        disabled={!!pendiente}
+        title={esAsignado ? `Quitar: ${s.nombre}` : `Asignar: ${s.nombre}`}
+        className={[
+          'barbero-servicio-chip',
+          esAsignado ? 'barbero-servicio-chip--asignado' : '',
+          enProceso ? 'barbero-servicio-chip--pendiente' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {enProceso ? (
+          <span className="barbero-chip-spinner" />
+        ) : esAsignado ? (
+          <Check size={11} aria-hidden />
+        ) : (
+          <Plus size={11} aria-hidden />
+        )}
+        <span>{s.nombre}</span>
+        <span className="barbero-chip-meta">{s.duracion_minutos} min</span>
+      </button>
+    )
+  }
 
   return (
     <div className="barbero-panel-bloque">
       <div className="barbero-panel-bloque-titulo">
-        <Scissors size={13} style={{ color: 'var(--color-primario)' }} />
+        <Scissors size={13} style={{ color: 'var(--color-primario)' }} aria-hidden />
         <span>Servicios</span>
         {serviciosAsignados.length > 0 && (
           <span className="barbero-panel-badge">{serviciosAsignados.length}</span>
@@ -230,206 +143,65 @@ function SeccionServicios({ barbero }: { barbero: Barbero }) {
       ) : todosServicios.length === 0 ? (
         <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>
           No hay servicios creados.{' '}
-          <a href="/agenda/servicios" style={{ color: 'var(--color-primario)' }}>Crea uno primero</a>.
+          <a href="/agenda/servicios" style={{ color: 'var(--color-primario)' }}>
+            Crea uno primero
+          </a>
+          .
         </p>
       ) : (
-        <div className="barbero-servicios-grid">
-          {todosServicios.map((s) => {
-            const asignado = idsAsignados.has(s.id)
-            const enProceso = pendiente === s.id
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => toggleServicio(s)}
-                disabled={!!pendiente}
-                className={[
-                  'barbero-servicio-chip',
-                  asignado ? 'barbero-servicio-chip--asignado' : '',
-                  enProceso ? 'barbero-servicio-chip--pendiente' : '',
-                ].filter(Boolean).join(' ')}
-              >
-                {enProceso ? (
-                  <span className="barbero-chip-spinner" />
-                ) : asignado ? (
-                  <Check size={11} />
-                ) : (
-                  <Plus size={11} />
-                )}
-                <span>{s.nombre}</span>
-                <span className="barbero-chip-meta">{s.duracion_minutos} min</span>
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
+          {/* Grupo: asignados */}
+          {asignados.length > 0 && (
+            <div>
+              <p className="barbero-servicios-grupo-titulo">Asignados</p>
+              <div className="barbero-servicios-grid">{asignados.map((s) => renderChip(s, true))}</div>
+            </div>
+          )}
 
-// ── Sección: disponibilidad semanal ────────────────────────────────────────
-
-function SeccionDisponibilidad({ barbero }: { barbero: Barbero }) {
-  const { bloques, cargandoBloques, registrar, registrando } = usarDisponibilidadBarbero(barbero.id)
-  const [diaActivo, setDiaActivo] = useState<number | null>(null)
-  const [horario, setHorario] = useState({ hora_inicio: '09:00', hora_fin: '18:00' })
-  const [errorHora, setErrorHora] = useState('')
-
-  const bloquePorDia = (dia: number) => bloques.filter((b) => b.dia_semana === dia)
-
-  const agregarBloque = async () => {
-    if (diaActivo === null) return
-    if (horario.hora_inicio >= horario.hora_fin) {
-      setErrorHora('La hora de fin debe ser posterior a la de inicio')
-      return
-    }
-    setErrorHora('')
-    const solicitud: SolicitudRegistrarDisponibilidad = {
-      barbero_id: barbero.id,
-      dia_semana: diaActivo,
-      hora_inicio: horario.hora_inicio,
-      hora_fin: horario.hora_fin,
-    }
-    try {
-      await registrar(solicitud)
-      toast.success(`Disponibilidad registrada`, {
-        description: `${DIAS_SEMANA.find((d) => d.valor === diaActivo)?.etiqueta} · ${horario.hora_inicio} – ${horario.hora_fin}`,
-      })
-      setDiaActivo(null)
-    } catch {
-      toast.error('No se pudo registrar la disponibilidad')
-    }
-  }
-
-  return (
-    <div className="barbero-panel-bloque">
-      <div className="barbero-panel-bloque-titulo">
-        <CalendarDays size={13} style={{ color: 'var(--color-primario)' }} />
-        <span>Disponibilidad semanal</span>
-        {bloques.length > 0 && (
-          <span className="barbero-panel-badge">{bloques.length} bloques</span>
-        )}
-      </div>
-
-      {cargandoBloques ? (
-        <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>Cargando…</p>
-      ) : (
-        <div className="barbero-semana-grid">
-          {DIAS_SEMANA.map((dia) => {
-            const bloquesDia = bloquePorDia(dia.valor)
-            const seleccionado = diaActivo === dia.valor
-            return (
-              <div
-                key={dia.valor}
-                className={['barbero-dia-col', seleccionado ? 'barbero-dia-col--activo' : ''].filter(Boolean).join(' ')}
-              >
-                <button
-                  type="button"
-                  onClick={() => setDiaActivo(seleccionado ? null : dia.valor)}
-                  className={['barbero-dia-btn', bloquesDia.length > 0 ? 'barbero-dia-btn--con-bloques' : ''].filter(Boolean).join(' ')}
-                >
-                  <span className="barbero-dia-abrev">{dia.abrev}</span>
-                  {bloquesDia.length > 0 && (
-                    <span className="barbero-dia-count">{bloquesDia.length}</span>
-                  )}
-                </button>
-
-                {bloquesDia.length > 0 && (
-                  <div className="barbero-dia-bloques">
-                    {bloquesDia.map((b) => (
-                      <span key={b.id} className="barbero-bloque-chip">
-                        <Clock size={9} />
-                        {b.hora_inicio}–{b.hora_fin}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Formulario inline para agregar bloque */}
-      <AnimatePresence>
-        {diaActivo !== null && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.18 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div className="barbero-bloque-form">
-              <div className="barbero-bloque-form-header">
-                <span style={{ fontSize: 'var(--tamano-sm)', fontWeight: 600, color: 'var(--color-texto)' }}>
-                  Agregar bloque · {DIAS_SEMANA.find((d) => d.valor === diaActivo)?.etiqueta}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => { setDiaActivo(null); setErrorHora('') }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-texto-suave)', display: 'flex' }}
-                >
-                  <X size={14} />
-                </button>
-              </div>
-              <div className="barbero-bloque-inputs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 'var(--espacio-sm)', alignItems: 'flex-end' }}>
-                <Campo
-                  etiqueta="Desde"
-                  type="time"
-                  value={horario.hora_inicio}
-                  onChange={(e) => { setHorario((p) => ({ ...p, hora_inicio: e.target.value })); setErrorHora('') }}
-                  className="campo-input"
-                />
-                <Campo
-                  etiqueta="Hasta"
-                  type="time"
-                  value={horario.hora_fin}
-                  onChange={(e) => { setHorario((p) => ({ ...p, hora_fin: e.target.value })); setErrorHora('') }}
-                  error={errorHora}
-                  className="campo-input"
-                />
-                <Boton
-                  type="button"
-                  variante="primario"
-                  icono={<Plus size={14} />}
-                  cargando={registrando}
-                  onClick={agregarBloque}
-                  style={{ marginBottom: errorHora ? '1.5rem' : 0 }}
-                >
-                  Agregar
-                </Boton>
+          {/* Grupo: sin asignar */}
+          {sinAsignar.length > 0 && (
+            <div>
+              <p className="barbero-servicios-grupo-titulo">
+                {asignados.length === 0 ? 'Sin asignar — pulsa para agregar' : 'Sin asignar'}
+              </p>
+              <div className="barbero-servicios-grid">
+                {sinAsignar.map((s) => renderChip(s, false))}
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {!cargandoBloques && bloques.length === 0 && diaActivo === null && (
-        <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)', marginTop: 'var(--espacio-sm)' }}>
-          Selecciona un día para añadir horarios de atención.
-        </p>
+          )}
+        </div>
       )}
     </div>
   )
 }
 
-// ── Panel de perfil de barbero ───────────────────────────────────────────────
+// ── Panel de perfil del barbero ───────────────────────────────────────────────
 
-function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActualizado?: (nombre: string, telefono: string) => void }) {
+function PerfilBarbero({
+  barbero,
+  onActualizado,
+}: {
+  barbero: Barbero
+  onActualizado?: (nombre: string, telefono: string) => void
+}) {
   const clienteConsulta = useQueryClient()
-  const ini = iniciales(barbero.nombre)
   const telefonoMostrado = barbero.telefono || barbero.especialidad || ''
 
   const [editando, setEditando] = useState(false)
   const [editNombre, setEditNombre] = useState(barbero.nombre)
   const [editTelefono, setEditTelefono] = useState(telefonoMostrado)
   const [errorNombre, setErrorNombre] = useState('')
-  const [estadoLocal, setEstadoLocal] = useState<'ACTIVO' | 'INACTIVO'>(barbero.estado as 'ACTIVO' | 'INACTIVO')
+  const [estadoLocal, setEstadoLocal] = useState<'ACTIVO' | 'INACTIVO'>(
+    barbero.estado as 'ACTIVO' | 'INACTIVO'
+  )
+  const [confirmarInactivar, setConfirmarInactivar] = useState(false)
 
   const mutActualizar = useMutation({
     mutationFn: () =>
-      actualizarBarbero(barbero.id, { nombre: editNombre.trim(), telefono: editTelefono || undefined }),
+      actualizarBarbero(barbero.id, {
+        nombre: editNombre.trim(),
+        telefono: editTelefono || undefined,
+      }),
     onSuccess: () => {
       clienteConsulta.invalidateQueries({ queryKey: ['barberos'] })
       toast.success('Datos actualizados', { description: editNombre.trim() })
@@ -444,13 +216,18 @@ function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActuali
     onSuccess: (_, estado) => {
       setEstadoLocal(estado)
       clienteConsulta.invalidateQueries({ queryKey: ['barberos'] })
-      toast.success('Estado actualizado', { description: estado === 'ACTIVO' ? 'Barbero activo' : 'Barbero inactivo' })
+      toast.success('Estado actualizado', {
+        description: estado === 'ACTIVO' ? 'Barbero activo' : 'Barbero inactivo',
+      })
     },
     onError: () => toast.error('No se pudo cambiar el estado'),
   })
 
   const guardar = () => {
-    if (!editNombre.trim()) { setErrorNombre('El nombre es obligatorio'); return }
+    if (!editNombre.trim()) {
+      setErrorNombre('El nombre es obligatorio')
+      return
+    }
     setErrorNombre('')
     mutActualizar.mutate()
   }
@@ -460,6 +237,44 @@ function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActuali
     setEditTelefono(telefonoMostrado)
     setErrorNombre('')
     setEditando(false)
+  }
+
+  const iniciarEdicion = () => {
+    setEditNombre(barbero.nombre)
+    setEditTelefono(telefonoMostrado)
+    setEditando(true)
+  }
+
+  const accionesMenu = [
+    {
+      id: 'editar',
+      etiqueta: 'Editar datos',
+      icono: <Pencil size={14} />,
+    },
+    ...(estadoLocal === 'ACTIVO'
+      ? [
+          {
+            id: 'inactivar',
+            etiqueta: 'Marcar como inactivo',
+            icono: <PowerOff size={14} />,
+            variante: 'advertencia' as const,
+            separador: true,
+          },
+        ]
+      : [
+          {
+            id: 'activar',
+            etiqueta: 'Marcar como activo',
+            icono: <Power size={14} />,
+            separador: true,
+          },
+        ]),
+  ]
+
+  const manejarAccionMenu = (id: string) => {
+    if (id === 'editar') iniciarEdicion()
+    if (id === 'inactivar') setConfirmarInactivar(true)
+    if (id === 'activar') mutEstado.mutate('ACTIVO')
   }
 
   return (
@@ -472,11 +287,9 @@ function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActuali
     >
       {/* ── Header del perfil ── */}
       <div className="barbero-perfil-header">
-        <div className="barbero-perfil-avatar">
-          {ini || <Scissors size={20} />}
-        </div>
+        <Avatar nombre={barbero.nombre} monograma colorAuto tamano="lg" />
 
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="barbero-perfil-info">
           <AnimatePresence mode="wait">
             {editando ? (
               /* Modo edición */
@@ -492,21 +305,21 @@ function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActuali
                   etiqueta=""
                   error={errorNombre}
                   value={editNombre}
-                  onChange={(e) => { setEditNombre(e.target.value); setErrorNombre('') }}
+                  onChange={(e) => {
+                    setEditNombre(e.target.value)
+                    setErrorNombre('')
+                  }}
                   placeholder="Nombre completo"
-                  className="campo-input"
+                  autoFocus
                 />
-                <SelectorTelefono
-                  valor={editTelefono}
-                  alCambiar={setEditTelefono}
-                />
-                <div style={{ display: 'flex', gap: 'var(--espacio-sm)', marginTop: '0.25rem' }}>
+                <SelectorTelefono valor={editTelefono} alCambiar={setEditTelefono} />
+                <div className="barbero-perfil-edicion-acciones">
                   <Boton
                     variante="primario"
                     icono={<Save size={13} />}
                     cargando={mutActualizar.isPending}
                     onClick={guardar}
-                    style={{ fontSize: 'var(--tamano-xs)', padding: '0.375rem 0.75rem' }}
+                    tamano="sm"
                   >
                     Guardar
                   </Boton>
@@ -514,7 +327,7 @@ function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActuali
                     variante="fantasma"
                     icono={<X size={13} />}
                     onClick={cancelar}
-                    style={{ fontSize: 'var(--tamano-xs)', padding: '0.375rem 0.75rem' }}
+                    tamano="sm"
                   >
                     Cancelar
                   </Boton>
@@ -529,44 +342,35 @@ function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActuali
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--espacio-sm)', flexWrap: 'wrap' }}>
+                {/* Nombre + kebab */}
+                <div className="barbero-perfil-info-top">
                   <h2 className="barbero-perfil-nombre">{barbero.nombre}</h2>
-                  {/* Selector de estado interactivo */}
-                  <select
-                    value={estadoLocal}
-                    disabled={mutEstado.isPending}
-                    onChange={(e) => mutEstado.mutate(e.target.value as 'ACTIVO' | 'INACTIVO')}
-                    className={[
-                      'tabla-estado-select',
-                      estadoLocal === 'ACTIVO' ? 'tabla-estado-select--activo' : 'tabla-estado-select--inactivo',
-                    ].join(' ')}
-                    title="Cambiar estado del barbero"
-                  >
-                    <option value="ACTIVO">Activo</option>
-                    <option value="INACTIVO">Inactivo</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => { setEditNombre(barbero.nombre); setEditTelefono(telefonoMostrado); setEditando(true) }}
-                    className="barbero-perfil-editar-btn"
-                    title="Editar nombre y teléfono"
-                  >
-                    <Pencil size={12} />
-                  </button>
+                  <MenuAcciones
+                    acciones={accionesMenu}
+                    onAccion={manejarAccionMenu}
+                    titulo="Acciones del barbero"
+                    deshabilitado={mutEstado.isPending}
+                  />
                 </div>
 
+                {/* Insignia de estado */}
+                <div style={{ marginTop: 'var(--espacio-xs)' }}>
+                  <Insignia variante={insigniaPorEstado(estadoLocal)}>
+                    {estadoLocal === 'ACTIVO' ? 'Activo' : 'Inactivo'}
+                  </Insignia>
+                </div>
+
+                {/* Teléfono */}
                 {telefonoMostrado ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.25rem' }}>
-                    <Phone size={12} style={{ color: 'var(--color-texto-suave)' }} />
-                    <span style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>
-                      {telefonoMostrado}
-                    </span>
+                  <div className="barbero-perfil-tel">
+                    <Phone size={12} aria-hidden />
+                    <span>{telefonoMostrado}</span>
                   </div>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setEditando(true)}
                     className="barbero-perfil-agregar-tel"
+                    onClick={iniciarEdicion}
                   >
                     <Plus size={11} />
                     Agregar teléfono
@@ -578,154 +382,195 @@ function PerfilBarbero({ barbero, onActualizado }: { barbero: Barbero; onActuali
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-xl)', marginTop: 'var(--espacio-xl)' }}>
+      {/* ── Secciones ── */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--espacio-xl)',
+          marginTop: 'var(--espacio-xl)',
+        }}
+      >
         <SeccionServicios barbero={barbero} />
-        <SeccionDisponibilidad barbero={barbero} />
+
+        <div className="barbero-panel-bloque">
+          <div className="barbero-panel-bloque-titulo">
+            <CalendarDays size={13} style={{ color: 'var(--color-primario)' }} aria-hidden />
+            <span>Horario semanal</span>
+          </div>
+          <GrillaDiasSemana barberoId={barbero.id} />
+        </div>
       </div>
+
+      {/* Diálogo de confirmación para inactivar (rendered inside motion.div; modal es position:fixed) */}
+      <DialogoConfirmacion
+        abierto={confirmarInactivar}
+        titulo="¿Marcar como inactivo?"
+        descripcion={`${barbero.nombre} quedará inactivo y no recibirá reservas nuevas.`}
+        variante="advertencia"
+        textoConfirmar="Marcar inactivo"
+        cargando={mutEstado.isPending}
+        alConfirmar={() => {
+          mutEstado.mutate('INACTIVO')
+          setConfirmarInactivar(false)
+        }}
+        alCancelar={() => setConfirmarInactivar(false)}
+      />
     </motion.div>
-  )
-}
-
-// ── Estado vacío del panel ───────────────────────────────────────────────────
-
-function PanelVacio({ onNuevo }: { onNuevo: () => void }) {
-  return (
-    <div className="barbero-panel-vacio">
-      <div className="barbero-panel-vacio-icono">
-        <Scissors size={28} />
-      </div>
-      <p style={{ fontSize: 'var(--tamano-base)', fontWeight: 600, color: 'var(--color-texto)', margin: 0 }}>
-        Selecciona un barbero
-      </p>
-      <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)', margin: 0 }}>
-        Elige uno del panel izquierdo para ver su perfil completo
-      </p>
-      <Boton variante="secundario" icono={<UserPlus size={14} />} onClick={onNuevo}>
-        Registrar nuevo barbero
-      </Boton>
-    </div>
   )
 }
 
 // ── Página principal ─────────────────────────────────────────────────────────
 
 export function PaginaGestionBarberos() {
-  const { barberos, cargando } = usarBarberos()
-  const [barberoSeleccionado, setBarberoSeleccionado] = useState<Barbero | null>(null)
-  const [creando, setCreando] = useState(false)
+  const { barberos, cargando, error } = usarBarberos()
+  const clienteConsulta = useQueryClient()
+  const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
+  const [barberoEditando, setBarberoEditando] = useState<Barbero | null>(null)
+  const [confirmarDesactivar, setConfirmarDesactivar] = useState<Barbero | null>(null)
 
-  // En móvil: true cuando se está viendo el detalle (panel derecho)
-  const enDetalle = creando || !!barberoSeleccionado
+  const mutEstado = useMutation({
+    mutationFn: ({ id, estado }: { id: string; estado: 'ACTIVO' | 'INACTIVO' }) => cambiarEstadoBarbero(id, estado),
+    onSuccess: (_, { estado }) => {
+      clienteConsulta.invalidateQueries({ queryKey: ['barberos'] })
+      toast.success(estado === 'ACTIVO' ? 'Barbero activado' : 'Barbero desactivado')
+      setConfirmarDesactivar(null)
+    },
+    onError: () => toast.error('No se pudo cambiar el estado'),
+  })
 
-  const seleccionar = (b: Barbero) => {
-    setCreando(false)
-    setBarberoSeleccionado(b)
-  }
+  const activos = barberos.filter((b) => b.estado === 'ACTIVO').length
 
-  const iniciarCreacion = () => {
-    setBarberoSeleccionado(null)
-    setCreando(true)
-  }
+  const ctaNuevo = (
+    <Boton variante="primario" icono={<UserPlus size={14} />} onClick={() => setModalNuevoAbierto(true)}>
+      Nuevo barbero
+    </Boton>
+  )
 
-  const alGuardar = () => {
-    setCreando(false)
-  }
+  const columnas: ColumnaTabla<Barbero>[] = [
+    {
+      clave: 'nombre',
+      etiqueta: 'Barbero',
+      render: (b) => <CeldaCliente nombre={b.nombre} telefono={b.telefono || b.especialidad} />,
+    },
+    {
+      clave: 'estado',
+      etiqueta: 'Estado',
+      render: (b) => (
+        <Insignia variante={insigniaPorEstado(b.estado as string)}>
+          {b.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}
+        </Insignia>
+      ),
+    },
+  ]
 
-  const volver = () => {
-    setBarberoSeleccionado(null)
-    setCreando(false)
-  }
+  const acciones = (b: Barbero) => (
+    <div className="reserva-acciones-fila">
+      <button
+        className="reserva-accion-btn reserva-accion-btn--editar"
+        onClick={() => setBarberoEditando(b)}
+        data-tooltip="Editar barbero"
+        type="button"
+        aria-label={`Editar ${b.nombre}`}
+      >
+        <Pencil size={13} />
+      </button>
+      {b.estado === 'ACTIVO' ? (
+        <button
+          className="reserva-accion-btn reserva-accion-btn--no-asistio"
+          onClick={() => setConfirmarDesactivar(b)}
+          data-tooltip="Desactivar"
+          type="button"
+          aria-label={`Desactivar ${b.nombre}`}
+        >
+          <PowerOff size={13} />
+        </button>
+      ) : (
+        <button
+          className="reserva-accion-btn reserva-accion-btn--confirmar"
+          onClick={() => mutEstado.mutate({ id: b.id, estado: 'ACTIVO' })}
+          data-tooltip="Activar"
+          type="button"
+          aria-label={`Activar ${b.nombre}`}
+        >
+          <Power size={13} />
+        </button>
+      )}
+    </div>
+  )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* ── Header de página ── */}
-      <div className="gestion-header">
-        <div>
-          <h1 className="gestion-titulo">Barberos</h1>
-          <p className="gestion-subtitulo">Gestiona el equipo, sus servicios y disponibilidad</p>
-        </div>
-      </div>
+    <motion.div
+      className="pagina-contenido"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18 }}
+    >
+      <EncabezadoPagina
+        titulo="Barberos"
+        descripcion="Gestiona el equipo, sus servicios y disponibilidad"
+        indicador={!cargando ? `${activos} ${activos === 1 ? 'activo' : 'activos'}` : undefined}
+        acciones={ctaNuevo}
+      />
 
-      {/* ── Layout dos paneles ── */}
-      <div className={['gestion-layout', enDetalle ? 'gestion-layout--detalle' : ''].filter(Boolean).join(' ')}>
+      {!cargando && error && (
+        <BannerAlerta variante="error" titulo="Error al cargar el equipo" mensaje={error} />
+      )}
 
-        {/* Sidebar (lista) */}
-        <aside className="gestion-sidebar">
-          <div className="gestion-sidebar-header">
-            <span className="gestion-sidebar-label">
-              Equipo
-              {barberos.length > 0 && (
-                <span className="gestion-sidebar-count">{barberos.length}</span>
-              )}
-            </span>
-            <Boton
-              variante="primario"
-              icono={<UserPlus size={13} />}
-              onClick={iniciarCreacion}
-              style={{ padding: '0.375rem 0.625rem', fontSize: 'var(--tamano-xs)' }}
-            >
-              Nuevo
-            </Boton>
-          </div>
+      <SeccionTarjeta sinPaddingCuerpo>
+        <TablaDatos<Barbero>
+          columnas={columnas}
+          filas={barberos}
+          obtenerClave={(b) => b.id}
+          cargando={cargando}
+          filasCargando={4}
+          tarjetaMovil
+          vacioIcono={<Scissors size={24} />}
+          vacioTitulo="Sin barberos"
+          vacioMensaje="Registra el primer integrante del equipo."
+          vacioAccion={ctaNuevo}
+          onClickFila={(b) => setBarberoEditando(b)}
+          acciones={acciones}
+        />
+      </SeccionTarjeta>
 
-          <div className="gestion-sidebar-lista">
-            {cargando && <EsqueletoFormulario campos={3} />}
+      {/* Modal: nuevo barbero → al crear, abre su gestión (servicios + horario) */}
+      <ModalBarbero
+        abierto={modalNuevoAbierto}
+        alCerrar={() => setModalNuevoAbierto(false)}
+        onCreado={(b) => setBarberoEditando(b)}
+      />
 
-            {!cargando && barberos.length === 0 && (
-              <div style={{ padding: 'var(--espacio-lg)' }}>
-                <Vacio titulo="Sin barberos" mensaje="Registra el primero." />
-              </div>
-            )}
+      {/* Modal: editar barbero (datos + servicios + horario) */}
+      <Modal
+        abierto={barberoEditando !== null}
+        alCerrar={() => setBarberoEditando(null)}
+        titulo="Editar barbero"
+        descripcion="Datos, servicios y horario del barbero."
+        ancho="lg"
+      >
+        {barberoEditando && (
+          <PerfilBarbero
+            key={barberoEditando.id}
+            barbero={barberoEditando}
+            onActualizado={(nombre, telefono) =>
+              setBarberoEditando((prev) => (prev ? { ...prev, nombre, telefono } : prev))
+            }
+          />
+        )}
+      </Modal>
 
-            {!cargando && barberos.map((b, i) => (
-              <motion.div
-                key={b.id}
-                initial={{ opacity: 0, x: -4 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.15, delay: i * 0.03 }}
-              >
-                <FilaBarbero
-                  barbero={b}
-                  seleccionado={barberoSeleccionado?.id === b.id}
-                  onClick={() => seleccionar(b)}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </aside>
-
-        {/* Panel de detalle */}
-        <main className="gestion-panel">
-          {/* Botón volver — solo visible en móvil (CSS lo controla) */}
-          <button
-            type="button"
-            className="gestion-panel-volver"
-            onClick={volver}
-            aria-label="Volver al listado"
-          >
-            <ChevronLeft size={16} />
-            <span>Barberos</span>
-          </button>
-
-          <AnimatePresence mode="wait">
-            {creando && (
-              <FormularioNuevoBarbero key="nuevo" onGuardar={alGuardar} />
-            )}
-            {!creando && barberoSeleccionado && (
-              <PerfilBarbero
-                key={barberoSeleccionado.id}
-                barbero={barberoSeleccionado}
-                onActualizado={(nombre, telefono) =>
-                  setBarberoSeleccionado((prev) => prev ? { ...prev, nombre, telefono } : prev)
-                }
-              />
-            )}
-            {!creando && !barberoSeleccionado && (
-              <PanelVacio key="vacio" onNuevo={iniciarCreacion} />
-            )}
-          </AnimatePresence>
-        </main>
-      </div>
-    </div>
+      {/* Confirmar desactivar */}
+      <DialogoConfirmacion
+        abierto={confirmarDesactivar !== null}
+        titulo={`¿Desactivar a ${confirmarDesactivar?.nombre ?? ''}?`}
+        descripcion="Quedará inactivo y no recibirá reservas nuevas. Puedes reactivarlo cuando quieras."
+        variante="advertencia"
+        textoConfirmar="Sí, desactivar"
+        cargando={mutEstado.isPending}
+        alConfirmar={() => confirmarDesactivar && mutEstado.mutate({ id: confirmarDesactivar.id, estado: 'INACTIVO' })}
+        alCancelar={() => setConfirmarDesactivar(null)}
+      />
+    </motion.div>
   )
 }

@@ -281,6 +281,7 @@ func (rt *Rutas) Montar(r chi.Router) {
 		r.Patch("/api/servicios/{servicioID}/estado", rt.manejarActualizarEstadoServicio)
 		r.Post("/api/disponibilidad", rt.manejarRegistrarDisponibilidad)
 		r.Get("/api/disponibilidad/{barberoID}", rt.manejarListarDisponibilidadBarbero)
+		r.Delete("/api/disponibilidad/{barberoID}/{bloqueID}", rt.manejarEliminarDisponibilidad)
 		r.Get("/api/agenda/slots", rt.manejarConsultarSlots)
 		r.Post("/api/barberos/{barberoID}/excepciones", rt.manejarRegistrarExcepcionDisponibilidad)
 		r.Get("/api/barberos/{barberoID}/excepciones", rt.manejarListarExcepcionesBarbero)
@@ -805,7 +806,15 @@ func (rt *Rutas) manejarListarBarberos(w http.ResponseWriter, r *http.Request) {
 		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
 		return
 	}
-	lista, err := rt.repoBarberos.ListarActivos(r.Context(), sesion.EmpresaID)
+	// Filtro opcional: barberos que saben hacer un servicio (regla barbero↔servicio)
+	servicioID := r.URL.Query().Get("servicio_id")
+	var lista interface{}
+	var err error
+	if servicioID != "" {
+		lista, err = rt.repoBarberos.ListarActivosPorServicio(r.Context(), sesion.EmpresaID, servicioID)
+	} else {
+		lista, err = rt.repoBarberos.ListarActivos(r.Context(), sesion.EmpresaID)
+	}
 	if err != nil {
 		ResponderError(w, http.StatusInternalServerError, "error_interno")
 		return
@@ -1102,6 +1111,23 @@ func (rt *Rutas) manejarListarDisponibilidadBarbero(w http.ResponseWriter, r *ht
 		return
 	}
 	ResponderOK(w, lista)
+}
+
+func (rt *Rutas) manejarEliminarDisponibilidad(w http.ResponseWriter, r *http.Request) {
+	sesion, ok := identidad.SesionDesdeContexto(r.Context())
+	if !ok {
+		ResponderError(w, http.StatusUnauthorized, "sesion_no_encontrada")
+		return
+	}
+	if !rt.autorizarOResponder(w, r, sesion, permisos.DisponibilidadCrear) {
+		return
+	}
+	bloqueID := chi.URLParam(r, "bloqueID")
+	if err := rt.repoDisponibilidad.EliminarBloque(r.Context(), bloqueID, sesion.EmpresaID); err != nil {
+		ResponderErrorDominio(w, err)
+		return
+	}
+	ResponderOK(w, map[string]bool{"eliminado": true})
 }
 
 func (rt *Rutas) manejarConsultarSlots(w http.ResponseWriter, r *http.Request) {

@@ -5,6 +5,7 @@ import {
   Bell, BellOff, Clock, MessageCircle, Mail, Phone,
   CheckCircle2, XCircle, AlertCircle, RefreshCw, SendHorizonal,
 } from 'lucide-react';
+import { Avatar } from '@/compartido/interfaz/primitivas/Avatar';
 import { Boton } from '@/compartido/interfaz/primitivas/Boton';
 import { SelectorFecha } from '@/compartido/interfaz/primitivas/SelectorFecha';
 import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina';
@@ -279,9 +280,7 @@ function PestanaRecordatorios() {
       etiqueta: 'Cliente',
       render: (r: RecordatorioResumen) => (
         <div className="notificacion-celda-cliente">
-          <div className="tabla-datos-avatar tabla-datos-avatar--icono">
-            {r.nombre_cliente.charAt(0).toUpperCase()}
-          </div>
+          <Avatar nombre={r.nombre_cliente} tamano="sm" />
           <div>
             <p className="notificacion-cliente-nombre">{r.nombre_cliente}</p>
             {r.fecha_reserva && (

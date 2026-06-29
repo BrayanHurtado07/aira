@@ -20,7 +20,7 @@ Pantalla de bienvenida y métricas de negocio en tiempo real. La primera pantall
 | Ingresos del período | Suma | `"S/ 1,234.50"` con ícono `TrendingUp` |
 
 ### Acciones rápidas
-- "Nueva reserva" → `/reservas/nueva`
+- "Nueva reserva" → `/reservas?nueva=1` (abre el modal de nueva reserva)
 - "Registrar cliente" → `/reservas/clientes`
 - "Ver agenda" → `/agenda/disponibilidad`
 - "Conversaciones" → `/canal-whatsapp`

@@ -196,6 +196,41 @@ func (r *RepositorioBarberosCockroach) ListarActivos(ctx context.Context, empres
 	return resultado, nil
 }
 
+// ListarActivosPorServicio devuelve los barberos activos que SABEN realizar un
+// servicio (vía barbero_servicio). Regla de negocio: no ofrecer un barbero que no
+// hace el servicio elegido.
+func (r *RepositorioBarberosCockroach) ListarActivosPorServicio(ctx context.Context, empresaID, servicioID string) ([]barberos.Barbero, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT b.id_barbero, b.id_empresa, b.nombre, b.telefono, b.id_usuario, b.estado
+		 FROM barbero b
+		 JOIN barbero_servicio bs ON bs.id_barbero = b.id_barbero
+		 WHERE b.id_empresa = $1 AND b.estado = 'ACTIVO' AND bs.id_servicio = $2
+		 ORDER BY b.nombre`,
+		empresaID, servicioID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	resultado := []barberos.Barbero{}
+	for rows.Next() {
+		var b barberos.Barbero
+		var usuarioID, telefono *string
+		if err := rows.Scan(&b.ID, &b.EmpresaID, &b.Nombre, &telefono, &usuarioID, &b.Estado); err != nil {
+			return nil, err
+		}
+		if usuarioID != nil {
+			b.UsuarioID = *usuarioID
+		}
+		if telefono != nil {
+			b.Telefono = *telefono
+		}
+		resultado = append(resultado, b)
+	}
+	return resultado, nil
+}
+
 // ListarServiciosBarbero devuelve los servicios activos asignados a un barbero.
 func (r *RepositorioBarberosCockroach) ListarServiciosBarbero(ctx context.Context, barberoID string) ([]servicios.Servicio, error) {
 	rows, err := r.pool.Query(ctx,
@@ -246,13 +281,17 @@ func NuevoRepositorioServicio(pool *pgxpool.Pool) *RepositorioServicioCockroach 
 
 func (r *RepositorioServicioCockroach) ObtenerActivo(ctx context.Context, id string) (servicios.Servicio, error) {
 	var s servicios.Servicio
+	var desc *string
 	err := r.pool.QueryRow(ctx,
 		`SELECT id_servicio, id_empresa, nombre, duracion_minutos, precio_base, descripcion, estado
 		 FROM servicio WHERE id_servicio = $1 AND estado = 'ACTIVO'`,
 		id,
-	).Scan(&s.ID, &s.EmpresaID, &s.Nombre, &s.DuracionMinutos, &s.PrecioBase, &s.Descripcion, &s.Estado)
+	).Scan(&s.ID, &s.EmpresaID, &s.Nombre, &s.DuracionMinutos, &s.PrecioBase, &desc, &s.Estado)
 	if err != nil {
 		return servicios.Servicio{}, errores.ErrServicioNoActivo
+	}
+	if desc != nil {
+		s.Descripcion = *desc
 	}
 	return s, nil
 }
@@ -366,6 +405,24 @@ func (r *RepositorioDisponibilidadCockroach) Registrar(ctx context.Context, bloq
 		return "", fmt.Errorf("%s", resultado.Error)
 	}
 	return ExtraerCampo(resultado.Datos, "id_disponibilidad"), nil
+}
+
+// EliminarBloque borra un bloque de disponibilidad, validando que pertenezca a la
+// empresa (tenant). Permite corregir un horario mal cargado.
+func (r *RepositorioDisponibilidadCockroach) EliminarBloque(ctx context.Context, disponibilidadID, empresaID string) error {
+	tag, err := r.pool.Exec(ctx,
+		`DELETE FROM disponibilidad
+		 WHERE id_disponibilidad = $1
+		   AND id_barbero IN (SELECT id_barbero FROM barbero WHERE id_empresa = $2)`,
+		disponibilidadID, empresaID,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return errores.ErrBarberoNoDisponible
+	}
+	return nil
 }
 
 func (r *RepositorioDisponibilidadCockroach) ObtenerPorID(ctx context.Context, disponibilidadID string) (disponibilidad.BloqueDisponibilidad, error) {
@@ -790,7 +847,7 @@ func (r *RepositorioTarifaEspecialCockroach) Crear(
 		}
 		return "", fmt.Errorf("%s", resultado.Error)
 	}
-	return ExtraerCampo(resultado.Datos, "id_tarifa_especial"), nil
+	return ExtraerCampo(resultado.Datos, "id_tarifa"), nil
 }
 
 func (r *RepositorioTarifaEspecialCockroach) ListarPorSucursal(
@@ -798,7 +855,7 @@ func (r *RepositorioTarifaEspecialCockroach) ListarPorSucursal(
 	sucursalID string,
 ) ([]tarifas.TarifaEspecial, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id_tarifa_especial, id_sucursal, id_servicio,
+		`SELECT id_tarifa, id_sucursal, id_servicio,
 		        fecha::TEXT, precio_especial, COALESCE(motivo, '')
 		 FROM tarifa_especial
 		 WHERE id_sucursal = $1
@@ -827,7 +884,7 @@ func (r *RepositorioTarifaEspecialCockroach) Eliminar(
 	tarifaID string,
 ) error {
 	tag, err := r.pool.Exec(ctx,
-		`DELETE FROM tarifa_especial WHERE id_tarifa_especial = $1`,
+		`DELETE FROM tarifa_especial WHERE id_tarifa = $1`,
 		tarifaID,
 	)
 	if err != nil {

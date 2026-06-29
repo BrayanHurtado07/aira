@@ -51,6 +51,8 @@ interface PropsTablaDatos<T> {
   vacioIcono?: React.ReactNode
   vacioTitulo?: string
   vacioMensaje?: string
+  /** CTA opcional bajo el mensaje del estado vacío (ej. "Nueva reserva") */
+  vacioAccion?: React.ReactNode
   /**
    * Función que retorna los controles de acción para cada fila.
    * Se renderiza en una columna final "Acciones".
@@ -59,6 +61,8 @@ interface PropsTablaDatos<T> {
   acciones?: (fila: T) => React.ReactNode
   /** Callback al hacer clic en una fila completa */
   onClickFila?: (fila: T) => void
+  /** En móvil (<768px) degrada la tabla a tarjetas apiladas (label: valor). */
+  tarjetaMovil?: boolean
   className?: string
   style?: React.CSSProperties
 }
@@ -82,8 +86,10 @@ export function TablaDatos<T>({
   vacioIcono,
   vacioTitulo = 'Sin registros',
   vacioMensaje = 'No hay datos para mostrar.',
+  vacioAccion,
   acciones,
   onClickFila,
+  tarjetaMovil = false,
   className,
   style,
 }: PropsTablaDatos<T>) {
@@ -99,16 +105,17 @@ export function TablaDatos<T>({
         icono={vacioIcono}
         titulo={vacioTitulo}
         mensaje={vacioMensaje}
+        accion={vacioAccion}
       />
     )
   }
 
   return (
     <div
-      className={['tabla-datos-wrapper', className].filter(Boolean).join(' ')}
+      className={['tabla-datos-wrapper', tarjetaMovil ? 'tabla-datos-wrapper--tarjetas' : '', className].filter(Boolean).join(' ')}
       style={style}
     >
-      <div style={{ overflowX: 'auto' }}>
+      <div className="tabla-datos-scroll" style={{ overflowX: 'auto' }}>
         <table className="tabla-datos">
           <thead>
             <tr className="tabla-datos-encabezado">
@@ -180,6 +187,39 @@ export function TablaDatos<T>({
           </tbody>
         </table>
       </div>
+
+      {/* Variante móvil: tarjetas apiladas (label: valor). Solo si tarjetaMovil. */}
+      {tarjetaMovil && (
+        <div className="tabla-datos-tarjetas">
+          {filas.map((fila, i) => {
+            const clave = obtenerClave(fila)
+            return (
+              <div
+                key={clave}
+                className={['tabla-datos-tarjeta', onClickFila ? 'tabla-datos-tarjeta--clickable' : ''].filter(Boolean).join(' ')}
+                onClick={onClickFila ? () => onClickFila(fila) : undefined}
+              >
+                {columnas.map((col) => {
+                  const contenido = col.render
+                    ? col.render(fila, i)
+                    : String((fila as Record<string, unknown>)[col.clave] ?? '')
+                  return (
+                    <div key={col.clave} className="tabla-datos-tarjeta-fila">
+                      <span className="tabla-datos-tarjeta-label">{col.etiqueta}</span>
+                      <div className="tabla-datos-tarjeta-valor">{contenido}</div>
+                    </div>
+                  )
+                })}
+                {acciones && (
+                  <div className="tabla-datos-tarjeta-acciones" onClick={(e) => e.stopPropagation()}>
+                    {acciones(fila)}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

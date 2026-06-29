@@ -16,7 +16,7 @@ type SolicitudCrearServicio struct {
 	EmpresaID       string  `json:"empresa_id"`
 	Nombre          string  `json:"nombre"`
 	DuracionMinutos int     `json:"duracion_minutos"`
-	PrecioBase      float64 `json:"precio_base"`
+	PrecioBase      float64 `json:"precio,omitempty"`
 	Descripcion     string  `json:"descripcion"`
 	CreadoPor       string  `json:"-"`
 }

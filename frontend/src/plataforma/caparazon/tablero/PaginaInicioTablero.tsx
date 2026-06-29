@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
   TrendingUp, TrendingDown, Minus,
@@ -6,10 +7,15 @@ import {
   AlertCircle, Star, Scissors,
   RefreshCw, Download, Calendar,
   ChevronsUpDown, ChevronUp, ChevronDown,
+  Plus, CalendarClock, Package, Award, ArrowRight, CheckCircle2,
   type LucideIcon,
 } from 'lucide-react';
 import { usarUsuarioActual } from '@/plataforma/identidad/ganchos/usarUsuarioActual';
 import { usarAlmacenSesion } from '@/plataforma/identidad/almacen-sesion';
+import { Avatar } from '@/compartido/interfaz/primitivas/Avatar';
+import { Boton } from '@/compartido/interfaz/primitivas/Boton';
+import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta';
+import { Insignia } from '@/compartido/interfaz/retroalimentacion/Insignia';
 import { usarMetricasTablero } from './ganchos/usarMetricasTablero';
 import type { MetricasTablero, FiltroTablero } from './contratos/tipos';
 import { springTactil, springSuave, delayItem } from '@/plataforma/diseno/motion';
@@ -22,7 +28,10 @@ function hoy(): string {
 
 function primerDiaSemana(): string {
   const d = new Date();
-  d.setDate(d.getDate() - d.getDay() + 1);
+  // getDay(): 0=Dom..6=Sáb. Días transcurridos desde el lunes de ESTA semana.
+  // Para domingo (0) son 6 días, no -1 (que saltaba al lunes de la próxima).
+  const offset = d.getDay() === 0 ? 6 : d.getDay() - 1;
+  d.setDate(d.getDate() - offset);
   return d.toISOString().split('T')[0];
 }
 
@@ -130,7 +139,7 @@ function TarjetaKPI({ Icono, etiqueta, valor, contexto, tendencia, colorIcono, f
 
 function TablaServiciosTop({ datos, cargando }: { datos: MetricasTablero['servicios_top'] | undefined; cargando: boolean }) {
   return (
-    <div className="tablero-panel">
+    <div className="tablero-panel" aria-busy={cargando}>
       <div className="tablero-panel-cabecera">
         <span className="tablero-panel-titulo">Top servicios</span>
         <Scissors size={14} style={{ color: 'var(--color-texto-suave)' }} />
@@ -188,7 +197,7 @@ function PanelOrigen({ datos, cargando }: { datos: MetricasTablero['origen_reser
     : [];
 
   return (
-    <div className="tablero-panel">
+    <div className="tablero-panel" aria-busy={cargando}>
       <div className="tablero-panel-cabecera">
         <span className="tablero-panel-titulo">Origen de reservas</span>
         <Calendar size={14} style={{ color: 'var(--color-texto-suave)' }} />
@@ -233,14 +242,6 @@ function PanelOrigen({ datos, cargando }: { datos: MetricasTablero['origen_reser
 type CampoOrden = 'reservas' | 'completadas' | 'ingresos' | 'rating_promedio' | 'comision_pendiente' | 'no_asistio';
 type DireccionOrden = 'asc' | 'desc';
 
-function iniciales(nombre: string): string {
-  return nombre
-    .split(' ')
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('');
-}
-
 function EstrellaRating({ valor }: { valor: number }) {
   if (valor === 0) return <span style={{ color: 'var(--color-texto-muted)', fontSize: '0.75rem' }}>—</span>;
   return (
@@ -266,6 +267,16 @@ function ColumnaOrdenable({ campo, ordenActual, direccion, alOrdenar, children, 
   return (
     <th
       onClick={() => alOrdenar(campo)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          alOrdenar(campo);
+        }
+      }}
+      tabIndex={0}
+      role="columnheader"
+      aria-sort={activo ? (direccion === 'desc' ? 'descending' : 'ascending') : 'none'}
+      title={`Ordenar por ${typeof children === 'string' ? children : campo}`}
       style={{ textAlign: alinear, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', opacity: activo ? 1 : 0.7 }}>
@@ -299,7 +310,7 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
     : [];
 
   return (
-    <div className="tablero-panel">
+    <div className="tablero-panel" aria-busy={cargando}>
       <div className="tablero-panel-cabecera">
         <span className="tablero-panel-titulo">Rendimiento del equipo</span>
         <span style={{ fontSize: '0.7rem', color: 'var(--color-texto-suave)', fontFamily: 'var(--fuente-acento)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
@@ -319,7 +330,8 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
           <p style={{ fontSize: '0.875rem', color: 'var(--color-texto-suave)' }}>Sin barberos activos</p>
         </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <>
+        <div className="tablero-equipo-tabla" style={{ overflowX: 'auto' }}>
           <table className="tablero-tabla-equipo">
             <thead>
               <tr>
@@ -357,16 +369,8 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
                   >
                     {/* Nombre + avatar */}
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
-                        <span
-                          className="tablero-barbero-avatar"
-                          style={{
-                            background: idx === 0 ? 'var(--color-primario-suave)' : 'var(--color-acento-suave)',
-                            color: idx === 0 ? 'var(--color-primario)' : 'var(--color-texto-suave)',
-                          }}
-                        >
-                          {iniciales(b.nombre)}
-                        </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                        <Avatar nombre={b.nombre} monograma colorAuto />
                         <div>
                           <span className="tablero-barbero-nombre">{b.nombre}</span>
                           <div style={{ fontSize: '0.6875rem', color: 'var(--color-texto-muted)', marginTop: '1px' }}>
@@ -413,14 +417,7 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
                     {/* Comisión pendiente */}
                     <td>
                       {tieneComision ? (
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                          padding: '0.15rem 0.5rem', borderRadius: '99px',
-                          background: 'var(--color-primario-suave)', color: 'var(--color-primario)',
-                          fontWeight: 600, fontSize: '0.75rem',
-                        }}>
-                          {formatearMoneda(b.comision_pendiente)}
-                        </span>
+                        <Insignia variante="primario">{formatearMoneda(b.comision_pendiente)}</Insignia>
                       ) : (
                         <span style={{ color: 'var(--color-texto-muted)', fontSize: '0.75rem' }}>—</span>
                       )}
@@ -452,9 +449,9 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
                   <td style={{ paddingTop: '0.75rem' }} />
                   <td style={{ textAlign: 'right', paddingTop: '0.75rem' }}>
                     {ordenados.some((b) => b.comision_pendiente > 0) ? (
-                      <span style={{ padding: '0.15rem 0.5rem', borderRadius: '99px', background: 'var(--color-primario-suave)', color: 'var(--color-primario)', fontWeight: 700, fontSize: '0.75rem' }}>
+                      <Insignia variante="primario">
                         {formatearMoneda(ordenados.reduce((s, b) => s + b.comision_pendiente, 0))}
-                      </span>
+                      </Insignia>
                     ) : '—'}
                   </td>
                 </tr>
@@ -462,6 +459,39 @@ function TablaRendimientoEquipo({ barberos, cargando }: PropsTablaEquipo) {
             )}
           </table>
         </div>
+
+        {/* Variante móvil: tarjetas apiladas (la tabla de 7 columnas no cabe en 360px) */}
+        <ul className="tablero-equipo-cards" role="list">
+          {ordenados.map((b) => {
+            const tasaComplecion = b.reservas > 0 ? Math.round((b.completadas / b.reservas) * 100) : 0;
+            return (
+              <li key={b.id_barbero} className="tablero-equipo-card">
+                <div className="tablero-equipo-card-cabecera">
+                  <Avatar nombre={b.nombre} monograma colorAuto />
+                  <div style={{ minWidth: 0 }}>
+                    <span className="tablero-barbero-nombre">{b.nombre}</span>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--color-texto-muted)', marginTop: '1px' }}>
+                      {b.reservas > 0 ? `${tasaComplecion}% completado` : 'Sin reservas'}
+                    </div>
+                  </div>
+                  <span style={{ marginLeft: 'auto', fontWeight: 700, fontFamily: 'var(--fuente-display)', letterSpacing: '-0.02em' }}>
+                    {formatearMoneda(b.ingresos)}
+                  </span>
+                </div>
+                <div className="tablero-equipo-card-stats">
+                  <span>{b.reservas} reservas</span>
+                  <span style={{ color: 'var(--color-exito)' }}>{b.completadas} comp.</span>
+                  {b.no_asistio > 0 && <span style={{ color: 'var(--color-error)' }}>{b.no_asistio} no asist.</span>}
+                  <EstrellaRating valor={b.rating_promedio} />
+                  {b.comision_pendiente > 0 && (
+                    <Insignia variante="primario">{formatearMoneda(b.comision_pendiente)}</Insignia>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        </>
       )}
     </div>
   );
@@ -516,6 +546,7 @@ export function PaginaInicioTablero() {
   const usuario = usarUsuarioActual();
   const sesion = usarAlmacenSesion((s) => s.sesion);
   const esAdmin = !sesion?.nombreRol || sesion.nombreRol.toUpperCase().includes('ADMIN');
+  const navegar = useNavigate();
 
   const [presetActivo, setPresetActivo] = useState<PresetId>('mes');
 
@@ -525,11 +556,15 @@ export function PaginaInicioTablero() {
     fin: presetActual.fin(),
   };
 
-  const { data, isLoading, isFetching, refetch } = usarMetricasTablero(filtro);
+  const { data, isLoading, isFetching, isError, refetch } = usarMetricasTablero(filtro);
   const cargando = isLoading;
 
   const hora = new Date().getHours();
   const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
+  const fechaHoy = new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'short' });
+
+  const alertasInventario = data?.inventario_alertas ?? [];
+  const barberosConComision = data?.barberos?.filter((b) => b.comision_pendiente > 0).length ?? 0;
 
   return (
     <div className="pagina-tablero animar-aparecer">
@@ -541,30 +576,26 @@ export function PaginaInicioTablero() {
             {saludo}{usuario.nombre ? `, ${usuario.nombre.split(' ')[0]}` : ''}
           </h1>
           <div className="tablero-saludo-meta">
-            {sesion?.barberiaId && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                padding: '0.2rem 0.625rem', borderRadius: '99px',
-                background: 'var(--color-acento-suave)', fontSize: 'var(--tamano-xs)',
-                fontWeight: 500, color: 'var(--color-primario)',
-              }}>
-                {sesion.nombre}
-              </span>
+            {sesion?.barberiaId && sesion.nombre && (
+              <Insignia variante="primario">{sesion.nombre}</Insignia>
             )}
             {!esAdmin && sesion?.nombreRol && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                padding: '0.2rem 0.625rem', borderRadius: '99px',
-                background: 'var(--color-advertencia-suave)', fontSize: 'var(--tamano-xs)',
-                fontWeight: 500, color: 'var(--color-advertencia)',
-              }}>
-                {sesion.nombreRol}
-              </span>
+              <Insignia variante="advertencia">{sesion.nombreRol}</Insignia>
             )}
           </div>
         </div>
 
         <div className="tablero-filtros">
+          {esAdmin ? (
+            <Boton tamano="sm" icono={<Plus size={14} />} onClick={() => navegar('/reservas?nueva=1')}>
+              Nueva reserva
+            </Boton>
+          ) : (
+            <Boton tamano="sm" icono={<Calendar size={14} />} onClick={() => navegar('/agenda/mi-agenda')}>
+              Mi agenda
+            </Boton>
+          )}
+
           <div className="tablero-periodo-grupo">
             {PRESETS.map((p) => (
               <button
@@ -617,14 +648,86 @@ export function PaginaInicioTablero() {
         </div>
       </div>
 
+      {/* ── Estado de error ── */}
+      {isError && (
+        <BannerAlerta
+          variante="error"
+          titulo="No se pudieron cargar las métricas"
+          mensaje="Revisa tu conexión e intenta de nuevo."
+          onCerrar={() => refetch()}
+          style={{ marginBottom: '1rem' }}
+        />
+      )}
+
+      {/* ── Alerta de inventario bajo mínimo (solo admin, solo si hay) ── */}
+      {esAdmin && alertasInventario.length > 0 && (
+        <button
+          type="button"
+          onClick={() => navegar('/inventario')}
+          className="tablero-banner-inventario"
+        >
+          <Package size={16} aria-hidden="true" />
+          <span>
+            <strong>{alertasInventario.length} producto{alertasInventario.length > 1 ? 's' : ''} bajo mínimo</strong>
+            {' — '}
+            {alertasInventario.slice(0, 3).map((p) => p.nombre).join(', ')}
+            {alertasInventario.length > 3 ? '…' : ''}
+          </span>
+          <ArrowRight size={14} aria-hidden="true" style={{ marginLeft: 'auto', flexShrink: 0 }} />
+        </button>
+      )}
+
+      {/* ── Snapshot de HOY — solo cuando el período NO es "Hoy" (si no, duplica los KPIs) ── */}
+      {presetActivo !== 'hoy' && (
+      <div className="tablero-hoy" aria-busy={cargando}>
+        <div className="tablero-hoy-titulo">
+          <CalendarClock size={15} aria-hidden="true" />
+          <span>Hoy, {fechaHoy}</span>
+        </div>
+        {cargando ? (
+          <div className="tablero-hoy-skeleton" />
+        ) : !data || data.hoy.reservas_total === 0 ? (
+          <p className="tablero-hoy-vacio">Sin reservas programadas para hoy</p>
+        ) : (
+          <div className="tablero-hoy-stats">
+            <div className="tablero-hoy-stat">
+              <span className="tablero-hoy-valor">{data.hoy.reservas_total}</span>
+              <span className="tablero-hoy-etq">reservas</span>
+            </div>
+            <div className="tablero-hoy-stat">
+              <span className="tablero-hoy-valor" style={{ color: 'var(--color-exito)' }}>{data.hoy.reservas_completadas}</span>
+              <span className="tablero-hoy-etq">completadas</span>
+            </div>
+            <div className="tablero-hoy-stat">
+              <span className="tablero-hoy-valor" style={{ color: 'var(--color-advertencia)' }}>{data.hoy.reservas_pendientes}</span>
+              <span className="tablero-hoy-etq">pendientes</span>
+            </div>
+            {esAdmin && (
+              <div className="tablero-hoy-stat">
+                <span className="tablero-hoy-valor">{formatearMoneda(data.hoy.ingresos)}</span>
+                <span className="tablero-hoy-etq">ingresos</span>
+              </div>
+            )}
+          </div>
+        )}
+        <button
+          type="button"
+          className="tablero-hoy-cta"
+          onClick={() => navegar(esAdmin ? '/reservas' : '/agenda/mi-agenda')}
+        >
+          {esAdmin ? 'Ver reservas' : 'Ver mi agenda'} <ArrowRight size={13} aria-hidden="true" />
+        </button>
+      </div>
+      )}
+
       {/* ── Sección 2: KPIs ── */}
-      <div className="tablero-kpi-grid">
+      <div className="tablero-kpi-grid" aria-busy={cargando}>
         <TarjetaKPI
           indice={0}
           Icono={DollarSign}
           etiqueta="Ingresos del período"
           valor={cargando ? '—' : formatearMoneda(data?.ingresos.total ?? 0)}
-          tendencia={data?.ingresos.variacion_pct}
+          tendencia={data && data.ingresos.variacion_pct !== 0 ? data.ingresos.variacion_pct : undefined}
           colorIcono="var(--color-primario)"
           fondoIcono="var(--color-acento-suave)"
           cargando={cargando}
@@ -645,7 +748,7 @@ export function PaginaInicioTablero() {
         />
         <TarjetaKPI
           indice={2}
-          Icono={TrendingUp}
+          Icono={CheckCircle2}
           etiqueta="Tasa de completado"
           valor={cargando ? '—' : `${((data?.reservas.tasa_completado ?? 0) * 100).toFixed(0)}%`}
           contexto={
@@ -681,18 +784,36 @@ export function PaginaInicioTablero() {
           fondoIcono="var(--color-advertencia-suave)"
           cargando={cargando}
         />
+        {esAdmin && (
+          <TarjetaKPI
+            indice={5}
+            Icono={DollarSign}
+            etiqueta="Comisiones por pagar"
+            valor={cargando ? '—' : formatearMoneda(data?.comisiones_pendientes ?? 0)}
+            contexto={
+              data
+                ? barberosConComision > 0
+                  ? `${barberosConComision} barbero${barberosConComision > 1 ? 's' : ''} por liquidar`
+                  : 'Todo liquidado'
+                : undefined
+            }
+            colorIcono="var(--color-texto-suave)"
+            fondoIcono="var(--color-superficie-2)"
+            cargando={cargando}
+          />
+        )}
         <TarjetaKPI
-          indice={5}
-          Icono={Star}
-          etiqueta="Comisiones por pagar"
-          valor={cargando ? '—' : formatearMoneda(data?.comisiones_pendientes ?? 0)}
+          indice={6}
+          Icono={Award}
+          etiqueta="Lealtad — por canjear"
+          valor={cargando ? '—' : String(data?.lealtad.listos_para_canjear ?? 0)}
           contexto={
-            data && data.lealtad.tarjetas_activas > 0
-              ? `${data.lealtad.tarjetas_activas} tarjetas de lealtad activas`
-              : 'Sin obligaciones pendientes'
+            data
+              ? `${data.lealtad.sellos_acumulados} sellos · ${data.lealtad.canjes_periodo} canjes en el período`
+              : undefined
           }
-          colorIcono="var(--color-texto-suave)"
-          fondoIcono="var(--color-superficie-2)"
+          colorIcono="var(--color-primario)"
+          fondoIcono="var(--color-acento-suave)"
           cargando={cargando}
         />
       </div>

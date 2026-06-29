@@ -15,6 +15,8 @@ interface PropiedadesSelectorFecha {
   id?: string;
   /** Si es true sólo se selecciona la fecha (sin hora). Devuelve "YYYY-MM-DD". */
   soloFecha?: boolean;
+  /** Fecha mínima seleccionable (los días anteriores quedan deshabilitados). */
+  minDate?: Date;
 }
 
 function valorAFecha(valor: string): Date {
@@ -43,6 +45,7 @@ export function SelectorFecha({
   deshabilitado = false,
   id,
   soloFecha = false,
+  minDate,
 }: PropiedadesSelectorFecha) {
   const [abierto, setAbierto] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -129,6 +132,7 @@ export function SelectorFecha({
           locale={es}
           weekStartsOn={1}
           showOutsideDays
+          disabled={minDate ? { before: minDate } : undefined}
           components={{
             PreviousMonthButton: (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
               <button {...props} className="rdp-nav-btn"><ChevronLeft size={14} /></button>

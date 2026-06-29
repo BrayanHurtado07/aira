@@ -11,7 +11,9 @@ import { Selector } from '@/compartido/interfaz/primitivas/Selector'
 import { SelectorFecha } from '@/compartido/interfaz/primitivas/SelectorFecha'
 import { Boton } from '@/compartido/interfaz/primitivas/Boton'
 import { Campo } from '@/compartido/interfaz/primitivas/Campo'
+import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta'
 import { Vacio } from '@/compartido/interfaz/retroalimentacion/Vacio'
+import { SelectorBarbero } from '@/capacidades/agenda/componentes/SelectorBarbero'
 import type {
   SolicitudRegistrarDisponibilidad,
   BloqueDisponibilidad,
@@ -49,7 +51,7 @@ function etiquetaMotivo(motivo: string): string {
 
 // ── Panel Horarios ────────────────────────────────────────────────────────────
 
-function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
+function PanelHorarios({ bloques, onEliminar, eliminando }: { bloques: BloqueDisponibilidad[]; onEliminar?: (id: string) => void; eliminando?: boolean }) {
   if (bloques.length === 0) {
     return (
       <Vacio
@@ -103,6 +105,18 @@ function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
                 <span style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500 }}>
                   {b.hora_inicio} – {b.hora_fin}
                 </span>
+                {onEliminar && (
+                  <button
+                    type="button"
+                    onClick={() => onEliminar(b.id)}
+                    disabled={eliminando}
+                    aria-label={`Eliminar bloque ${b.hora_inicio} a ${b.hora_fin}`}
+                    title="Eliminar bloque"
+                    style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-texto-suave)', display: 'flex', padding: '0.25rem' }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -116,7 +130,7 @@ function PanelHorarios({ bloques }: { bloques: BloqueDisponibilidad[] }) {
 
 function PanelExcepciones({ barberoId, barberoNombre }: { barberoId: string; barberoNombre: string }) {
   const [form, setForm] = useState<SolicitudRegistrarExcepcion>({ fecha: '', motivo: 'VACACION', descripcion: '' })
-  const { excepciones, cargandoExcepciones, registrar, registrando, eliminar, errorRegistrar } =
+  const { excepciones, cargandoExcepciones, errorCarga, registrar, registrando, eliminar, errorRegistrar } =
     usarExcepcionesBarbero(barberoId)
 
   const enviar = async (e: React.FormEvent) => {
@@ -153,6 +167,7 @@ function PanelExcepciones({ barberoId, barberoNombre }: { barberoId: string; bar
                 soloFecha
                 valor={form.fecha}
                 alCambiar={(v) => setForm((p) => ({ ...p, fecha: v }))}
+                minDate={new Date()}
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
@@ -182,6 +197,8 @@ function PanelExcepciones({ barberoId, barberoNombre }: { barberoId: string; bar
 
       {cargandoExcepciones ? (
         <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>Cargando bloqueos…</p>
+      ) : errorCarga ? (
+        <BannerAlerta variante="error" mensaje="No se pudieron cargar los días bloqueados." />
       ) : excepciones.length === 0 ? (
         <Vacio icono={<Ban size={20} />} titulo="Sin días bloqueados" mensaje="Los días bloqueados aparecerán aquí." />
       ) : (
@@ -212,6 +229,7 @@ function PanelExcepciones({ barberoId, barberoNombre }: { barberoId: string; bar
                 type="button"
                 onClick={() => manejarEliminar(ex)}
                 title="Eliminar bloqueo"
+                aria-label={`Eliminar bloqueo del ${ex.fecha}`}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: '0.25rem', color: 'var(--color-texto-suave)',
@@ -238,21 +256,17 @@ const ESTADO_INICIAL: SolicitudRegistrarDisponibilidad = {
 }
 
 export function PaginaAgendaBarbero() {
-  const { barberos, cargando: cargandoBarberos } = usarBarberos()
+  const { barberos } = usarBarberos()
   const [formulario, setFormulario] = useState<SolicitudRegistrarDisponibilidad>(ESTADO_INICIAL)
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [verHorarios, setVerHorarios] = useState(false)
   const [verExcepciones, setVerExcepciones] = useState(false)
 
-  const { registrar, registrando, bloques, cargandoBloques } = usarDisponibilidadBarbero(
+  const { registrar, registrando, bloques, cargandoBloques, errorCarga, eliminar, eliminando } = usarDisponibilidadBarbero(
     formulario.barbero_id || undefined,
   )
 
   const barberoSeleccionado = barberos.find((b) => b.id === formulario.barbero_id)
-
-  const opcionesBarberos = barberos
-    .filter((b) => b.estado === 'ACTIVO')
-    .map((b) => ({ valor: b.id, etiqueta: b.nombre }))
 
   const cambiarCampo = (campo: keyof SolicitudRegistrarDisponibilidad, valor: string | number) => {
     setFormulario((prev) => ({ ...prev, [campo]: valor }))
@@ -289,21 +303,7 @@ export function PaginaAgendaBarbero() {
       <EncabezadoPagina
         titulo="Agenda de disponibilidad"
         descripcion="Define horarios semanales y bloquea días no disponibles"
-        indicador={
-          barberoSeleccionado ? (
-            <div
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                padding: '0.25rem 0.75rem', borderRadius: '99px',
-                backgroundColor: 'rgba(204,28,46,0.08)',
-                fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-primario)',
-              }}
-            >
-              <CalendarDays size={11} />
-              {barberoSeleccionado.nombre}
-            </div>
-          ) : undefined
-        }
+        indicador={barberoSeleccionado ? barberoSeleccionado.nombre : undefined}
         style={{
           padding: 'var(--espacio-lg)',
           borderBottom: '1px solid var(--color-borde)',
@@ -317,24 +317,13 @@ export function PaginaAgendaBarbero() {
         <SeccionTarjeta titulo="Registrar disponibilidad" icono={<Clock size={14} />} maxAncho={520}>
           <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)' }}>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-              <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
-                Barbero <span style={{ color: 'var(--color-error)' }}>*</span>
-              </label>
-              <Selector
+            <Campo etiqueta="Barbero" requerido error={errores.barbero_id}>
+              <SelectorBarbero
                 valor={formulario.barbero_id}
                 alCambiar={(v) => cambiarCampo('barbero_id', v)}
-                opciones={opcionesBarberos}
-                placeholder="Selecciona barbero"
-                cargando={cargandoBarberos}
                 error={!!errores.barbero_id}
               />
-              {errores.barbero_id && (
-                <span style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-error)' }}>
-                  {errores.barbero_id}
-                </span>
-              )}
-            </div>
+            </Campo>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
@@ -400,7 +389,9 @@ export function PaginaAgendaBarbero() {
                 >
                   {cargandoBloques
                     ? <p style={{ fontSize: 'var(--tamano-sm)', color: 'var(--color-texto-suave)' }}>Cargando horarios…</p>
-                    : <PanelHorarios bloques={bloques} />}
+                    : errorCarga
+                      ? <BannerAlerta variante="error" mensaje="No se pudo cargar la disponibilidad." />
+                      : <PanelHorarios bloques={bloques} onEliminar={eliminar} eliminando={eliminando} />}
                 </motion.div>
               )}
             </AnimatePresence>

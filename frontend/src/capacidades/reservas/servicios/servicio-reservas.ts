@@ -26,6 +26,9 @@ export const cancelarReserva = (id: string) =>
 export const completarReserva = (id: string) =>
   clienteHttp.post<Reserva>(`/reservas/${id}/completar`)
 
+export const marcarNoAsistioReserva = (id: string) =>
+  clienteHttp.post<Reserva>(`/reservas/${id}/no-asistio`)
+
 export const obtenerClientes = () =>
   clienteHttp.get<Cliente[]>('/clientes')
 
@@ -57,6 +60,9 @@ export const ingresarListaEspera = (
 
 export const listarListaEspera = (): Promise<EntradaListaEspera[]> =>
   clienteHttp.get<EntradaListaEspera[]>('/lista-espera')
+
+export const promoverListaEspera = (id: string) =>
+  clienteHttp.post<void>(`/lista-espera/${id}/promover`)
 
 export const agregarComplemento = (
   reservaID: string,

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { toast } from 'sonner';
 import { Search, UserPlus, X, Check, Phone } from 'lucide-react';
 import { usarClientes } from '@/capacidades/reservas/ganchos/usarClientes';
+import { Avatar } from '@/compartido/interfaz/primitivas/Avatar';
 import { Campo } from '@/compartido/interfaz/primitivas/Campo';
 import { Boton } from '@/compartido/interfaz/primitivas/Boton';
 import { Modal } from '@/compartido/interfaz/primitivas/Modal';
@@ -226,9 +227,7 @@ export function BuscadorCliente({ valor, alCambiar, error }: PropiedadesBuscador
                     .filter(Boolean)
                     .join(' ')}
                 >
-                  <div className="buscador-avatar buscador-avatar--sm">
-                    {c.nombre.charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar nombre={c.nombre} tamano="sm" />
                   <div className="buscador-opcion-info">
                     <span className="buscador-opcion-nombre">{c.nombre}</span>
                     <span className="buscador-opcion-telefono">{c.telefono}</span>
@@ -283,9 +282,7 @@ export function BuscadorCliente({ valor, alCambiar, error }: PropiedadesBuscador
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && abrir()}
             >
-              <div className="buscador-avatar">
-                {clienteSeleccionado.nombre.charAt(0).toUpperCase()}
-              </div>
+              <Avatar nombre={clienteSeleccionado.nombre} />
               <div className="buscador-seleccionado-info">
                 <span className="buscador-seleccionado-nombre">
                   {clienteSeleccionado.nombre}

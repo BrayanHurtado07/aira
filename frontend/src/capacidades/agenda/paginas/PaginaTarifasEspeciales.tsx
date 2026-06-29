@@ -1,19 +1,21 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { Tag, Plus, Trash2, AlertCircle } from 'lucide-react'
+import { Tag, Plus, Trash2, Building2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { mensajeDeError } from '@/plataforma/gobierno/errores/errores-dominio'
 import { Boton } from '@/compartido/interfaz/primitivas/Boton'
 import { Campo } from '@/compartido/interfaz/primitivas/Campo'
 import { CampoMoneda } from '@/compartido/interfaz/primitivas/CampoMoneda'
-import { Selector } from '@/compartido/interfaz/primitivas/Selector'
 import { SelectorFecha } from '@/compartido/interfaz/primitivas/SelectorFecha'
+import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta'
 import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina'
 import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta'
 import { TablaDatos } from '@/compartido/interfaz/primitivas/TablaDatos'
 import { MenuAcciones } from '@/compartido/interfaz/primitivas/MenuAcciones'
 import { DialogoConfirmacion } from '@/compartido/interfaz/primitivas/DialogoConfirmacion'
+import { SelectorSede } from '@/capacidades/organizacion/componentes/SelectorSede'
+import { SelectorServicio } from '../componentes/SelectorServicio'
 import { usarSedes } from '@/capacidades/organizacion/ganchos/usarSedes'
 import { obtenerServicios } from '../servicios/servicio-agenda'
 import { usarTarifasSucursal, usarCrearTarifa, usarEliminarTarifa } from '../ganchos/usarTarifasEspeciales'
@@ -41,7 +43,7 @@ function PanelTarifasSucursal({
   sucursalID: string
   servicios: Servicio[]
 }) {
-  const { tarifas, cargando } = usarTarifasSucursal(sucursalID)
+  const { tarifas, cargando, error } = usarTarifasSucursal(sucursalID)
   const mutacionCrear = usarCrearTarifa(sucursalID)
   const mutacionEliminar = usarEliminarTarifa(sucursalID)
 
@@ -86,10 +88,6 @@ function PanelTarifasSucursal({
       },
     )
   }
-
-  const opcionesServicio = servicios
-    .filter((s) => s.estado === 'ACTIVO')
-    .map((s) => ({ valor: s.id, etiqueta: `${s.nombre} — S/ ${s.precio.toFixed(2)}` }))
 
   const columnas = [
     {
@@ -152,61 +150,32 @@ function PanelTarifasSucursal({
             style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)', marginBottom: 'var(--espacio-lg)' }}
           >
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
-              {/* Servicio */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
-                  Servicio <span style={{ color: 'var(--color-error)' }}>*</span>
-                </label>
-                <Selector
+              <Campo etiqueta="Servicio" requerido error={errores.servicio_id}>
+                <SelectorServicio
                   valor={form.servicio_id}
                   alCambiar={(v) => cambiar('servicio_id', v)}
-                  opciones={opcionesServicio}
-                  placeholder="Selecciona servicio"
                   error={!!errores.servicio_id}
                 />
-                {errores.servicio_id && (
-                  <span style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-error)' }}>
-                    {errores.servicio_id}
-                  </span>
-                )}
-              </div>
+              </Campo>
 
-              {/* Fecha */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
-                  Fecha <span style={{ color: 'var(--color-error)' }}>*</span>
-                </label>
+              <Campo etiqueta="Fecha" requerido error={errores.fecha}>
                 <SelectorFecha
                   soloFecha
                   valor={form.fecha}
                   alCambiar={(v) => cambiar('fecha', v)}
                   error={!!errores.fecha}
+                  minDate={new Date()}
                 />
-                {errores.fecha && (
-                  <span style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-error)' }}>
-                    {errores.fecha}
-                  </span>
-                )}
-              </div>
+              </Campo>
 
-              {/* Precio especial */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
-                  Precio especial <span style={{ color: 'var(--color-error)' }}>*</span>
-                </label>
+              <Campo etiqueta="Precio especial" requerido error={errores.precio_especial}>
                 <CampoMoneda
                   valor={form.precio_especial}
                   alCambiar={(v) => cambiar('precio_especial', v)}
                   error={!!errores.precio_especial}
                 />
-                {errores.precio_especial && (
-                  <span style={{ fontSize: 'var(--tamano-xs)', color: 'var(--color-error)' }}>
-                    {errores.precio_especial}
-                  </span>
-                )}
-              </div>
+              </Campo>
 
-              {/* Motivo */}
               <Campo
                 etiqueta="Motivo (opcional)"
                 value={form.motivo}
@@ -226,11 +195,18 @@ function PanelTarifasSucursal({
           </form>
         )}
 
+        {!cargando && error && (
+          <div style={{ padding: '0 var(--espacio-md) var(--espacio-md)' }}>
+            <BannerAlerta variante="error" titulo="No se pudieron cargar las tarifas" mensaje={mensajeDeError(error)} />
+          </div>
+        )}
+
         <TablaDatos<TarifaEspecial>
           columnas={columnas}
           filas={tarifas}
           obtenerClave={(t) => t.id}
           cargando={cargando}
+          tarjetaMovil
           vacioIcono={<Tag size={28} />}
           vacioTitulo="Sin tarifas especiales"
           vacioMensaje="No hay precios diferenciales configurados para esta sucursal."
@@ -276,7 +252,7 @@ function PanelTarifasSucursal({
 // ── Página principal ──────────────────────────────────────────────────────────
 
 export function PaginaTarifasEspeciales() {
-  const { sedes, cargando: cargandoSedes } = usarSedes()
+  const { sedes } = usarSedes()
   const [sucursalSeleccionada, setSucursalSeleccionada] = useState('')
 
   const consultaServicios = useQuery({
@@ -285,66 +261,35 @@ export function PaginaTarifasEspeciales() {
   })
   const servicios = consultaServicios.data ?? []
 
-  const opcionesSedes = sedes.map((s) => ({ valor: s.id, etiqueta: s.nombre }))
   const sedeSel = sedes.find((s) => s.id === sucursalSeleccionada)
 
   return (
     <motion.div
+      className="pagina-contenido"
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      style={{ display: 'flex', flexDirection: 'column' }}
     >
       <EncabezadoPagina
         titulo="Tarifas especiales"
         descripcion="Precios diferenciales para servicios en fechas concretas por sede"
-        indicador={
-          sucursalSeleccionada && sedeSel ? (
-            <div
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                padding: '0.25rem 0.75rem', borderRadius: '99px',
-                backgroundColor: 'rgba(204,28,46,0.08)',
-                fontSize: 'var(--tamano-xs)', fontWeight: 600, color: 'var(--color-primario)',
-              }}
-            >
-              <Tag size={11} />
-              {sedeSel.nombre}
-            </div>
-          ) : undefined
-        }
-        style={{
-          padding: 'var(--espacio-lg)',
-          borderBottom: '1px solid var(--color-borde)',
-          backgroundColor: 'var(--color-superficie)',
-        }}
+        indicador={sedeSel ? sedeSel.nombre : undefined}
       />
 
-      <div style={{ padding: 'var(--espacio-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--espacio-lg)' }}>
+      {consultaServicios.isError && (
+        <BannerAlerta variante="error" mensaje="No se pudieron cargar los servicios. Recarga la página." />
+      )}
 
-        {/* Selector de sede */}
-        <SeccionTarjeta titulo="Sede" icono={<AlertCircle size={14} />} maxAncho={420}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-            <label style={{ fontSize: 'var(--tamano-sm)', fontWeight: 500, color: 'var(--color-texto)' }}>
-              Selecciona la sede a configurar
-            </label>
-            <Selector
-              valor={sucursalSeleccionada}
-              alCambiar={setSucursalSeleccionada}
-              opciones={opcionesSedes}
-              placeholder="— Elige una sede —"
-              cargando={cargandoSedes}
-            />
-          </div>
-        </SeccionTarjeta>
+      {/* Selector de sede */}
+      <SeccionTarjeta titulo="Sede" icono={<Building2 size={14} />} maxAncho={420}>
+        <Campo etiqueta="Selecciona la sede a configurar">
+          <SelectorSede valor={sucursalSeleccionada} alCambiar={setSucursalSeleccionada} placeholder="— Elige una sede —" />
+        </Campo>
+      </SeccionTarjeta>
 
-        {sucursalSeleccionada && (
-          <PanelTarifasSucursal
-            sucursalID={sucursalSeleccionada}
-            servicios={servicios}
-          />
-        )}
-      </div>
+      {sucursalSeleccionada && (
+        <PanelTarifasSucursal sucursalID={sucursalSeleccionada} servicios={servicios} />
+      )}
     </motion.div>
   )
 }

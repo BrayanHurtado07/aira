@@ -3,13 +3,13 @@ package excepciones
 // ExcepcionDisponibilidad bloquea un día completo para un barbero en una sede.
 // Se usa para vacaciones, feriados, cierres u otros imprevistos.
 type ExcepcionDisponibilidad struct {
-	ID          string
-	BarberoID   string
-	SucursalID  string
-	Fecha       string // "YYYY-MM-DD"
-	Motivo      string // FERIADO | VACACION | CIERRE | OTRO
-	Descripcion string
-	CreadoEn    string
+	ID          string `json:"id"`
+	BarberoID   string `json:"barbero_id"`
+	SucursalID  string `json:"sucursal_id"`
+	Fecha       string `json:"fecha"` // "YYYY-MM-DD"
+	Motivo      string `json:"motivo"` // FERIADO | VACACION | CIERRE | OTRO
+	Descripcion string `json:"descripcion"`
+	CreadoEn    string `json:"creado_en"`
 }
 
 // MotivosValidos define los valores permitidos para el campo Motivo.

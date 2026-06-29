@@ -26,7 +26,20 @@ barbería —no técnico, a menudo en el celular entre cliente y cliente— pued
   explícitamente como "primitiva nueva a crear", no la dibujes inline.
 - **Una acción primaria por pantalla** (un solo `Boton` primario). El resto, secundarios.
 - **Jerarquía visual clara**: título (`EncabezadoPagina`) → contenido en `SeccionTarjeta` → acciones.
-- **Mobile-first**: describe el layout en 360px Y en desktop. Tablas → tarjetas en móvil.
+- **Mobile-first**: describe el layout en 360px Y en desktop. Tablas → tarjetas en móvil (siempre, `TablaDatos`
+  no degrada solo). Probar mentalmente 360–430px, tablet y desktop.
+- **Defaults responsivos ya decididos (aplicarlos sin que los pidan):**
+  - Formulario de pocos campos → **modal** (reusable crear+editar), NO página completa. Deep-link `?param=1` si se
+    abre desde otra pantalla.
+  - Modal en móvil = **sheet a pantalla completa**, por encima de TODO el chrome (no dejar que navbar/sidebar tape el título/X).
+  - Encabezado de página **apila en vertical** en móvil; acción primaria a **ancho completo**.
+  - Acciones que se confunden → color/ícono distinto en **reposo** (móvil no tiene hover).
+- **Datos honestos**: sin indicadores engañosos sobre cero; KPIs coherentes entre filtros/períodos; estado vacío de
+  primer-uso (no grilla de ceros).
+- **Reglas de dominio en formularios de agenda/reserva:**
+  - **Barbero↔servicio**: no ofrecer barberos que no saben el servicio elegido (`SelectorBarbero servicioId=...`).
+  - **Agendar (Nueva reserva)** = elegir un slot LIBRE → usar `SelectorSlot` (respeta horario sede+barbero, evita
+    doble-reserva). **Lista de espera** = un DESEO de horario NO disponible → fecha como preferencia, NO slot picker.
 - **Los 3 estados siempre**: carga (`Esqueleto`), vacío (`Vacio` con CTA), error (`BannerAlerta`).
 - **Menos es más**: si un campo no ayuda a la decisión, fuera. Reduce fricción al objetivo.
 - Lenguaje en español, cálido y claro (es una barbería, no un banco).

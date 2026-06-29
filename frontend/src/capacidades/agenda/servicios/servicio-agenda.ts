@@ -15,11 +15,12 @@ import type {
   SolicitudCrearTarifa,
 } from '@/capacidades/agenda/contratos/tipos'
 
-export const obtenerBarberos = () =>
-  clienteHttp.get<Barbero[]>('/barberos')
+// servicioId opcional: filtra a los barberos que saben hacer ese servicio.
+export const obtenerBarberos = (servicioId?: string) =>
+  clienteHttp.get<Barbero[]>(servicioId ? `/barberos?servicio_id=${servicioId}` : '/barberos')
 
 export const registrarBarbero = (solicitud: SolicitudRegistrarBarbero) =>
-  clienteHttp.post<Barbero>('/barberos', solicitud)
+  clienteHttp.post<{ barbero_id: string }>('/barberos', solicitud)
 
 export const obtenerServicios = () =>
   clienteHttp.get<Servicio[]>('/servicios')
@@ -43,6 +44,9 @@ export const asignarServicioBarbero = (
 
 export const obtenerDisponibilidadBarbero = (barberoId: string) =>
   clienteHttp.get<BloqueDisponibilidad[]>(`/disponibilidad/${barberoId}`)
+
+export const eliminarDisponibilidad = (barberoId: string, bloqueId: string) =>
+  clienteHttp.delete<void>(`/disponibilidad/${barberoId}/${bloqueId}`)
 
 export const obtenerServiciosBarbero = (barberoId: string) =>
   clienteHttp.get<Servicio[]>(`/barberos/${barberoId}/servicios`)

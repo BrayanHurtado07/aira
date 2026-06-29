@@ -6,7 +6,7 @@
 | Página | Ruta | Rol |
 |--------|------|-----|
 | `PaginaReservas` | `/reservas` | Admin + Barbero |
-| `PaginaNuevaReserva` | `/reservas/nueva` | Admin + Barbero |
+| `ModalReserva` (crear+editar) | modal en `/reservas` (deep-link `/reservas?nueva=1`) | Admin + Barbero |
 | `PaginaDetalleReserva` | `/reservas/:id` | Admin + Barbero |
 | `PaginaGestionClientes` | `/reservas/clientes` | Admin + Barbero |
 | `PaginaListaEspera` | `/reservas/lista-espera` | Admin + Barbero |

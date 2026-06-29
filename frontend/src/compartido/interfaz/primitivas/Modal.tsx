@@ -33,17 +33,7 @@ export function Modal({
   return (
     <AnimatePresence>
       {abierto && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 50,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--espacio-md)',
-          }}
-        >
+        <div className="modal-overlay">
           {/* Overlay */}
           <motion.div
             key="overlay"
@@ -63,23 +53,12 @@ export function Modal({
           {/* Panel */}
           <motion.div
             key="panel"
+            className="modal-panel"
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: ANCHOS[ancho],
-              maxHeight: 'calc(100vh - 3rem)',
-              backgroundColor: 'var(--color-superficie)',
-              borderRadius: 'var(--radio-xl)',
-              border: '1px solid var(--color-borde)',
-              boxShadow: 'var(--sombra-modal)',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-            }}
+            style={{ maxWidth: ANCHOS[ancho] }}
           >
             {/* Cabecera */}
             <div

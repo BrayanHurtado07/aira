@@ -43,6 +43,7 @@ export function usarExcepcionesBarbero(barberoId?: string) {
   return {
     excepciones: consulta.data ?? [],
     cargandoExcepciones: consulta.isLoading,
+    errorCarga: consulta.error ? mensajeDeError(consulta.error) : null,
     registrar,
     registrando: mutacionRegistrar.isPending,
     eliminar,

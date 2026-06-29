@@ -3,6 +3,7 @@ import {
   confirmarReserva,
   cancelarReserva,
   completarReserva,
+  marcarNoAsistioReserva,
 } from '@/capacidades/reservas/servicios/servicio-reservas'
 
 export function usarAccionesReserva() {
@@ -26,13 +27,20 @@ export function usarAccionesReserva() {
     onSuccess: invalidarReservas,
   })
 
+  const mutacionNoAsistio = useMutation({
+    mutationFn: (id: string) => marcarNoAsistioReserva(id),
+    onSuccess: invalidarReservas,
+  })
+
   return {
     confirmar: (id: string) => mutacionConfirmar.mutateAsync(id),
     cancelar: (id: string) => mutacionCancelar.mutateAsync(id),
     completar: (id: string) => mutacionCompletar.mutateAsync(id),
+    marcarNoAsistio: (id: string) => mutacionNoAsistio.mutateAsync(id),
     ejecutando:
       mutacionConfirmar.isPending ||
       mutacionCancelar.isPending ||
-      mutacionCompletar.isPending,
+      mutacionCompletar.isPending ||
+      mutacionNoAsistio.isPending,
   }
 }

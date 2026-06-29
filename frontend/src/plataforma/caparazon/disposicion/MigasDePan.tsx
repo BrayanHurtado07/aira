@@ -12,7 +12,6 @@ const MAPA_RUTAS: Record<string, Miga[]> = {
   '/agenda/servicios':      [{ label: 'Agenda', href: '/agenda/barberos' }, { label: 'Servicios' }],
   '/agenda/tarifas':        [{ label: 'Agenda', href: '/agenda/barberos' }, { label: 'Tarifas especiales' }],
   '/reservas':              [{ label: 'Reservas' }],
-  '/reservas/nueva':        [{ label: 'Reservas', href: '/reservas' }, { label: 'Nueva reserva' }],
   '/reservas/clientes':     [{ label: 'Reservas', href: '/reservas' }, { label: 'Clientes' }],
   '/reservas/lista-espera': [{ label: 'Reservas', href: '/reservas' }, { label: 'Lista de espera' }],
   '/organizacion':          [{ label: 'Organización' }],
