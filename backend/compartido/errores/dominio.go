@@ -123,6 +123,8 @@ var (
 var (
 	ErrConversacionNoExiste  = errors.New("conversacion_no_existe")
 	ErrConversacionNoActiva  = errors.New("conversacion_no_activa")
+	ErrAtajoInvalido         = errors.New("atajo_invalido")
+	ErrAtajoNoExiste         = errors.New("atajo_no_existe")
 )
 
 // Inventario

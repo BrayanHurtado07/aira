@@ -144,3 +144,53 @@ BEGIN
     RETURN jsonb_build_object('exito', true);
 END;
 $$;
+
+-- -----------------------------------------------------------------------------
+-- Atajos de respuesta rápida (línea de atajos del chat)
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION atajo_respuesta_crear(
+    p_id_empresa  UUID,
+    p_titulo      STRING,
+    p_contenido   STRING,
+    p_orden       INT     DEFAULT 0,
+    p_creado_por  UUID    DEFAULT NULL
+)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+DECLARE
+    v_id_atajo UUID;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM empresa WHERE id_empresa = p_id_empresa AND estado = 'ACTIVO') THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'EMPRESA_NO_ACTIVA');
+    END IF;
+    IF p_titulo IS NULL OR length(trim(p_titulo)) = 0
+       OR p_contenido IS NULL OR length(trim(p_contenido)) = 0 THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'ATAJO_INVALIDO');
+    END IF;
+
+    INSERT INTO atajo_respuesta (id_empresa, titulo, contenido, orden, creado_por)
+    VALUES (p_id_empresa, trim(p_titulo), p_contenido, p_orden::INT2, p_creado_por)
+    RETURNING id_atajo INTO v_id_atajo;
+
+    RETURN jsonb_build_object(
+        'exito', true,
+        'datos', jsonb_build_object('id_atajo', v_id_atajo)
+    );
+END;
+$$;
+
+-- Baja lógica: marca activa=false (no DELETE físico).
+CREATE OR REPLACE FUNCTION atajo_respuesta_eliminar(
+    p_id_atajo  UUID
+)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM atajo_respuesta WHERE id_atajo = p_id_atajo AND activa = true) THEN
+        RETURN jsonb_build_object('exito', false, 'error', 'ATAJO_NO_EXISTE');
+    END IF;
+
+    UPDATE atajo_respuesta SET activa = false WHERE id_atajo = p_id_atajo;
+
+    RETURN jsonb_build_object('exito', true);
+END;
+$$;

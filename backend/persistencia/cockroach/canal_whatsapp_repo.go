@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"aira/capacidades/canal_whatsapp/atajos"
 	"aira/capacidades/canal_whatsapp/casos_uso"
 	"aira/capacidades/canal_whatsapp/conversaciones"
 	"aira/capacidades/canal_whatsapp/sesion_chat"
@@ -270,4 +271,90 @@ func (r *RepositorioSesionChatCockroach) ObtenerPorConversacion(ctx context.Cont
 	}
 	sc.ContextoJSON = contexto
 	return sc, nil
+}
+
+// RepositorioAtajoCockroach
+
+var _ atajos.RepositorioAtajo = (*RepositorioAtajoCockroach)(nil)
+
+type RepositorioAtajoCockroach struct {
+	pool *pgxpool.Pool
+}
+
+func NuevoRepositorioAtajo(pool *pgxpool.Pool) *RepositorioAtajoCockroach {
+	return &RepositorioAtajoCockroach{pool: pool}
+}
+
+func (r *RepositorioAtajoCockroach) Crear(ctx context.Context, a atajos.Atajo, creadoPor string) (string, error) {
+	cp := any(creadoPor)
+	if creadoPor == "" {
+		cp = nil
+	}
+	resultado, err := LlamarProc(ctx, r.pool, "atajo_respuesta_crear",
+		a.EmpresaID, a.Titulo, a.Contenido, a.Orden, cp)
+	if err != nil {
+		return "", err
+	}
+	if !resultado.Exito {
+		switch resultado.Error {
+		case "ATAJO_INVALIDO":
+			return "", errores.ErrAtajoInvalido
+		case "EMPRESA_NO_ACTIVA":
+			return "", errores.ErrEmpresaNoActiva
+		}
+		return "", fmt.Errorf("%s", resultado.Error)
+	}
+	return ExtraerCampo(resultado.Datos, "id_atajo"), nil
+}
+
+func (r *RepositorioAtajoCockroach) ListarPorEmpresa(ctx context.Context, empresaID string) ([]atajos.Atajo, error) {
+	filas, err := r.pool.Query(ctx,
+		`SELECT id_atajo, id_empresa, titulo, contenido, orden
+		 FROM atajo_respuesta
+		 WHERE id_empresa = $1 AND activa = true
+		 ORDER BY orden, creado_en`,
+		empresaID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer filas.Close()
+
+	lista := []atajos.Atajo{}
+	for filas.Next() {
+		var a atajos.Atajo
+		if err := filas.Scan(&a.ID, &a.EmpresaID, &a.Titulo, &a.Contenido, &a.Orden); err != nil {
+			return nil, err
+		}
+		lista = append(lista, a)
+	}
+	return lista, filas.Err()
+}
+
+func (r *RepositorioAtajoCockroach) Eliminar(ctx context.Context, atajoID string) error {
+	resultado, err := LlamarProc(ctx, r.pool, "atajo_respuesta_eliminar", atajoID)
+	if err != nil {
+		return err
+	}
+	if !resultado.Exito {
+		if resultado.Error == "ATAJO_NO_EXISTE" {
+			return errores.ErrAtajoNoExiste
+		}
+		return fmt.Errorf("%s", resultado.Error)
+	}
+	return nil
+}
+
+// EmpresaDeAtajo devuelve la empresa dueña de un atajo, para validar pertenencia
+// de inquilino antes de eliminarlo.
+func (r *RepositorioAtajoCockroach) EmpresaDeAtajo(ctx context.Context, atajoID string) (string, error) {
+	var empresaID string
+	err := r.pool.QueryRow(ctx,
+		`SELECT id_empresa FROM atajo_respuesta WHERE id_atajo = $1`,
+		atajoID,
+	).Scan(&empresaID)
+	if err != nil {
+		return "", errores.ErrAtajoNoExiste
+	}
+	return empresaID, nil
 }

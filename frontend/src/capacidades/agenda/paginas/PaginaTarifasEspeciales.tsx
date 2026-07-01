@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { Tag, Plus, Trash2, Building2 } from 'lucide-react'
@@ -6,8 +6,6 @@ import { useQuery } from '@tanstack/react-query'
 import { mensajeDeError } from '@/plataforma/gobierno/errores/errores-dominio'
 import { Boton } from '@/compartido/interfaz/primitivas/Boton'
 import { Campo } from '@/compartido/interfaz/primitivas/Campo'
-import { CampoMoneda } from '@/compartido/interfaz/primitivas/CampoMoneda'
-import { SelectorFecha } from '@/compartido/interfaz/primitivas/SelectorFecha'
 import { BannerAlerta } from '@/compartido/interfaz/primitivas/BannerAlerta'
 import { EncabezadoPagina } from '@/compartido/interfaz/primitivas/EncabezadoPagina'
 import { SeccionTarjeta } from '@/compartido/interfaz/primitivas/SeccionTarjeta'
@@ -15,20 +13,13 @@ import { TablaDatos } from '@/compartido/interfaz/primitivas/TablaDatos'
 import { MenuAcciones } from '@/compartido/interfaz/primitivas/MenuAcciones'
 import { DialogoConfirmacion } from '@/compartido/interfaz/primitivas/DialogoConfirmacion'
 import { SelectorSede } from '@/capacidades/organizacion/componentes/SelectorSede'
-import { SelectorServicio } from '../componentes/SelectorServicio'
+import { ModalTarifaEspecial } from '../componentes/ModalTarifaEspecial'
 import { usarSedes } from '@/capacidades/organizacion/ganchos/usarSedes'
 import { obtenerServicios } from '../servicios/servicio-agenda'
-import { usarTarifasSucursal, usarCrearTarifa, usarEliminarTarifa } from '../ganchos/usarTarifasEspeciales'
+import { usarTarifasSucursal, usarEliminarTarifa } from '../ganchos/usarTarifasEspeciales'
 import type { TarifaEspecial, Servicio } from '../contratos/tipos'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-const FORM_VACIO = {
-  servicio_id: '',
-  fecha: '',
-  precio_especial: '',
-  motivo: '',
-}
 
 function nombreServicio(servicioId: string, servicios: Servicio[]): string {
   return servicios.find((s) => s.id === servicioId)?.nombre ?? servicioId.slice(0, 8) + '…'
@@ -44,50 +35,10 @@ function PanelTarifasSucursal({
   servicios: Servicio[]
 }) {
   const { tarifas, cargando, error } = usarTarifasSucursal(sucursalID)
-  const mutacionCrear = usarCrearTarifa(sucursalID)
   const mutacionEliminar = usarEliminarTarifa(sucursalID)
 
-  const [mostrarFormulario, setMostrarFormulario] = useState(false)
-  const [form, setForm] = useState(FORM_VACIO)
-  const [errores, setErrores] = useState<Record<string, string>>({})
+  const [modalAbierto, setModalAbierto] = useState(false)
   const [confirmarEliminar, setConfirmarEliminar] = useState<TarifaEspecial | null>(null)
-
-  const cambiar = (campo: keyof typeof FORM_VACIO, valor: string) => {
-    setForm((prev) => ({ ...prev, [campo]: valor }))
-    setErrores((prev) => ({ ...prev, [campo]: '' }))
-  }
-
-  const cerrarFormulario = () => {
-    setMostrarFormulario(false)
-    setForm(FORM_VACIO)
-    setErrores({})
-  }
-
-  const manejarEnviar = (e: React.FormEvent) => {
-    e.preventDefault()
-    const nuevos: Record<string, string> = {}
-    if (!form.servicio_id) nuevos.servicio_id = 'Selecciona un servicio'
-    if (!form.fecha) nuevos.fecha = 'La fecha es obligatoria'
-    if (!form.precio_especial || Number(form.precio_especial) <= 0)
-      nuevos.precio_especial = 'Ingresa un precio válido'
-    if (Object.keys(nuevos).length > 0) { setErrores(nuevos); return }
-
-    mutacionCrear.mutate(
-      {
-        servicio_id: form.servicio_id,
-        fecha: form.fecha,
-        precio_especial: Number(form.precio_especial),
-        motivo: form.motivo.trim() || undefined,
-      },
-      {
-        onSuccess: () => {
-          toast.success('Tarifa especial creada')
-          cerrarFormulario()
-        },
-        onError: (err) => toast.error(mensajeDeError(err)),
-      },
-    )
-  }
 
   const columnas = [
     {
@@ -132,69 +83,18 @@ function PanelTarifasSucursal({
         titulo="Tarifas especiales"
         descripcion="Precios diferenciales para servicios en fechas concretas"
         icono={<Tag size={14} />}
-        sinPaddingCuerpo={!mostrarFormulario}
+        sinPaddingCuerpo
         acciones={
           <Boton
-            variante={mostrarFormulario ? 'fantasma' : 'primario'}
+            variante="primario"
             icono={<Plus size={13} />}
             tamano="sm"
-            onClick={() => mostrarFormulario ? cerrarFormulario() : setMostrarFormulario(true)}
+            onClick={() => setModalAbierto(true)}
           >
-            {mostrarFormulario ? 'Cancelar' : 'Nueva tarifa'}
+            Nueva tarifa
           </Boton>
         }
       >
-        {mostrarFormulario && (
-          <form
-            onSubmit={manejarEnviar}
-            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-md)', marginBottom: 'var(--espacio-lg)' }}
-          >
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--espacio-md)' }}>
-              <Campo etiqueta="Servicio" requerido error={errores.servicio_id}>
-                <SelectorServicio
-                  valor={form.servicio_id}
-                  alCambiar={(v) => cambiar('servicio_id', v)}
-                  error={!!errores.servicio_id}
-                />
-              </Campo>
-
-              <Campo etiqueta="Fecha" requerido error={errores.fecha}>
-                <SelectorFecha
-                  soloFecha
-                  valor={form.fecha}
-                  alCambiar={(v) => cambiar('fecha', v)}
-                  error={!!errores.fecha}
-                  minDate={new Date()}
-                />
-              </Campo>
-
-              <Campo etiqueta="Precio especial" requerido error={errores.precio_especial}>
-                <CampoMoneda
-                  valor={form.precio_especial}
-                  alCambiar={(v) => cambiar('precio_especial', v)}
-                  error={!!errores.precio_especial}
-                />
-              </Campo>
-
-              <Campo
-                etiqueta="Motivo (opcional)"
-                value={form.motivo}
-                onChange={(e) => cambiar('motivo', e.target.value)}
-                placeholder="Ej: Feriado, Promoción…"
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: 'var(--espacio-sm)' }}>
-              <Boton type="submit" variante="primario" cargando={mutacionCrear.isPending} icono={<Tag size={13} />}>
-                Crear tarifa
-              </Boton>
-              <Boton type="button" variante="fantasma" onClick={cerrarFormulario}>
-                Cancelar
-              </Boton>
-            </div>
-          </form>
-        )}
-
         {!cargando && error && (
           <div style={{ padding: '0 var(--espacio-md) var(--espacio-md)' }}>
             <BannerAlerta variante="error" titulo="No se pudieron cargar las tarifas" mensaje={mensajeDeError(error)} />
@@ -210,6 +110,11 @@ function PanelTarifasSucursal({
           vacioIcono={<Tag size={28} />}
           vacioTitulo="Sin tarifas especiales"
           vacioMensaje="No hay precios diferenciales configurados para esta sucursal."
+          vacioAccion={
+            <Boton variante="primario" icono={<Plus size={13} />} tamano="sm" onClick={() => setModalAbierto(true)}>
+              Crear la primera
+            </Boton>
+          }
           acciones={(t) => (
             <MenuAcciones
               acciones={[
@@ -221,6 +126,12 @@ function PanelTarifasSucursal({
           )}
         />
       </SeccionTarjeta>
+
+      <ModalTarifaEspecial
+        abierto={modalAbierto}
+        alCerrar={() => setModalAbierto(false)}
+        sucursalID={sucursalID}
+      />
 
       <DialogoConfirmacion
         abierto={!!confirmarEliminar}

@@ -121,3 +121,25 @@ CREATE TABLE IF NOT EXISTS indicacion_bot (
 );
 
 CREATE INDEX idx_indicacion_bot_empresa ON indicacion_bot (id_empresa, activa);
+
+-- -----------------------------------------------------------------------------
+
+-- atajo_respuesta: respuestas rápidas que el operador inserta con 1 toque en el
+-- composer del chat ("nuestra línea de atajos"). Por empresa, ordenables.
+-- Baja lógica (activa=false), nunca DELETE físico de registro de negocio.
+CREATE TABLE IF NOT EXISTS atajo_respuesta (
+    id_atajo    UUID        NOT NULL DEFAULT gen_random_uuid(),
+    id_empresa  UUID        NOT NULL,
+    titulo      STRING(60)  NOT NULL,
+    contenido   STRING      NOT NULL,
+    orden       INT2        NOT NULL DEFAULT 0,
+    activa      BOOL        NOT NULL DEFAULT true,
+    creado_en   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    creado_por  UUID,
+
+    CONSTRAINT pk_atajo_respuesta          PRIMARY KEY (id_atajo),
+    CONSTRAINT fk_atajo_respuesta_empresa  FOREIGN KEY (id_empresa)
+                                           REFERENCES empresa(id_empresa) ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_atajo_respuesta_empresa ON atajo_respuesta (id_empresa, activa, orden);

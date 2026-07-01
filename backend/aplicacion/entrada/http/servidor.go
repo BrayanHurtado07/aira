@@ -93,6 +93,7 @@ func (s *Servidor) Iniciar(
 	registrarMensaje *casoCanal.CasoUsoRegistrarMensaje,
 	gestionarSesionChat *casoCanal.CasoUsoGestionarSesionChat,
 	atenderChat *casoCanal.CasoUsoAtenderChat,
+	crearAtajo *casoCanal.CasoUsoCrearAtajo,
 	// Monetización
 	activarSuscripcion *casoMonetizacion.CasoUsoActivarSuscripcion,
 	suspenderSuscripcion *casoMonetizacion.CasoUsoSuspenderSuscripcion,
@@ -196,6 +197,7 @@ func (s *Servidor) Iniciar(
 		registrarMensaje:    registrarMensaje,
 		gestionarSesionChat: gestionarSesionChat,
 		atenderChat:         atenderChat,
+		crearAtajo:          crearAtajo,
 		// Monetización
 		activarSuscripcion:   activarSuscripcion,
 		suspenderSuscripcion: suspenderSuscripcion,
@@ -248,6 +250,7 @@ func (s *Servidor) Iniciar(
 		repoConversacionWA: repoCockroach.NuevoRepositorioConversacion(s.pool),
 		repoMensajeWA:      repoCockroach.NuevoRepositorioMensaje(s.pool),
 		repoSesionChatWA:   repoCockroach.NuevoRepositorioSesionChat(s.pool),
+		repoAtajos:         repoCockroach.NuevoRepositorioAtajo(s.pool),
 		cobrarSuscripcion: casoMonetizacion.NuevoCasoUsoCobrarSuscripcion(
 			repoCockroach.NuevoRepositorioPago(s.pool),
 			pagosPlataforma.NuevaPasarela(),

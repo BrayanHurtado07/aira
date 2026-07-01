@@ -146,6 +146,8 @@ func main() {
 	cuRegistrarMensaje     := casoCanal.NuevoCasoUsoRegistrarMensaje(repoConversacion, repoMensaje)
 	cuGestionarSesionChat  := casoCanal.NuevoCasoUsoGestionarSesionChat(repoSesionChat)
 	cuAtenderChat          := casoCanal.NuevoCasoUsoAtenderChat(creadorReserva, consultorDisponibilidad, consultorSede)
+	repoAtajo              := cockroach.NuevoRepositorioAtajo(pool)
+	cuCrearAtajo           := casoCanal.NuevoCasoUsoCrearAtajo(repoAtajo, validadorPermiso)
 
 	cuActivarSuscripcion   := casoMonetizacion.NuevoCasoUsoActivarSuscripcion(repoSuscripcion, aud)
 	cuSuspenderSuscripcion := casoMonetizacion.NuevoCasoUsoSuspenderSuscripcion(repoSuscripcion, aud)
@@ -239,6 +241,7 @@ func main() {
 		cuRegistrarReserva, cuActualizarReserva, cuConfirmarReserva,
 		cuCancelarReserva, cuCompletarReserva, cuMarcarNoAsistio,
 		cuIniciarConversacion, cuRegistrarMensaje, cuGestionarSesionChat, cuAtenderChat,
+		cuCrearAtajo,
 		cuActivarSuscripcion, cuSuspenderSuscripcion, cuCancelarSuscripcion,
 		cuCrearProgramaLealtad, cuAcumularSello, cuAnularSello, cuAplicarCanje,
 		cuProgramarRecordatorio, cuCancelarRecordatorio, cuCrearPlantilla,
